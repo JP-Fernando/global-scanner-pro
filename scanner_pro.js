@@ -5,6 +5,7 @@
 import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from './config.js';
 import * as ind from './indicators.js';
 import * as scoring from './scoring.js';
+import * as risk from './risk_engine.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
@@ -514,10 +515,33 @@ window.buildPortfolio = function () {
       totalCapital
     );
 
+    // --- NUEVA LÓGICA DE RIESGO ---
+    // 1. VaR de la Cartera (Suma ponderada de VaR individuales + efecto diversificación simple)
+    // Nota: Para hacerlo perfecto necesitaríamos covarianza, aquí sumamos VaR individual como "Worst Case" conservador
+    const assetsWithPrices = topAssets.map(a => ({
+      ...a,
+      // Recuperamos precios del scanResults original
+      prices: appState.scanResults.find(r => r.ticker === a.ticker).prices
+    }));
+
+    const correlationMatrix = risk.calculateCorrelationMatrix(assetsWithPrices);
+    const stressTests = risk.runStressTest(withCapital, totalCapital);
+
+    // Calculamos VaR individual del activo más pesado como referencia rápida
+    const topHolding = withCapital.sort((a,b) => b.weight - a.weight)[0];
+    const topHoldingPrices = assetsWithPrices.find(a => a.ticker === topHolding.ticker).prices;
+    const topVaR = risk.calculateVaR(topHoldingPrices, 0.95, topHolding.recommended_capital);
+
+    // Guardamos todo en el estado
     appState.portfolio = {
       ...portfolioData,
       allocation: withCapital,
-      totalCapital
+      totalCapital,
+      riskAnalysis: {
+        correlationMatrix,
+        stressTests,
+        topHoldingVaR: topVaR
+      }
     };
 
     renderPortfolio(appState.portfolio);
@@ -537,11 +561,84 @@ function renderPortfolio(portfolio) {
 
   container.innerHTML = `
     ${renderRiskSummary(portfolio.portfolioRisk)}
-    ${renderAllocationTable(portfolio.allocation)}
+    ${renderAdvancedRiskDashboard(portfolio.riskAnalysis)} ${renderAllocationTable(portfolio.allocation)}
     ${renderWeightChart(portfolio.allocation)}
   `;
 
   container.style.display = 'block';
+}
+
+function renderAdvancedRiskDashboard(analysis) {
+  return `
+    <div class="risk-dashboard-container">
+      <h3>🧩 Matriz de Correlaciones & Stress Test</h3>
+
+      <div class="risk-grid-layout">
+        <div class="risk-panel-dark">
+          <h4>🔥 Mapa de Calor (Correlaciones)</h4>
+          <div class="correlation-heatmap">
+            ${renderHeatmap(analysis.correlationMatrix)}
+          </div>
+          <p class="small-text">Rojo = Se mueven igual (Riesgo). Verde = Descorrelacionados (Diversificación).</p>
+        </div>
+
+        <div class="risk-panel-dark">
+          <h4>🌪️ Stress Test (Simulación)</h4>
+          <table class="stress-table">
+            <thead>
+              <tr><th>Escenario</th><th>Impacto Mercado</th><th>Tu Cartera</th></tr>
+            </thead>
+            <tbody>
+              ${analysis.stressTests.map(s => `
+                <tr>
+                  <td>${s.scenario}</td>
+                  <td style="color:#f87171">${s.marketDrop}</td>
+                  <td style="color:#f87171; font-weight:bold">${s.estimatedLoss} (${s.lossPct})</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div style="margin-top:15px; padding:10px; background:rgba(255,0,0,0.1); border-radius:6px;">
+            <strong>VaR (95%) Principal Activo:</strong> <span style="color:#f87171">${analysis.topHoldingVaR.value}€</span>
+            <div class="small-text">Riesgo diario estimado en tu mayor posición.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderHeatmap(matrix) {
+  // Renderizado simple de tabla HTML con colores
+  const tickers = matrix.map(m => m.ticker);
+
+  let html = '<table class="heatmap-table"><thead><tr><th></th>';
+  tickers.forEach(t => html += `<th>${t.split('.')[0]}</th>`); // Ticker corto
+  html += '</tr></thead><tbody>';
+
+  matrix.forEach((row, i) => {
+    html += `<tr><td><strong>${row.ticker.split('.')[0]}</strong></td>`;
+    row.values.forEach((val, j) => {
+      // Color dinámico: 1 = Rojo (#ef4444), 0 = Verde (#10b981), -1 = Azul (#3b82f6)
+      let color = 'transparent';
+      let fontColor = '#fff';
+
+      if (val > 0.8) color = 'rgba(239, 68, 68, 0.8)'; // Rojo fuerte
+      else if (val > 0.5) color = 'rgba(239, 68, 68, 0.4)'; // Rojo suave
+      else if (val > 0.2) color = 'rgba(251, 191, 36, 0.3)'; // Amarillo
+      else if (val > -0.2) color = 'rgba(16, 185, 129, 0.3)'; // Verde (Buena diversificación)
+      else color = 'rgba(59, 130, 246, 0.4)'; // Azul (Correlación negativa)
+
+      // Ocultar la mitad superior de la matriz para limpieza visual (opcional)
+      // if (j > i) val = '';
+
+      html += `<td style="background:${color}; color:${fontColor}">${val}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  return html;
 }
 
 function renderRiskSummary(risk) {
