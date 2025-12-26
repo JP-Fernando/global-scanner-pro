@@ -3,7 +3,7 @@
 // =====================================================
 
 // Validación de entrada
-const validateArray = (arr, minLength, name = 'array') => {
+const validateArray = (arr, minLength, name = 'array') => { 
   if (!Array.isArray(arr) || arr.length === 0) {
     throw new Error(`${name} debe ser un array no vacío`);
   }
@@ -26,7 +26,7 @@ export const SMA = (arr, period) => {
 export const EMA = (prices, period, warmupMultiplier = 5) => {
   const warmup = period * warmupMultiplier;
   validateArray(prices, warmup + 1, 'EMA input');
-  
+
   const sliced = prices.slice(prices.length - warmup);
   let ema = SMA(sliced.slice(0, period), period);
   const k = 2 / (period + 1);
@@ -54,24 +54,24 @@ export const EMA_Array = (prices, period) => {
 export const RSI = (prices, period = 14) => {
   validateArray(prices, period + 1, 'RSI input');
   let gains = 0, losses = 0;
-  
+
   for (let i = prices.length - period; i < prices.length; i++) {
     const change = prices[i] - prices[i - 1];
     if (change > 0) gains += change;
     else losses -= change;
   }
-  
+
   const avgGain = gains / period;
   const avgLoss = losses / period || 1e-10;
   const rs = avgGain / avgLoss;
-  
+
   return 100 - (100 / (1 + rs));
 };
 
 // Average True Range
 export const ATR = (data, period = 14) => {
   validateArray(data, period + 1, 'ATR input');
-  
+
   let tr = [];
   for (let i = 1; i < data.length; i++) {
     const high = data[i].h || data[i].c;
@@ -92,12 +92,12 @@ export const ATR_Percent = (data, period = 14) => {
 // Bollinger Bands
 export const BollingerBands = (prices, period = 20, stdDevMultiplier = 2) => {
   validateArray(prices, period, 'BollingerBands input');
-  
+
   const slice = prices.slice(-period);
   const sma = SMA(slice, period);
   const variance = slice.reduce((sum, price) => sum + Math.pow(price - sma, 2), 0) / period;
   const stdDev = Math.sqrt(variance);
-  
+
   return {
     upper: sma + (stdDevMultiplier * stdDev),
     middle: sma,
@@ -110,39 +110,39 @@ export const BollingerBands = (prices, period = 20, stdDevMultiplier = 2) => {
 // Average Directional Index
 export const ADX = (data, period = 14) => {
   validateArray(data, period + 1, 'ADX input');
-  
+
   let plusDM = 0, minusDM = 0, trSum = 0;
-  
+
   for (let i = data.length - period; i < data.length - 1; i++) {
     const highDiff = (data[i + 1].h || data[i + 1].c) - (data[i].h || data[i].c);
     const lowDiff = (data[i].l || data[i].c) - (data[i + 1].l || data[i + 1].c);
-    
+
     if (highDiff > lowDiff && highDiff > 0) plusDM += highDiff;
     if (lowDiff > highDiff && lowDiff > 0) minusDM += lowDiff;
-    
+
     const high = data[i + 1].h || data[i + 1].c;
     const low = data[i + 1].l || data[i + 1].c;
     const prevClose = data[i].c;
     trSum += Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
   }
-  
+
   const avgTR = trSum / period;
   const plusDI = avgTR === 0 ? 0 : (plusDM / avgTR) * 100;
   const minusDI = avgTR === 0 ? 0 : (minusDM / avgTR) * 100;
   const total = plusDI + minusDI;
-  
+
   return total === 0 ? 0 : (Math.abs(plusDI - minusDI) / total) * 100;
 };
 
 // Williams %R
 export const WilliamsR = (data, period = 14) => {
   validateArray(data, period, 'WilliamsR input');
-  
+
   const slice = data.slice(-period);
   const highest = Math.max(...slice.map(d => d.h || d.c));
   const lowest = Math.min(...slice.map(d => d.l || d.c));
   const close = data[data.length - 1].c;
-  
+
   return highest === lowest ? -50 : ((highest - close) / (highest - lowest)) * -100;
 };
 
@@ -157,26 +157,26 @@ export const ROC = (prices, period) => {
 // Volatilidad anualizada
 export const Volatility = (prices, period = 252) => {
   validateArray(prices, period + 1, 'Volatility input');
-  
+
   const returns = [];
   for (let i = prices.length - period; i < prices.length; i++) {
     returns.push(Math.log(prices[i] / prices[i - 1]));
   }
-  
+
   const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
   const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
-  
+
   return Math.sqrt(variance * 252) * 100;
 };
 
 // Drawdown máximo desde el máximo en periodo
 export const MaxDrawdown = (prices, period = 252) => {
   validateArray(prices, Math.min(period, prices.length), 'MaxDrawdown input');
-  
+
   const slice = prices.slice(-Math.min(period, prices.length));
   let maxPrice = slice[0];
   let maxDD = 0;
-  
+
   for (let i = 1; i < slice.length; i++) {
     if (slice[i] > maxPrice) {
       maxPrice = slice[i];
@@ -185,34 +185,34 @@ export const MaxDrawdown = (prices, period = 252) => {
       if (dd > maxDD) maxDD = dd;
     }
   }
-  
+
   return maxDD;
 };
 
 // Días por encima de EMA
 export const DaysAboveEMA = (prices, emaPeriod, lookback = 200) => {
   validateArray(prices, emaPeriod + lookback, 'DaysAboveEMA input');
-  
+
   const emaArray = EMA_Array(prices, emaPeriod);
   const startIdx = emaArray.length - lookback;
   let daysAbove = 0;
-  
+
   for (let i = 0; i < lookback; i++) {
     if (prices[prices.length - lookback + i] > emaArray[startIdx + i]) {
       daysAbove++;
     }
   }
-  
+
   return (daysAbove / lookback) * 100;
 };
 
 // Volume Ratio
 export const VolumeRatio = (volumes, shortPeriod = 20, longPeriod = 60) => {
   validateArray(volumes, longPeriod, 'VolumeRatio input');
-  
+
   const avgShort = SMA(volumes.slice(-shortPeriod), shortPeriod);
   const avgLong = SMA(volumes.slice(-longPeriod), longPeriod);
-  
+
   return avgShort / avgLong;
 };
 
