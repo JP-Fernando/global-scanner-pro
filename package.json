@@ -1,0 +1,40 @@
+{
+  "name": "global-quant-scanner-pro",
+  "version": "2.0.0",
+  "description": "Sistema cuantitativo profesional para análisis multi-factor de mercados globales",
+  "type": "module",
+  "main": "server_pro.js",
+  "scripts": {
+    "start": "node server_pro.js",
+    "dev": "node --watch server_pro.js",
+    "test": "node -e \"import('./tests.js').then(m => m.runAllTests())\"",
+    "test:api": "curl http://localhost:3000/api/run-tests"
+  },
+  "keywords": [
+    "quantitative",
+    "trading",
+    "scanner",
+    "technical-analysis",
+    "stock-market",
+    "finance",
+    "momentum",
+    "trend-following"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.22.1",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/global-quant-scanner-pro"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/global-quant-scanner-pro/issues"
+  },
+  "homepage": "https://github.com/yourusername/global-quant-scanner-pro#readme"
+}

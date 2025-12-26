@@ -1,0 +1,15 @@
+# Dependencias de Node
+node_modules/
+npm-debug.log*
+
+# Archivos de sistema y editores
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Backups y temporales
+*.tar.gz
+*.zip
+dist/
+build/

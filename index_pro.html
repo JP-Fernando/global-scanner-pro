@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Quant Scanner Pro</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #f8fafc;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 30px;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header p {
+      color: #94a3b8;
+      font-size: 1.1em;
+    }
+    
+    .controls {
+      background: #1e293b;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .control-row {
+      display: grid;
+      grid-template-columns: 2fr 2fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .control-group label {
+      font-size: 0.85em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    
+    select, button {
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    select {
+      background: #334155;
+      color: white;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    
+    select:hover {
+      border-color: #38bdf8;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .info-bar {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .info-card {
+      background: #1e293b;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #38bdf8;
+    }
+    
+    .info-card.strategy {
+      border-left-color: #818cf8;
+    }
+    
+    .status {
+      margin: 15px 0;
+      padding: 12px;
+      background: #0f172a;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #38bdf8;
+    }
+    
+    .table-container {
+      background: #1e293b;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    thead {
+      background: #334155;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    th {
+      color: #38bdf8;
+      text-align: left;
+      padding: 16px;
+      font-size: 0.85em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+    
+    td {
+      padding: 16px;
+      border-bottom: 1px solid #334155;
+      font-size: 0.95em;
+    }
+    
+    .result-row {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .result-row:hover {
+      background: #334155;
+      transform: scale(1.01);
+    }
+    
+    .rank-cell {
+      color: #64748b;
+      font-weight: bold;
+      width: 60px;
+    }
+    
+    .name-cell {
+      color: #94a3b8;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .volume-cell {
+      color: #818cf8;
+      font-family: monospace;
+    }
+    
+    .score-pill {
+      background: #0f172a;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+      display: inline-block;
+      border: 2px solid;
+      font-size: 1.05em;
+    }
+    
+    .signal-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    .confidence-bar {
+      margin-top: 4px;
+      height: 4px;
+      background: #334155;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .confidence-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+    
+    .view-selector {
+      background: #0f172a;
+      color: #38bdf8;
+      border: 2px solid #334155;
+      padding: 8px;
+      width: 100%;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.8em;
+    }
+    
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .modal-content {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    
+    .modal-content h2 {
+      color: #38bdf8;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #334155;
+    }
+    
+    .detail-section {
+      margin: 20px 0;
+      padding: 20px;
+      background: #0f172a;
+      border-radius: 8px;
+    }
+    
+    .detail-section h3 {
+      color: #94a3b8;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+    }
+    
+    .detail-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .detail-section li {
+      padding: 8px 0;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .detail-section li:last-child {
+      border-bottom: none;
+    }
+    
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+    
+    .score-grid div {
+      background: #334155;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .signal-summary {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    
+    .signal-summary h3 {
+      margin-bottom: 10px;
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      color: #94a3b8;
+      border: none;
+      font-size: 2em;
+      cursor: pointer;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      box-shadow: none;
+    }
+    
+    .close-modal:hover {
+      color: #f87171;
+      transform: rotate(90deg);
+    }
+    
+    @media (max-width: 768px) {
+      .control-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .info-bar {
+        grid-template-columns: 1fr;
+      }
+      
+      table {
+        font-size: 0.85em;
+      }
+      
+      td, th {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🎯 Global Quant Scanner Pro</h1>
+    <p>Sistema cuantitativo avanzado con análisis multi-factor y benchmarking</p>
+  </div>
+
+  <div class="controls">
+    <div class="control-row">
+      <div class="control-group">
+        <label>📍 Mercado</label>
+        <select id="marketSelect">
+          <optgroup label="🇪🇺 Europa">
+            <option value="universes/bme_universe.json|.MC">España (BME)</option>
+            <option value="universes/euronext_universe.json|.PA">Francia (Euronext)</option>
+            <option value="universes/frankfurt_universe.json|.DE">Alemania (XETRA)</option>
+            <option value="universes/lse_universe.json|.L">Reino Unido (LSE)</option>
+            <option value="universes/milan_universe.json|.MI">Italia (Borsa)</option>
+          </optgroup>
+          <optgroup label="🌎 América">
+            <option value="universes/us_universe.json|">Estados Unidos (NYSE/NASDAQ)</option>
+            <option value="universes/brazil_universe.json|.SA">Brasil (B3)</option>
+            <option value="universes/mexico_universe.json|.MX">México (BMV)</option>
+            <option value="universes/toronto_universe.json|.TO">Canadá (TSX)</option>
+          </optgroup>
+          <optgroup label="🌏 Asia">
+            <option value="universes/tokyo_universe.json|.T">Japón (TSE)</option>
+            <option value="universes/china_hongkong.json|.HK">Hong Kong (SEHK)</option>
+            <option value="universes/china_shanghai.json|.SS">China (SSE)</option>
+            <option value="universes/china_shenzhen.json|.SZ">Shenzhen (SZSE)</option>
+            <option value="universes/korea_universe.json|.KS">Corea (KRX)</option>
+          </optgroup>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label>⚙️ Estrategia</label>
+        <select id="strategySelect">
+          <option value="balanced">Equilibrado</option>
+          <option value="momentum_aggressive">Momentum Agresivo</option>
+          <option value="trend_conservative">Trend Conservador</option>
+          <option value="sector_rotation">Rotación Sectorial</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label>&nbsp;</label>
+        <button onclick="runScan()">🚀 Ejecutar Análisis</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-bar">
+    <div class="info-card strategy">
+      <div id="strategyInfo">Selecciona una estrategia y mercado para comenzar</div>
+    </div>
+    <div class="info-card">
+      <div id="filterInfo">Esperando escaneo...</div>
+    </div>
+  </div>
+
+  <div id="status" class="status">
+    🎯 Sistema listo. Configura parámetros y ejecuta el análisis.
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 60px;">Rank</th>
+          <th style="width: 100px;">Ticker</th>
+          <th>Nombre</th>
+          <th style="width: 200px;">
+            <select id="viewMode" class="view-selector" onchange="updateView()">
+              <option value="scoreTotal">📊 Score Total</option>
+              <option value="scoreShort">⚡ Corto Plazo (6m)</option>
+              <option value="scoreMedium">📈 Medio Plazo (18m)</option>
+              <option value="scoreLong">🎯 Largo Plazo (4a)</option>
+              <option value="scoreTrend">📉 Tendencia</option>
+              <option value="scoreMomentum">🚀 Momentum</option>
+              <option value="scoreRisk">⚠️ Riesgo</option>
+              <option value="scoreLiquidity">💧 Liquidez</option>
+            </select>
+          </th>
+          <th style="width: 100px;">Volumen</th>
+          <th style="width: 180px;">Señal</th>
+        </tr>
+      </thead>
+      <tbody id="results">
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;">
+            Esperando datos de análisis...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal de detalles -->
+<div id="detailModal" class="modal" onclick="if(event.target === this) closeModal()">
+  <div class="modal-content">
+    <button class="close-modal" onclick="closeModal()">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script type="module" src="scanner_pro.js"></script>
+</body>
+</html>
