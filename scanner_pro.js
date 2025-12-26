@@ -186,7 +186,10 @@ async function loadBenchmark(suffix) {
 // EN: scanner_pro.js
 
 export async function runScan() {
-  const [file, suffix] = document.getElementById('marketSelect').value.split('|');
+  const [file, suffix] = document
+    .getElementById('marketSelect')
+    .value.split('|');
+
   const strategyKey = document.getElementById('strategySelect').value;
   const config = STRATEGY_PROFILES[strategyKey];
 
@@ -194,39 +197,59 @@ export async function runScan() {
   const tbody = document.getElementById('results');
   const filterInfo = document.getElementById('filterInfo');
 
+  // ─────────────────────────────────────────────
   // Limpieza inicial
+  // ─────────────────────────────────────────────
   tbody.innerHTML = '';
   currentResults = [];
   filterInfo.innerHTML = '';
 
-  // 1. Cargar Benchmark
-  status.innerText = 'Cargando benchmark...';
+  status.style.color = '#38bdf8';
+  status.innerText = '⏳ Iniciando escaneo...';
+
+  // ─────────────────────────────────────────────
+  // 1. Cargar benchmark
+  // ─────────────────────────────────────────────
+  status.innerText = '📊 Cargando benchmark...';
   benchmarkData = await loadBenchmark(suffix);
 
-  // 2. Cargar Universo
-  status.innerText = 'Cargando universo...';
+  // ─────────────────────────────────────────────
+  // 2. Cargar universo
+  // ─────────────────────────────────────────────
+  status.innerText = '📦 Cargando universo...';
   const universe = await (await fetch(file)).json();
 
   let analyzed = 0;
   let filtered = 0;
 
-  // CONFIGURACIÓN DE LOTES (BATCHING)
-  const BATCH_SIZE = 5; // Número de peticiones simultáneas
+  // ─────────────────────────────────────────────
+  // Configuración de batching
+  // ─────────────────────────────────────────────
+  const BATCH_SIZE = 5;
 
   for (let i = 0; i < universe.length; i += BATCH_SIZE) {
-    // Tomar un lote de activos
     const batch = universe.slice(i, i + BATCH_SIZE);
 
-    status.innerText = `Analizando lote ${i + 1} de ${universe.length}... (${analyzed} encontrados)`;
+    status.innerText =
+      `🔎 Analizando activos ${i + 1}–${Math.min(i + BATCH_SIZE, universe.length)} ` +
+      `de ${universe.length} | ✔ ${analyzed} | ✖ ${filtered}`;
 
-    // Ejecutar análisis en paralelo para este lote
-    const batchResults = await Promise.all(batch.map(stock =>
-      analyzeStock(stock, suffix, config, benchmarkData?.rocs, benchmarkData?.volatility)
-    ));
+    // Análisis paralelo del lote
+    const batchResults = await Promise.all(
+      batch.map(stock =>
+        analyzeStock(
+          stock,
+          suffix,
+          config,
+          benchmarkData?.rocs,
+          benchmarkData?.volatility
+        )
+      )
+    );
 
-    // Procesar resultados del lote
+    // Procesar resultados
     for (const res of batchResults) {
-      if (res.passed) {
+      if (res?.passed) {
         currentResults.push(res);
         analyzed++;
       } else {
@@ -234,22 +257,67 @@ export async function runScan() {
       }
     }
 
-    // Actualizar tabla cada 2 lotes para no saturar el DOM
+    // Render parcial cada 2 lotes
     if (i % (BATCH_SIZE * 2) === 0) {
       renderTable(currentResults);
     }
 
-    // Pequeña pausa para no saturar la API
+    // Pausa anti-rate-limit
     await sleep(50);
   }
 
-  // Renderizado final y ordenamiento
+  // ─────────────────────────────────────────────
+  // Renderizado final y ordenación
+  // ─────────────────────────────────────────────
   currentResults.sort((a, b) => b.scoreTotal - a.scoreTotal);
   renderTable(currentResults);
 
   status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
   filterInfo.innerHTML = `✅ ${analyzed} aprobados | ❌ ${filtered} filtrados`;
+
+  // ─────────────────────────────────────────────
+  // 🔔 Evento desacoplado para otros módulos
+  // ─────────────────────────────────────────────
+  document.dispatchEvent(
+    new CustomEvent('scanCompleted', {
+      detail: {
+        results: currentResults,
+        marketFile: file,
+        marketSuffix: suffix,
+        strategy: strategyKey,
+        analyzed,
+        filtered,
+        timestamp: Date.now()
+      }
+    })
+  );
 }
+
+const portfolioSection = document.getElementById('portfolioSection');
+
+document.addEventListener('scanCompleted', event => {
+  const { results } = event.detail;
+
+  if (results && results.length > 0) {
+    portfolioSection.style.display = 'block';
+  }
+});
+
+const appState = {
+  scanResults: [],
+  portfolio: null,
+  market: null,
+  strategy: null
+};
+
+document.addEventListener('scanCompleted', e => {
+  appState.scanResults = e.detail.results;
+  appState.market = e.detail.market;
+  appState.strategy = e.detail.strategy;
+});
+
+
+
 // =====================================================
 // RENDERIZADO DE TABLA
 // =====================================================
@@ -410,3 +478,154 @@ export function updateView() {
 window.runScan = runScan;
 window.updateView = updateView;
 window.closeModal = closeModal;
+
+// =====================================================
+// ASIGNACIÓN DE CAPITAL
+// =====================================================
+
+import * as allocation from './allocation.js';
+
+let currentPortfolio = null;
+
+
+// Nueva función: Construir cartera
+window.buildPortfolio = function () {
+  const method = document.getElementById('allocationMethod').value;
+  const topN = parseInt(document.getElementById('topNAssets').value, 10);
+  const totalCapital = parseFloat(document.getElementById('totalCapital').value);
+
+  if (!appState.scanResults.length) {
+    showInlineError('Primero ejecuta un escaneo');
+    return;
+  }
+
+  if (topN > appState.scanResults.length) {
+    showInlineError('Top N mayor que el número de activos disponibles');
+    return;
+  }
+
+  try {
+    const topAssets = appState.scanResults.slice(0, topN);
+
+    const portfolioData = allocation.allocateCapital(topAssets, method);
+
+    const withCapital = allocation.calculateCapitalRecommendations(
+      portfolioData.allocation,
+      totalCapital
+    );
+
+    appState.portfolio = {
+      ...portfolioData,
+      allocation: withCapital,
+      totalCapital
+    };
+
+    renderPortfolio(appState.portfolio);
+
+    document
+      .getElementById('portfolioResults')
+      .scrollIntoView({ behavior: 'smooth' });
+
+  } catch (err) {
+    showInlineError(`Error construyendo cartera: ${err.message}`);
+  }
+};
+
+// Renderizar cartera
+function renderPortfolio(portfolio) {
+  const container = document.getElementById('portfolioResults');
+
+  container.innerHTML = `
+    ${renderRiskSummary(portfolio.portfolioRisk)}
+    ${renderAllocationTable(portfolio.allocation)}
+    ${renderWeightChart(portfolio.allocation)}
+  `;
+
+  container.style.display = 'block';
+}
+
+function renderRiskSummary(risk) {
+  return `
+    <div class="portfolio-summary">
+      <h3>📊 Resumen de Cartera</h3>
+      <div class="risk-metrics">
+        ${riskCard('Volatilidad Cartera', `${risk.portfolioVolatility}%`)}
+        ${riskCard('Ratio Diversificación', `${risk.diversificationRatio}x`)}
+        ${riskCard('Nº Efectivo Activos', risk.effectiveNAssets)}
+        ${riskCard('Max DD Estimado', `${risk.estimatedMaxDD}%`)}
+      </div>
+    </div>
+  `;
+}
+
+function riskCard(label, value) {
+  return `
+    <div class="risk-card">
+      <div class="risk-label">${label}</div>
+      <div class="risk-value">${value}</div>
+    </div>
+  `;
+}
+
+function renderAllocationTable(allocation) {
+  return `
+    <div class="portfolio-table-container">
+      <h3>💼 Asignación de Capital (${allocation.length} activos)</h3>
+      <table class="portfolio-table">
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Nombre</th>
+            <th>Peso %</th>
+            <th>Capital €</th>
+            <th>Score</th>
+            <th>Volatilidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allocation.map(a => `
+            <tr>
+              <td><strong>${a.ticker}</strong></td>
+              <td>${a.name}</td>
+              <td><strong>${a.weight_pct}%</strong></td>
+              <td>€${Number(a.recommended_capital).toLocaleString('es-ES', { minimumFractionDigits: 2 })}</td>
+              <td>${a.score}</td>
+              <td>${a.volatility}%</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderWeightChart(allocation) {
+  const top = allocation.slice(0, 10);
+  const maxWeight = Math.max(...top.map(a => parseFloat(a.weight_pct)));
+
+  return `
+    <div class="portfolio-chart">
+      <h3>📈 Distribución de Pesos (Top 10)</h3>
+      <div class="weight-bars">
+        ${top.map(a => {
+          const width = (parseFloat(a.weight_pct) / maxWeight) * 100;
+          return `
+            <div class="weight-bar-container">
+              <div class="weight-bar-label">${a.ticker}</div>
+              <div class="weight-bar-wrapper">
+                <div class="weight-bar" style="width:${width}%"></div>
+                <span class="weight-bar-value">${a.weight_pct}%</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function showInlineError(message) {
+  const status = document.getElementById('status');
+  status.textContent = `⚠️ ${message}`;
+  status.style.color = '#f87171';
+}
