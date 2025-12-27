@@ -183,7 +183,7 @@ async function loadBenchmark(suffix) {
 // ESCANEO PRINCIPAL
 // =====================================================
 
-// EN: scanner_pro.js
+// EN: scanner.js
 
 export async function runScan() {
   const [file, suffix] = document.getElementById('marketSelect').value.split('|');

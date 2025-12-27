@@ -13,12 +13,12 @@
 npm install express node-fetch
 
 # Iniciar servidor
-node server_pro.js
+node server.js
 ```
 
 ### Uso Básico
 
-1. Abre la interfaz: `http://localhost:3000/index_pro.html`
+1. Abre la interfaz: `http://localhost:3000/index.html`
 2. Selecciona un mercado (España, USA, Alemania, etc.)
 3. Elige una estrategia según tu perfil de riesgo
 4. Haz clic en "Ejecutar Análisis"
@@ -164,9 +164,9 @@ global-scanner-pro/
 ├── indicators.js          # Librería de indicadores con validación
 ├── scoring.js            # Motor de scoring avanzado
 ├── tests.js              # Suite de testing
-├── scanner_pro.js        # Scanner principal
-├── index_pro.html        # Interfaz profesional
-├── server_pro.js         # Servidor Express
+├── scanner.js            # Scanner principal
+├── index.html            # Interfaz profesional
+├── server.js             # Servidor Express
 └── universes/            # Archivos JSON de universos
     ├── bme_universe.json
     ├── us_universe.json

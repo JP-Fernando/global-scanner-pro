@@ -79,7 +79,7 @@ app.listen(PORT, () => {
   console.log('╚════════════════════════════════════════════════════════════╝\n');
   console.log('  ✅ Scanner iniciado correctamente\n');
   console.log('  📊 Interfaz principal:');
-  console.log(`     → http://localhost:${PORT}/index_pro.html\n`);
+  console.log(`     → http://localhost:${PORT}/index.html\n`);
   console.log('  🧪 Ejecutar tests:');
   console.log(`     → http://localhost:${PORT}/api/run-tests\n`);
   console.log('  💡 Tip: Ctrl+Click en las URLs para abrirlas\n');

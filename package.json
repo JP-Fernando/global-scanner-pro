@@ -1,12 +1,12 @@
 {
-  "name": "global-quant-scanner-pro",
+  "name": "global-scanner-pro",
   "version": "0.0.1",
   "description": "Sistema cuantitativo profesional para análisis multi-factor de mercados globales",
   "type": "module",
-  "main": "server_pro.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node server_pro.js",
-    "dev": "node --watch server_pro.js",
+    "start": "node server.js",
+    "dev": "node --watch server.js",
     "test": "node -e \"import('./tests.js').then(m => m.runAllTests())\"",
     "test:api": "curl http://localhost:3000/api/run-tests"
   },
@@ -20,7 +20,7 @@
     "momentum",
     "trend-following"
   ],
-  "author": "Your Name",
+  "author": "JP-Fernando",
   "license": "MIT",
   "dependencies": {
     "express": "^4.22.1",
@@ -31,10 +31,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/global-quant-scanner-pro"
+    "url": "https://github.com/JP-Fernando/global-scanner-pro.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/global-quant-scanner-pro/issues"
+    "url": "https://github.com/JP-Fernando/global-scanner-pro/issues"
   },
-  "homepage": "https://github.com/yourusername/global-quant-scanner-pro#readme"
+  "homepage": "https://github.com/JP-Fernando/global-scanner-pro#readme"
 }
