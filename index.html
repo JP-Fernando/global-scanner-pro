@@ -468,7 +468,7 @@
         </tr>
       </tbody>
     </table>
-    <!-- AÑADIR ESTE HTML JUSTO ANTES DE </div> que cierra .container en index_pro.html -->
+    <!-- AÑADIR ESTE HTML JUSTO ANTES DE </div> que cierra .container en index.html -->
 <!-- Después de la tabla de resultados -->
 
   <!-- Nueva Sección: Construcción de Cartera -->
@@ -500,20 +500,30 @@
         <label style="font-size: 0.85em; color: #94a3b8;">&nbsp;</label>
         <button onclick="buildPortfolio()" style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">📊 Construir Cartera</button>
       </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Perfil de Riesgo</label>
+        <select id="riskProfile" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
+          <option value="conservative">Conservador</option>
+          <option value="moderate" selected>Moderado</option>
+          <option value="aggressive">Agresivo</option>
+        </select>
+      </div>
+      <div id="regimeAdjustmentOption" style="display: none; margin-top: 15px; padding: 12px; background: #0f172a; border-radius: 6px; border-left: 3px solid #38bdf8;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9em; color: #94a3b8;">
+          <input type="checkbox" id="applyRegimeAdjustment" checked style="width: auto; cursor: pointer; margin: 0;" />
+          <span style="flex: 1;">
+            <strong style="color: #38bdf8;">Aplicar ajustes automáticos según régimen de mercado</strong>
+            <div style="font-size: 0.85em; color: #64748b; margin-top: 3px;">
+              Ajusta scores y filtros según condiciones actuales del mercado
+            </div>
+          </span>
+        </label>
+      </div>
+
     </div>
 
-    <div id="regimeAdjustmentOption" style="display: none; margin-top: 15px; padding: 12px; background: #0f172a; border-radius: 6px; border-left: 3px solid #38bdf8;">
-      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9em; color: #94a3b8;">
-        <input type="checkbox" id="applyRegimeAdjustment" checked style="width: auto; cursor: pointer; margin: 0;" />
-        <span style="flex: 1;">
-          <strong style="color: #38bdf8;">Aplicar ajustes automáticos según régimen de mercado</strong>
-          <div style="font-size: 0.85em; color: #64748b; margin-top: 3px;">
-            Ajusta scores y filtros según condiciones actuales del mercado
-          </div>
-        </span>
-      </label>
-    </div>
-    
+
   </div>
 
   <!-- Resultados de Cartera -->
@@ -699,6 +709,6 @@
   </div>
 </div>
 
-<script type="module" src="scanner_pro.js"></script>
+<script type="module" src="scanner.js"></script>
 </body>
 </html>

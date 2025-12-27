@@ -65,7 +65,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '2.0.0-pro'
+    version: '0.0.2'
   });
 });
 
@@ -75,11 +75,11 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('\n╔════════════════════════════════════════════════════════════╗');
   console.log('║   🎯 GLOBAL QUANT SCANNER PRO                             ║');
-  console.log('║   Version 2.0 - Professional Edition                      ║');
+  console.log('║   Professional Edition                                     ║');
   console.log('╚════════════════════════════════════════════════════════════╝\n');
   console.log('  ✅ Scanner iniciado correctamente\n');
   console.log('  📊 Interfaz principal:');
-  console.log(`     → http://localhost:${PORT}/index_pro.html\n`);
+  console.log(`     → http://localhost:${PORT}/index.html\n`);
   console.log('  🧪 Ejecutar tests:');
   console.log(`     → http://localhost:${PORT}/api/run-tests\n`);
   console.log('  💡 Tip: Ctrl+Click en las URLs para abrirlas\n');

@@ -8,6 +8,7 @@ import * as scoring from './scoring.js';
 import * as allocation from './allocation.js';
 import * as risk from './risk_engine.js';
 import * as regime from './market_regime.js';
+import * as governance from './governance.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
@@ -260,7 +261,7 @@ export async function runScan() {
 
       // Cargar precios completos del benchmark
       const benchmarkFullData = await loadYahooData(benchmarkData.symbol, '');
-      
+
       if (!benchmarkFullData || benchmarkFullData.length === 0) {
         console.warn('No se pudieron cargar datos completos del benchmark para régimen');
         status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
@@ -281,7 +282,7 @@ export async function runScan() {
           renderRegimeIndicator(currentRegime);
 
           console.log('📊 Régimen detectado:', currentRegime);
-          
+
           // Actualizar status después de completar
           status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
         }
@@ -313,6 +314,7 @@ window.buildPortfolio = function () {
   const method = document.getElementById('allocationMethod').value;
   const topN = parseInt(document.getElementById('topNAssets').value, 10);
   const totalCapital = parseFloat(document.getElementById('totalCapital').value);
+  const riskProfile = document.getElementById('riskProfile')?.value || 'moderate';
 
   if (!appState.scanResults.length) {
     showInlineError('Primero ejecuta un escaneo');
@@ -349,33 +351,61 @@ window.buildPortfolio = function () {
     const portfolioData = allocation.allocateCapital(adjustedAssets, method);
 
     // 2. Añadir capital recomendado
-    const withCapital = allocation.calculateCapitalRecommendations(
+    let withCapital = allocation.calculateCapitalRecommendations(
       portfolioData.allocation,
       totalCapital
     );
 
-    // 3. Enriquecer con precios completos para análisis de riesgo
+    // 3. Aplicar gobernanza
+    const selectedRules = governance.RISK_PROFILES[riskProfile]?.rules || governance.INVESTMENT_RULES;
+    // Validar cumplimiento
+    const complianceCheck = governance.validateCompliance(withCapital, selectedRules);
+
+    // Si hay violaciones, aplicar correcciones automáticas
+    if (!complianceCheck.compliant) {
+      console.warn('⚠️ Violaciones de gobernanza detectadas:', complianceCheck.violations);
+
+      const correctionResult = governance.applyComplianceCorrections(withCapital, selectedRules);
+      withCapital = correctionResult.portfolio;
+
+      // Recalcular capital después de correcciones
+      withCapital = allocation.calculateCapitalRecommendations(withCapital, totalCapital);
+
+      console.log('✅ Correcciones aplicadas:', correctionResult.corrections);
+    }
+
+    // 4. Enriquecer con precios completos para análisis de riesgo
     const enrichedAllocation = withCapital.map(asset => {
       const original = appState.scanResults.find(r => r.ticker === asset.ticker);
       return {
         ...asset,
         prices: original?.prices || [],
-        volatility: asset.volatility || original?.details?.risk?.volatility || '20'
+        volatility: asset.volatility || original?.details?.risk?.volatility || '20',
+        details: original?.details
       };
     });
 
-    // 4. Generar reporte de riesgo completo
+    // 5. Generar reporte de riesgo completo
     const riskReport = risk.generateRiskReport(enrichedAllocation, totalCapital);
 
-    // 5. Guardar en estado
+    // 6. Generar reporte de gobernanza
+    const governanceReport = governance.generateGovernanceReport(
+      enrichedAllocation,
+      appState.strategy,
+      selectedRules
+    );
+
+    // 7. Guardar en estado
     appState.portfolio = {
       ...portfolioData,
       allocation: enrichedAllocation,
       totalCapital,
-      riskReport
+      riskReport,
+      governanceReport,
+      complianceCheck
     };
 
-    // 6. Renderizar
+    // 8. Renderizar
     renderPortfolio(appState.portfolio);
 
     document.getElementById('portfolioResults').scrollIntoView({ behavior: 'smooth' });
@@ -394,6 +424,7 @@ function renderPortfolio(portfolio) {
   const container = document.getElementById('portfolioResults');
 
   container.innerHTML = `
+    ${renderGovernanceReport(portfolio.governanceReport, portfolio.complianceCheck)}
     ${renderRiskSummary(portfolio.portfolioRisk)}
     ${renderAdvancedRiskDashboard(portfolio.riskReport)}
     ${renderAllocationTable(portfolio.allocation)}
@@ -739,6 +770,77 @@ function showDetails(result) {
   `;
 
   modal.style.display = 'flex';
+}
+
+// Render governance
+function renderGovernanceReport(governanceReport, complianceCheck) {
+  const hasViolations = !complianceCheck.compliant;
+  const statusColor = hasViolations ? '#f43f5e' : '#10b981';
+  const statusText = hasViolations ? 'CON ALERTAS' : 'COMPLIANT';
+
+  return `
+    <div class="governance-report" style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 30px; border-left: 4px solid ${statusColor};">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="color: ${statusColor}; margin: 0;">🏛️ Reporte de Gobernanza</h3>
+        <span style="padding: 8px 16px; background: ${statusColor}20; color: ${statusColor}; border-radius: 6px; font-weight: bold; font-size: 0.9em;">
+          ${statusText}
+        </span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div style="background: #0f172a; padding: 15px; border-radius: 8px;">
+          <h4 style="color: #94a3b8; font-size: 0.9em; margin-bottom: 10px;">ESTRATEGIA</h4>
+          <div style="color: #f8fafc; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">
+            ${governanceReport.strategy.name}
+          </div>
+          <div style="color: #64748b; font-size: 0.85em;">
+            Perfil: ${governanceReport.strategy.profile}
+          </div>
+        </div>
+
+        <div style="background: #0f172a; padding: 15px; border-radius: 8px;">
+          <h4 style="color: #94a3b8; font-size: 0.9em; margin-bottom: 10px;">RESUMEN DE CARTERA</h4>
+          <div style="color: #f8fafc; font-size: 0.9em;">
+            <div>Activos: <strong>${governanceReport.portfolio_summary.n_assets}</strong></div>
+            <div>Posición máx: <strong>${(parseFloat(governanceReport.portfolio_summary.max_position) * 100).toFixed(2)}%</strong></div>
+            <div>Top 3: <strong>${(parseFloat(governanceReport.portfolio_summary.top3_concentration) * 100).toFixed(2)}%</strong></div>
+          </div>
+        </div>
+      </div>
+
+      ${hasViolations ? `
+        <div style="background: rgba(244, 63, 94, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #f43f5e;">
+          <h4 style="color: #f43f5e; margin-bottom: 10px;">⚠️ Violaciones Detectadas (${complianceCheck.violations.length})</h4>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            ${complianceCheck.violations.map(v => `
+              <li style="padding: 8px 0; border-bottom: 1px solid rgba(244, 63, 94, 0.2); color: #f8fafc; font-size: 0.9em;">
+                <strong>${v.asset || 'Cartera'}</strong>: ${v.message}
+                <div style="color: #94a3b8; font-size: 0.85em; margin-top: 3px;">
+                  Valor: ${v.value} | Límite: ${v.limit}
+                </div>
+              </li>
+            `).join('')}
+          </ul>
+          <div style="margin-top: 15px; padding: 10px; background: #0f172a; border-radius: 6px; font-size: 0.85em; color: #94a3b8;">
+            ✅ Se han aplicado correcciones automáticas para cumplir las reglas
+          </div>
+        </div>
+      ` : ''}
+
+      ${complianceCheck.warnings.length > 0 ? `
+        <div style="background: rgba(251, 191, 36, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #fbbf24; margin-top: 15px;">
+          <h4 style="color: #fbbf24; margin-bottom: 10px;">ℹ️ Advertencias (${complianceCheck.warnings.length})</h4>
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            ${complianceCheck.warnings.slice(0, 3).map(w => `
+              <li style="padding: 5px 0; color: #f8fafc; font-size: 0.85em;">
+                ${w.asset || 'Cartera'}: ${w.message}
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      ` : ''}
+    </div>
+  `;
 }
 
 // Regime frontend

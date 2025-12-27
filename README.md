@@ -13,12 +13,12 @@
 npm install express node-fetch
 
 # Iniciar servidor
-node server_pro.js
+node server.js
 ```
 
 ### Uso Básico
 
-1. Abre la interfaz: `http://localhost:3000/index_pro.html`
+1. Abre la interfaz: `http://localhost:3000/index.html`
 2. Selecciona un mercado (España, USA, Alemania, etc.)
 3. Elige una estrategia según tu perfil de riesgo
 4. Haz clic en "Ejecutar Análisis"
@@ -185,6 +185,7 @@ El sistema ofrece 5 métodos diferentes para distribuir tu capital:
    - Análisis completo de riesgo
    - Matriz de correlaciones
    - Stress tests con diferentes escenarios
+   - Validación de cumplimiento de reglas de gobernanza
 
 ---
 
@@ -225,6 +226,82 @@ Cuando construyes una cartera, puedes activar el ajuste por régimen:
 
 ---
 
+## ⚖️ Reglas y Gobernanza de Inversión
+
+El sistema incluye un módulo de **gobernanza y cumplimiento** que garantiza que las carteras construidas cumplan con buenas prácticas de inversión profesional.
+
+### Reglas de Inversión
+
+El sistema aplica automáticamente las siguientes reglas para proteger tu capital:
+
+**Límites de Concentración**
+- **Máximo por activo**: 15% del capital total
+- **Máximo por sector**: 30% del capital total (si se implementa análisis sectorial)
+- **Máximo por país**: 40% del capital total
+- **Concentración Top 3**: Los 3 activos más grandes no pueden sumar más del 40%
+
+**Control de Liquidez**
+- **Volumen diario mínimo**: 50,000 unidades negociadas
+- Excluye automáticamente activos con liquidez insuficiente
+
+**Control de Riesgo**
+- **Correlación máxima entre pares**: No permite dos activos con correlación > 0.85
+- **Volatilidad máxima de cartera**: 25% anual
+- **Drawdown máximo estimado**: 35%
+- **Exclusión de activos de alto riesgo**: Elimina automáticamente activos con volatilidad > 50%
+
+**Rebalanceo**
+- **Umbral de rebalanceo**: Si un activo se desvía más del 5% de su peso objetivo, se recomienda rebalancear
+
+### Perfiles de Riesgo
+
+El sistema define 3 perfiles de riesgo que ajustan las reglas según tu tolerancia:
+
+**🛡️ Conservador**
+- Peso máximo por activo: 10%
+- Volatilidad máxima: 15%
+- Drawdown máximo: 20%
+- Score mínimo requerido: 70
+- **Ideal para**: Inversores cerca de jubilación, baja tolerancia al riesgo
+
+**⚖️ Moderado**
+- Peso máximo por activo: 15%
+- Volatilidad máxima: 20%
+- Drawdown máximo: 30%
+- Score mínimo requerido: 60
+- **Ideal para**: Horizonte medio (5-10 años)
+
+**🚀 Agresivo**
+- Peso máximo por activo: 20%
+- Volatilidad máxima: 30%
+- Drawdown máximo: 45%
+- Score mínimo requerido: 50
+- **Ideal para**: Inversores jóvenes con horizonte largo (10+ años)
+
+### Validación y Correcciones Automáticas
+
+Cuando construyes una cartera, el sistema:
+1. **Valida el cumplimiento** de todas las reglas aplicables
+2. **Genera alertas** si hay violaciones o advertencias
+3. **Aplica correcciones automáticas** (si se habilita):
+   - Reduce pesos que exceden el máximo
+   - Elimina activos por debajo del mínimo (2%)
+   - Re-normaliza los pesos para sumar 100%
+
+### Documentación de Estrategias
+
+Cada estrategia incluye documentación detallada con:
+- **Objetivo**: Qué busca lograr la estrategia
+- **Horizonte temporal**: Período recomendado de inversión
+- **Rendimiento esperado**: Rango de retornos anuales
+- **Volatilidad esperada**: Rango de volatilidad
+- **Max Drawdown**: Pérdida máxima esperada
+- **Perfil de inversor**: Para quién es adecuada
+- **Condiciones ideales**: Cuándo funciona mejor
+- **Riesgos identificados**: Qué puede salir mal
+
+---
+
 ## 📊 Mercados Disponibles
 
 ### Europa
@@ -260,6 +337,7 @@ Cuando construyes una cartera, puedes activar el ajuste por régimen:
 - **Constructor de cartera**: Asignación automática con 5 métodos diferentes
 - **Dashboard de riesgo**: VaR, matriz de correlaciones, stress tests visuales
 - **Indicador de régimen**: Detección y visualización del régimen de mercado actual
+- **Validación de gobernanza**: Verificación automática de cumplimiento de reglas de inversión
 
 ---
 
@@ -275,10 +353,11 @@ global-scanner-pro/
 ├── allocation.js         # Sistema de asignación de capital
 ├── risk_engine.js        # Motor de análisis de riesgo profesional
 ├── market_regime.js      # Detector de regímenes de mercado
+├── governance.js         # Reglas y gobernanza de inversión
 ├── tests.js              # Suite de testing
-├── scanner_pro.js        # Scanner principal
-├── index_pro.html        # Interfaz profesional
-├── server_pro.js         # Servidor Express
+├── scanner.js            # Scanner principal
+├── index.html            # Interfaz profesional
+├── server.js             # Servidor Express
 └── universes/            # Archivos JSON de universos
     ├── bme_universe.json
     ├── us_universe.json
@@ -581,6 +660,70 @@ El sistema ajusta automáticamente:
 - **Alta** (>80%): Señales convergentes entre benchmark y amplitud
 - **Media** (60-80%): Señales consistentes pero no todas alineadas
 - **Baja** (<60%): Divergencias o datos insuficientes
+
+### Sistema de Gobernanza y Cumplimiento
+
+El módulo `governance.js` implementa reglas profesionales de inversión y validación de cumplimiento:
+
+#### Reglas de Inversión (INVESTMENT_RULES)
+
+**Límites de Concentración**
+- `max_position_weight`: 0.15 (15% máximo por activo)
+- `min_position_weight`: 0.02 (2% mínimo, evita micro-posiciones)
+- `max_sector_weight`: 0.30 (30% máximo por sector)
+- `max_country_weight`: 0.40 (40% máximo por país)
+- `max_top3_concentration`: 0.40 (Top 3 posiciones no pueden sumar >40%)
+
+**Control de Liquidez**
+- `min_daily_volume`: 50,000 unidades negociadas diariamente
+- Exclusiones automáticas activables
+
+**Control de Correlación**
+- `max_pairwise_correlation`: 0.85 (no permite dos activos con correlación >0.85)
+
+**Control de Riesgo Agregado**
+- `max_portfolio_volatility`: 25% anual
+- `max_portfolio_drawdown`: 35% estimado
+
+**Rebalanceo**
+- `rebalance_threshold`: 0.05 (5% de desviación)
+
+#### Perfiles de Riesgo (RISK_PROFILES)
+
+Tres perfiles predefinidos que ajustan las reglas base:
+- **conservative**: Pesos más bajos, volatilidad máxima 15%, drawdown máximo 20%
+- **moderate**: Pesos estándar, volatilidad máxima 20%, drawdown máximo 30%
+- **aggressive**: Pesos más altos, volatilidad máxima 30%, drawdown máximo 45%
+
+#### Validación de Cumplimiento (validateCompliance)
+
+Función que valida una cartera contra las reglas:
+- Retorna `violations` (críticas) y `warnings` (advertencias)
+- Tipos de validación:
+  - Concentración por activo (máximo/mínimo)
+  - Concentración top 3
+  - Volatilidad de cartera
+  - Liquidez individual
+  - Activos de alto riesgo
+
+#### Correcciones Automáticas (applyComplianceCorrections)
+
+Función que aplica correcciones automáticas:
+- Reduce pesos que exceden el máximo
+- Elimina activos por debajo del mínimo
+- Re-normaliza pesos para sumar 100%
+
+#### Documentación de Estrategias (STRATEGY_DOCUMENTATION)
+
+Cada estrategia incluye documentación completa:
+- Objetivo, horizonte, rendimiento esperado
+- Volatilidad y drawdown esperados
+- Perfil de inversor, condiciones ideales
+- Características y riesgos identificados
+
+#### Generación de Reportes (generateGovernanceReport)
+
+Combina validación de cumplimiento con documentación de estrategia para generar reportes completos de gobernanza.
 
 ### Notas de Performance
 
