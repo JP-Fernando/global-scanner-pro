@@ -1,6 +1,6 @@
 {
   "name": "global-quant-scanner-pro",
-  "version": "2.0.0",
+  "version": "0.0.1",
   "description": "Sistema cuantitativo profesional para análisis multi-factor de mercados globales",
   "type": "module",
   "main": "server_pro.js",
