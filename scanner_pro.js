@@ -5,11 +5,19 @@
 import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from './config.js';
 import * as ind from './indicators.js';
 import * as scoring from './scoring.js';
+import * as allocation from './allocation.js';
 import * as risk from './risk_engine.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
 let benchmarkData = null;
+
+const appState = {
+  scanResults: [],
+  portfolio: null,
+  market: null,
+  strategy: null
+};
 
 // =====================================================
 // CARGA DE DATOS
@@ -58,7 +66,6 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
     const volumes = data.map(d => d.volume);
     const candleData = data.map(d => ({ c: d.close, h: d.high, l: d.low }));
 
-    // Aplicar filtros duros
     const filterResult = scoring.applyHardFilters(candleData, prices, volumes, config.filters);
 
     if (!filterResult.passed) {
@@ -70,7 +77,6 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
       };
     }
 
-    // Calcular scores individuales
     const trendResult = scoring.calculateTrendScore(candleData, prices, config.indicators);
     const momentumResult = scoring.calculateMomentumScore(
       prices,
@@ -86,12 +92,10 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
     );
     const liquidityResult = scoring.calculateLiquidityScore(volumes, config.filters);
 
-    // Calcular scores temporales (Corto, Medio, Largo plazo)
     const scoreShort = scoring.calculateShortTermScore(candleData, prices, volumes, config.indicators);
     const scoreMedium = scoring.calculateMediumTermScore(candleData, prices, config.indicators);
     const scoreLong = scoring.calculateLongTermScore(candleData, prices, config.indicators);
 
-    // Score final ponderado
     const finalScore = scoring.calculateFinalScore(
       trendResult.score,
       momentumResult.score,
@@ -100,10 +104,8 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
       config.weights
     );
 
-    // Generar señal
     const signal = scoring.generateSignal(finalScore, config.signals);
 
-    // Volumen relativo
     const avgVol = ind.SMA(volumes.slice(-50), 50);
     const vRatio = volumes[volumes.length - 1] / avgVol;
 
@@ -111,6 +113,7 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
       passed: true,
       ticker: stock.ticker,
       name: stock.name,
+      prices: prices, // ⬅️ CRÍTICO: Guardar precios completos
       warnings: filterResult.reasons,
       price: prices[prices.length - 1],
       scoreTotal: finalScore,
@@ -184,13 +187,8 @@ async function loadBenchmark(suffix) {
 // ESCANEO PRINCIPAL
 // =====================================================
 
-// EN: scanner_pro.js
-
 export async function runScan() {
-  const [file, suffix] = document
-    .getElementById('marketSelect')
-    .value.split('|');
-
+  const [file, suffix] = document.getElementById('marketSelect').value.split('|');
   const strategyKey = document.getElementById('strategySelect').value;
   const config = STRATEGY_PROFILES[strategyKey];
 
@@ -198,57 +196,34 @@ export async function runScan() {
   const tbody = document.getElementById('results');
   const filterInfo = document.getElementById('filterInfo');
 
-  // ─────────────────────────────────────────────
-  // Limpieza inicial
-  // ─────────────────────────────────────────────
   tbody.innerHTML = '';
   currentResults = [];
   filterInfo.innerHTML = '';
 
-  status.style.color = '#38bdf8';
   status.innerText = '⏳ Iniciando escaneo...';
 
-  // ─────────────────────────────────────────────
-  // 1. Cargar benchmark
-  // ─────────────────────────────────────────────
   status.innerText = '📊 Cargando benchmark...';
   benchmarkData = await loadBenchmark(suffix);
 
-  // ─────────────────────────────────────────────
-  // 2. Cargar universo
-  // ─────────────────────────────────────────────
   status.innerText = '📦 Cargando universo...';
   const universe = await (await fetch(file)).json();
 
   let analyzed = 0;
   let filtered = 0;
 
-  // ─────────────────────────────────────────────
-  // Configuración de batching
-  // ─────────────────────────────────────────────
   const BATCH_SIZE = 5;
 
   for (let i = 0; i < universe.length; i += BATCH_SIZE) {
     const batch = universe.slice(i, i + BATCH_SIZE);
 
-    status.innerText =
-      `🔎 Analizando activos ${i + 1}–${Math.min(i + BATCH_SIZE, universe.length)} ` +
-      `de ${universe.length} | ✔ ${analyzed} | ✖ ${filtered}`;
+    status.innerText = `🔎 Analizando activos ${i + 1}–${Math.min(i + BATCH_SIZE, universe.length)} de ${universe.length} | ✓ ${analyzed} | ✖ ${filtered}`;
 
-    // Análisis paralelo del lote
     const batchResults = await Promise.all(
       batch.map(stock =>
-        analyzeStock(
-          stock,
-          suffix,
-          config,
-          benchmarkData?.rocs,
-          benchmarkData?.volatility
-        )
+        analyzeStock(stock, suffix, config, benchmarkData?.rocs, benchmarkData?.volatility)
       )
     );
 
-    // Procesar resultados
     for (const res of batchResults) {
       if (res?.passed) {
         currentResults.push(res);
@@ -258,238 +233,35 @@ export async function runScan() {
       }
     }
 
-    // Render parcial cada 2 lotes
     if (i % (BATCH_SIZE * 2) === 0) {
       renderTable(currentResults);
     }
 
-    // Pausa anti-rate-limit
     await sleep(50);
   }
 
-  // ─────────────────────────────────────────────
-  // Renderizado final y ordenación
-  // ─────────────────────────────────────────────
   currentResults.sort((a, b) => b.scoreTotal - a.scoreTotal);
   renderTable(currentResults);
 
   status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
   filterInfo.innerHTML = `✅ ${analyzed} aprobados | ❌ ${filtered} filtrados`;
 
-  // ─────────────────────────────────────────────
-  // 🔔 Evento desacoplado para otros módulos
-  // ─────────────────────────────────────────────
-  document.dispatchEvent(
-    new CustomEvent('scanCompleted', {
-      detail: {
-        results: currentResults,
-        marketFile: file,
-        marketSuffix: suffix,
-        strategy: strategyKey,
-        analyzed,
-        filtered,
-        timestamp: Date.now()
-      }
-    })
-  );
-}
+  // Guardar en estado global
+  appState.scanResults = currentResults;
+  appState.market = { file, suffix };
+  appState.strategy = strategyKey;
 
-const portfolioSection = document.getElementById('portfolioSection');
-
-document.addEventListener('scanCompleted', event => {
-  const { results } = event.detail;
-
-  if (results && results.length > 0) {
+  // Mostrar sección de construcción de cartera
+  const portfolioSection = document.getElementById('portfolioSection');
+  if (portfolioSection && currentResults.length > 0) {
     portfolioSection.style.display = 'block';
   }
-});
-
-const appState = {
-  scanResults: [],
-  portfolio: null,
-  market: null,
-  strategy: null
-};
-
-document.addEventListener('scanCompleted', e => {
-  appState.scanResults = e.detail.results;
-  appState.market = e.detail.market;
-  appState.strategy = e.detail.strategy;
-});
-
-
-
-// =====================================================
-// RENDERIZADO DE TABLA
-// =====================================================
-
-function renderTable(data) {
-  const tbody = document.getElementById('results');
-  const viewKey = document.getElementById('viewMode').value;
-  tbody.innerHTML = '';
-
-  data.forEach((r, idx) => {
-    const displayScore = r[viewKey] || r.scoreTotal;
-
-    const tr = document.createElement('tr');
-    tr.className = 'result-row';
-    tr.onclick = () => showDetails(r);
-
-    tr.innerHTML = `
-      <td class="rank-cell">${idx + 1}</td>
-      <td><strong>${r.ticker}</strong></td>
-      <td class="name-cell">${r.name}</td>
-      <td>${renderScorePill(displayScore)}</td>
-      <td class="volume-cell">x${r.vRatio}</td>
-      <td>
-        <span class="signal-badge" style="background: ${r.signal.color}20; color: ${r.signal.color}; border: 1px solid ${r.signal.color}">
-          ${r.signal.text}
-        </span>
-        <div class="confidence-bar">
-          <div class="confidence-fill" style="width: ${r.signal.confidence}%; background: ${r.signal.color}"></div>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function renderScorePill(score) {
-  let color = '#f87171';
-  if (score > 75) color = '#10b981';
-  else if (score > 60) color = '#4ade80';
-  else if (score > 45) color = '#fbbf24';
-
-  return `<span class="score-pill" style="color:${color}; border-color:${color}">${score}</span>`;
 }
 
 // =====================================================
-// MODAL DE DETALLES
+// CONSTRUCCIÓN DE CARTERA
 // =====================================================
 
-function showDetails(result) {
-  const modal = document.getElementById('detailModal');
-  const content = document.getElementById('modalContent');
-
-  const d = result.details;
-
-  content.innerHTML = `
-    <h2>${result.ticker} - ${result.name}</h2>
-
-    <div class="detail-section">
-      <h3>📊 Scores Principales</h3>
-      <div class="score-grid">
-        <div>Total: <strong>${result.scoreTotal}</strong></div>
-        <div>Trend: <strong>${result.scoreTrend}/100</strong></div>
-        <div>Momentum: <strong>${result.scoreMomentum}/100</strong></div>
-        <div>Risk: <strong>${result.scoreRisk}/100</strong></div>
-        <div>Liquidity: <strong>${result.scoreLiquidity}/100</strong></div>
-      </div>
-    </div>
-
-    <div class="detail-section">
-      <h3>⏱️ Análisis Temporal</h3>
-      <div class="score-grid">
-        <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-          <div style="font-size: 0.85em; color: #93c5fd; margin-bottom: 5px;">Corto Plazo (6m)</div>
-          <strong style="font-size: 1.5em;">${result.scoreShort}</strong>
-        </div>
-        <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-          <div style="font-size: 0.85em; color: #c4b5fd; margin-bottom: 5px;">Medio Plazo (18m)</div>
-          <strong style="font-size: 1.5em;">${result.scoreMedium}</strong>
-        </div>
-        <div style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
-          <div style="font-size: 0.85em; color: #fbcfe8; margin-bottom: 5px;">Largo Plazo (4a)</div>
-          <strong style="font-size: 1.5em;">${result.scoreLong}</strong>
-        </div>
-      </div>
-      <p style="margin-top: 10px; font-size: 0.9em; color: #94a3b8;">
-        <strong>Interpretación:</strong> Los scores temporales te ayudan a identificar el horizonte óptimo según tu perfil de inversión.
-      </p>
-    </div>
-
-    <div class="detail-section">
-      <h3>📈 Análisis de Tendencia</h3>
-      <ul>
-        <li>Score posición: <strong>${d.trend.positionScore}</strong></li>
-        <li>Score consistencia: <strong>${d.trend.consistencyScore}</strong></li>
-        <li>Score ADX: <strong>${d.trend.adxScore}</strong></li>
-        <li>EMA50: <strong>${d.trend.ema50}</strong></li>
-        <li>EMA200: <strong>${d.trend.ema200}</strong></li>
-      </ul>
-    </div>
-
-    <div class="detail-section">
-      <h3>🚀 Análisis de Momentum</h3>
-      <ul>
-        <li>ROC 6 meses: <strong>${d.momentum.roc6m}%</strong></li>
-        <li>ROC 12 meses: <strong>${d.momentum.roc12m}%</strong></li>
-        <li>Alpha 6m: <strong>${d.momentum.alpha6m}%</strong></li>
-        <li>Alpha 12m: <strong>${d.momentum.alpha12m}%</strong></li>
-        <li>RSI: <strong>${d.momentum.rsi}</strong></li>
-      </ul>
-    </div>
-
-    <div class="detail-section">
-      <h3>⚠️ Análisis de Riesgo</h3>
-      <ul>
-        <li>ATR%: <strong>${d.risk.atrPct}%</strong></li>
-        <li>Volatilidad anual: <strong>${d.risk.volatility}%</strong></li>
-        <li>Volatilidad relativa: <strong>${d.risk.relativeVol}</strong></li>
-        <li>Max Drawdown 52w: <strong>${d.risk.maxDrawdown}%</strong></li>
-      </ul>
-    </div>
-
-    <div class="detail-section">
-      <h3>💧 Análisis de Liquidez</h3>
-      <ul>
-        <li>Vol. medio 20d: <strong>${d.liquidity.avgVol20}</strong></li>
-        <li>Vol. medio 60d: <strong>${d.liquidity.avgVol60}</strong></li>
-        <li>Ratio volumen: <strong>${d.liquidity.volRatio}</strong></li>
-      </ul>
-    </div>
-
-    <div class="signal-summary" style="background: ${result.signal.color}20; border-left: 4px solid ${result.signal.color}">
-      <h3>Señal: ${result.signal.text}</h3>
-      <p>Confianza: ${result.signal.confidence}%</p>
-    </div>
-  `;
-
-  modal.style.display = 'flex';
-}
-
-function closeModal() {
-  document.getElementById('detailModal').style.display = 'none';
-}
-
-// =====================================================
-// ACTUALIZACIÓN DE VISTA
-// =====================================================
-
-export function updateView() {
-  const key = document.getElementById('viewMode').value;
-  currentResults.sort((a, b) => b[key] - a[key]);
-  renderTable(currentResults);
-}
-
-// =====================================================
-// EXPORTAR FUNCIONES GLOBALES
-// =====================================================
-
-window.runScan = runScan;
-window.updateView = updateView;
-window.closeModal = closeModal;
-
-// =====================================================
-// ASIGNACIÓN DE CAPITAL
-// =====================================================
-
-import * as allocation from './allocation.js';
-
-let currentPortfolio = null;
-
-
-// Nueva función: Construir cartera
 window.buildPortfolio = function () {
   const method = document.getElementById('allocationMethod').value;
   const topN = parseInt(document.getElementById('topNAssets').value, 10);
@@ -501,144 +273,69 @@ window.buildPortfolio = function () {
   }
 
   if (topN > appState.scanResults.length) {
-    showInlineError('Top N mayor que el número de activos disponibles');
+    showInlineError(`Solo hay ${appState.scanResults.length} activos disponibles`);
     return;
   }
 
   try {
     const topAssets = appState.scanResults.slice(0, topN);
 
+    // 1. Calcular asignación
     const portfolioData = allocation.allocateCapital(topAssets, method);
 
+    // 2. Añadir capital recomendado
     const withCapital = allocation.calculateCapitalRecommendations(
       portfolioData.allocation,
       totalCapital
     );
 
-    // --- NUEVA LÓGICA DE RIESGO ---
-    // 1. VaR de la Cartera (Suma ponderada de VaR individuales + efecto diversificación simple)
-    // Nota: Para hacerlo perfecto necesitaríamos covarianza, aquí sumamos VaR individual como "Worst Case" conservador
-    const assetsWithPrices = topAssets.map(a => ({
-      ...a,
-      // Recuperamos precios del scanResults original
-      prices: appState.scanResults.find(r => r.ticker === a.ticker).prices
-    }));
+    // 3. Enriquecer con precios completos para análisis de riesgo
+    const enrichedAllocation = withCapital.map(asset => {
+      const original = appState.scanResults.find(r => r.ticker === asset.ticker);
+      return {
+        ...asset,
+        prices: original?.prices || [],
+        volatility: asset.volatility || original?.details?.risk?.volatility || '20'
+      };
+    });
 
-    const correlationMatrix = risk.calculateCorrelationMatrix(assetsWithPrices);
-    const stressTests = risk.runStressTest(withCapital, totalCapital);
+    // 4. Generar reporte de riesgo completo
+    const riskReport = risk.generateRiskReport(enrichedAllocation, totalCapital);
 
-    // Calculamos VaR individual del activo más pesado como referencia rápida
-    const topHolding = withCapital.sort((a,b) => b.weight - a.weight)[0];
-    const topHoldingPrices = assetsWithPrices.find(a => a.ticker === topHolding.ticker).prices;
-    const topVaR = risk.calculateVaR(topHoldingPrices, 0.95, topHolding.recommended_capital);
-
-    // Guardamos todo en el estado
+    // 5. Guardar en estado
     appState.portfolio = {
       ...portfolioData,
-      allocation: withCapital,
+      allocation: enrichedAllocation,
       totalCapital,
-      riskAnalysis: {
-        correlationMatrix,
-        stressTests,
-        topHoldingVaR: topVaR
-      }
+      riskReport
     };
 
+    // 6. Renderizar
     renderPortfolio(appState.portfolio);
 
-    document
-      .getElementById('portfolioResults')
-      .scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('portfolioResults').scrollIntoView({ behavior: 'smooth' });
 
   } catch (err) {
+    console.error('Error en buildPortfolio:', err);
     showInlineError(`Error construyendo cartera: ${err.message}`);
   }
 };
 
-// Renderizar cartera
+// =====================================================
+// RENDERIZADO DE CARTERA
+// =====================================================
+
 function renderPortfolio(portfolio) {
   const container = document.getElementById('portfolioResults');
 
   container.innerHTML = `
     ${renderRiskSummary(portfolio.portfolioRisk)}
-    ${renderAdvancedRiskDashboard(portfolio.riskAnalysis)} ${renderAllocationTable(portfolio.allocation)}
+    ${renderAdvancedRiskDashboard(portfolio.riskReport)}
+    ${renderAllocationTable(portfolio.allocation)}
     ${renderWeightChart(portfolio.allocation)}
   `;
 
   container.style.display = 'block';
-}
-
-function renderAdvancedRiskDashboard(analysis) {
-  return `
-    <div class="risk-dashboard-container">
-      <h3>🧩 Matriz de Correlaciones & Stress Test</h3>
-
-      <div class="risk-grid-layout">
-        <div class="risk-panel-dark">
-          <h4>🔥 Mapa de Calor (Correlaciones)</h4>
-          <div class="correlation-heatmap">
-            ${renderHeatmap(analysis.correlationMatrix)}
-          </div>
-          <p class="small-text">Rojo = Se mueven igual (Riesgo). Verde = Descorrelacionados (Diversificación).</p>
-        </div>
-
-        <div class="risk-panel-dark">
-          <h4>🌪️ Stress Test (Simulación)</h4>
-          <table class="stress-table">
-            <thead>
-              <tr><th>Escenario</th><th>Impacto Mercado</th><th>Tu Cartera</th></tr>
-            </thead>
-            <tbody>
-              ${analysis.stressTests.map(s => `
-                <tr>
-                  <td>${s.scenario}</td>
-                  <td style="color:#f87171">${s.marketDrop}</td>
-                  <td style="color:#f87171; font-weight:bold">${s.estimatedLoss} (${s.lossPct})</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <div style="margin-top:15px; padding:10px; background:rgba(255,0,0,0.1); border-radius:6px;">
-            <strong>VaR (95%) Principal Activo:</strong> <span style="color:#f87171">${analysis.topHoldingVaR.value}€</span>
-            <div class="small-text">Riesgo diario estimado en tu mayor posición.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderHeatmap(matrix) {
-  // Renderizado simple de tabla HTML con colores
-  const tickers = matrix.map(m => m.ticker);
-
-  let html = '<table class="heatmap-table"><thead><tr><th></th>';
-  tickers.forEach(t => html += `<th>${t.split('.')[0]}</th>`); // Ticker corto
-  html += '</tr></thead><tbody>';
-
-  matrix.forEach((row, i) => {
-    html += `<tr><td><strong>${row.ticker.split('.')[0]}</strong></td>`;
-    row.values.forEach((val, j) => {
-      // Color dinámico: 1 = Rojo (#ef4444), 0 = Verde (#10b981), -1 = Azul (#3b82f6)
-      let color = 'transparent';
-      let fontColor = '#fff';
-
-      if (val > 0.8) color = 'rgba(239, 68, 68, 0.8)'; // Rojo fuerte
-      else if (val > 0.5) color = 'rgba(239, 68, 68, 0.4)'; // Rojo suave
-      else if (val > 0.2) color = 'rgba(251, 191, 36, 0.3)'; // Amarillo
-      else if (val > -0.2) color = 'rgba(16, 185, 129, 0.3)'; // Verde (Buena diversificación)
-      else color = 'rgba(59, 130, 246, 0.4)'; // Azul (Correlación negativa)
-
-      // Ocultar la mitad superior de la matriz para limpieza visual (opcional)
-      // if (j > i) val = '';
-
-      html += `<td style="background:${color}; color:${fontColor}">${val}</td>`;
-    });
-    html += '</tr>';
-  });
-
-  html += '</tbody></table>';
-  return html;
 }
 
 function renderRiskSummary(risk) {
@@ -662,6 +359,103 @@ function riskCard(label, value) {
       <div class="risk-value">${value}</div>
     </div>
   `;
+}
+
+function renderAdvancedRiskDashboard(riskReport) {
+  return `
+    <div class="risk-dashboard-container">
+      <h3>🧩 Análisis Avanzado de Riesgo</h3>
+
+      <div class="risk-grid-layout">
+        <div class="risk-panel-dark">
+          <h4>📉 Value at Risk (VaR 95%)</h4>
+          <div style="font-size: 2em; color: #f43f5e; font-weight: bold; margin: 15px 0;">
+            -€${riskReport.portfolioVaR.diversifiedVaR}
+          </div>
+          <div class="small-text">
+            Pérdida máxima esperada en el 95% de días<br>
+            <strong>Sin diversificar:</strong> -€${riskReport.portfolioVaR.undiversifiedVaR}<br>
+            <strong>Beneficio diversificación:</strong> ${riskReport.portfolioVaR.diversificationBenefit}%
+          </div>
+        </div>
+
+        <div class="risk-panel-dark">
+          <h4>⚠️ Activo Más Arriesgado</h4>
+          <div style="font-size: 1.5em; color: #fbbf24; font-weight: bold; margin: 15px 0;">
+            ${riskReport.riskMetrics.riskiestAsset.ticker}
+          </div>
+          <div class="small-text">
+            <strong>Volatilidad:</strong> ${riskReport.riskMetrics.riskiestAsset.volatility}%<br>
+            <strong>Peso en cartera:</strong> ${riskReport.riskMetrics.riskiestAsset.weight}<br>
+            <strong>Riesgo concentración:</strong> ${riskReport.riskMetrics.concentrationRisk}
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <h4>🔥 Matriz de Correlaciones</h4>
+        ${renderHeatmap(riskReport.correlationData.matrix)}
+        <div class="small-text" style="margin-top: 10px;">
+          <strong>Correlación promedio:</strong> ${riskReport.correlationData.stats.average} |
+          <strong>Máxima:</strong> ${riskReport.correlationData.stats.max} |
+          <strong>Score diversificación:</strong> ${riskReport.riskMetrics.diversificationScore}/100
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <h4>🌪️ Stress Test</h4>
+        <table class="stress-table">
+          <thead>
+            <tr>
+              <th>Escenario</th>
+              <th>Mercado</th>
+              <th>Tu Pérdida</th>
+              <th>% Cartera</th>
+              <th>Capital Restante</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${riskReport.stressTests.map(s => `
+              <tr>
+                <td><strong>${s.scenario}</strong><br><span class="small-text">${s.description}</span></td>
+                <td style="color:#f87171">${s.marketDrop}</td>
+                <td style="color:#f87171; font-weight:bold">-€${s.estimatedLoss}</td>
+                <td style="color:#f87171">${s.lossPct}</td>
+                <td style="color:#10b981">€${parseFloat(s.remainingCapital).toLocaleString('es-ES')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderHeatmap(matrix) {
+  const tickers = matrix.map(m => m.ticker);
+
+  let html = '<table class="heatmap-table"><thead><tr><th></th>';
+  tickers.forEach(t => html += `<th>${t.split('.')[0]}</th>`);
+  html += '</tr></thead><tbody>';
+
+  matrix.forEach((row, i) => {
+    html += `<tr><td><strong>${row.ticker.split('.')[0]}</strong></td>`;
+    row.values.forEach((val, j) => {
+      let color = 'transparent';
+
+      if (val > 0.8) color = 'rgba(239, 68, 68, 0.8)';
+      else if (val > 0.5) color = 'rgba(239, 68, 68, 0.4)';
+      else if (val > 0.2) color = 'rgba(251, 191, 36, 0.3)';
+      else if (val > -0.2) color = 'rgba(16, 185, 129, 0.3)';
+      else color = 'rgba(59, 130, 246, 0.4)';
+
+      html += `<td style="background:${color}; color:#fff">${val}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  return html;
 }
 
 function renderAllocationTable(allocation) {
@@ -721,8 +515,146 @@ function renderWeightChart(allocation) {
   `;
 }
 
+// =====================================================
+// RENDERIZADO DE TABLA
+// =====================================================
+
+function renderTable(data) {
+  const tbody = document.getElementById('results');
+  const viewKey = document.getElementById('viewMode').value;
+  tbody.innerHTML = '';
+
+  data.forEach((r, idx) => {
+    const displayScore = r[viewKey] || r.scoreTotal;
+
+    const tr = document.createElement('tr');
+    tr.className = 'result-row';
+    tr.onclick = () => showDetails(r);
+
+    tr.innerHTML = `
+      <td class="rank-cell">${idx + 1}</td>
+      <td><strong>${r.ticker}</strong></td>
+      <td class="name-cell">${r.name}</td>
+      <td>${renderScorePill(displayScore)}</td>
+      <td class="volume-cell">x${r.vRatio}</td>
+      <td>
+        <span class="signal-badge" style="background: ${r.signal.color}20; color: ${r.signal.color}; border: 1px solid ${r.signal.color}">
+          ${r.signal.text}
+        </span>
+        <div class="confidence-bar">
+          <div class="confidence-fill" style="width: ${r.signal.confidence}%; background: ${r.signal.color}"></div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderScorePill(score) {
+  let color = '#f87171';
+  if (score > 75) color = '#10b981';
+  else if (score > 60) color = '#4ade80';
+  else if (score > 45) color = '#fbbf24';
+
+  return `<span class="score-pill" style="color:${color}; border-color:${color}">${score}</span>`;
+}
+
+function showDetails(result) {
+  const modal = document.getElementById('detailModal');
+  const content = document.getElementById('modalContent');
+  const d = result.details;
+
+  content.innerHTML = `
+    <h2>${result.ticker} - ${result.name}</h2>
+    <div class="detail-section">
+      <h3>📊 Scores Principales</h3>
+      <div class="score-grid">
+        <div>Total: <strong>${result.scoreTotal}</strong></div>
+        <div>Trend: <strong>${result.scoreTrend}/100</strong></div>
+        <div>Momentum: <strong>${result.scoreMomentum}/100</strong></div>
+        <div>Risk: <strong>${result.scoreRisk}/100</strong></div>
+        <div>Liquidity: <strong>${result.scoreLiquidity}/100</strong></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h3>⏱️ Análisis Temporal</h3>
+      <div class="score-grid">
+        <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+          <div style="font-size: 0.85em; color: #93c5fd; margin-bottom: 5px;">Corto Plazo (6m)</div>
+          <strong style="font-size: 1.5em;">${result.scoreShort}</strong>
+        </div>
+        <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+          <div style="font-size: 0.85em; color: #c4b5fd; margin-bottom: 5px;">Medio Plazo (18m)</div>
+          <strong style="font-size: 1.5em;">${result.scoreMedium}</strong>
+        </div>
+        <div style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
+          <div style="font-size: 0.85em; color: #fbcfe8; margin-bottom: 5px;">Largo Plazo (4a)</div>
+          <strong style="font-size: 1.5em;">${result.scoreLong}</strong>
+        </div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h3>📈 Análisis de Tendencia</h3>
+      <ul>
+        <li>Score posición: <strong>${d.trend.positionScore}</strong></li>
+        <li>Score consistencia: <strong>${d.trend.consistencyScore}</strong></li>
+        <li>Score ADX: <strong>${d.trend.adxScore}</strong></li>
+        <li>EMA50: <strong>${d.trend.ema50}</strong></li>
+        <li>EMA200: <strong>${d.trend.ema200}</strong></li>
+      </ul>
+    </div>
+    <div class="detail-section">
+      <h3>🚀 Análisis de Momentum</h3>
+      <ul>
+        <li>ROC 6 meses: <strong>${d.momentum.roc6m}%</strong></li>
+        <li>ROC 12 meses: <strong>${d.momentum.roc12m}%</strong></li>
+        <li>Alpha 6m: <strong>${d.momentum.alpha6m}%</strong></li>
+        <li>Alpha 12m: <strong>${d.momentum.alpha12m}%</strong></li>
+        <li>RSI: <strong>${d.momentum.rsi}</strong></li>
+      </ul>
+    </div>
+    <div class="detail-section">
+      <h3>⚠️ Análisis de Riesgo</h3>
+      <ul>
+        <li>ATR%: <strong>${d.risk.atrPct}%</strong></li>
+        <li>Volatilidad anual: <strong>${d.risk.volatility}%</strong></li>
+        <li>Volatilidad relativa: <strong>${d.risk.relativeVol}</strong></li>
+        <li>Max Drawdown 52w: <strong>${d.risk.maxDrawdown}%</strong></li>
+      </ul>
+    </div>
+    <div class="detail-section">
+      <h3>💧 Análisis de Liquidez</h3>
+      <ul>
+        <li>Vol. medio 20d: <strong>${d.liquidity.avgVol20}</strong></li>
+        <li>Vol. medio 60d: <strong>${d.liquidity.avgVol60}</strong></li>
+        <li>Ratio volumen: <strong>${d.liquidity.volRatio}</strong></li>
+      </ul>
+    </div>
+    <div class="signal-summary" style="background: ${result.signal.color}20; border-left: 4px solid ${result.signal.color}">
+      <h3>Señal: ${result.signal.text}</h3>
+      <p>Confianza: ${result.signal.confidence}%</p>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('detailModal').style.display = 'none';
+}
+
 function showInlineError(message) {
   const status = document.getElementById('status');
   status.textContent = `⚠️ ${message}`;
   status.style.color = '#f87171';
 }
+
+export function updateView() {
+  const key = document.getElementById('viewMode').value;
+  currentResults.sort((a, b) => b[key] - a[key]);
+  renderTable(currentResults);
+}
+
+window.runScan = runScan;
+window.updateView = updateView;
+window.closeModal = closeModal;
