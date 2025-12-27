@@ -7,10 +7,12 @@ import * as ind from './indicators.js';
 import * as scoring from './scoring.js';
 import * as allocation from './allocation.js';
 import * as risk from './risk_engine.js';
+import * as regime from './market_regime.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
 let benchmarkData = null;
+let currentRegime = null;
 
 const appState = {
   scanResults: [],
@@ -251,10 +253,55 @@ export async function runScan() {
   appState.market = { file, suffix };
   appState.strategy = strategyKey;
 
+  // Detección de régimen
+  if (benchmarkData && benchmarkData.symbol) {
+    try {
+      status.innerText = '🔍 Detectando régimen de mercado...';
+
+      // Cargar precios completos del benchmark
+      const benchmarkFullData = await loadYahooData(benchmarkData.symbol, '');
+      
+      if (!benchmarkFullData || benchmarkFullData.length === 0) {
+        console.warn('No se pudieron cargar datos completos del benchmark para régimen');
+        status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
+      } else {
+        const benchmarkPrices = benchmarkFullData.map(d => d.close).filter(p => p !== null && !isNaN(p));
+
+        if (benchmarkPrices.length < 200) {
+          console.warn('Datos insuficientes para detectar régimen');
+          status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
+        } else {
+          // Detectar régimen
+          currentRegime = regime.detectMarketRegime(benchmarkPrices, currentResults);
+
+          // Guardar en estado
+          appState.regime = currentRegime;
+
+          // Renderizar indicador de régimen
+          renderRegimeIndicator(currentRegime);
+
+          console.log('📊 Régimen detectado:', currentRegime);
+          
+          // Actualizar status después de completar
+          status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
+        }
+      }
+    } catch (err) {
+      console.error('Error detectando régimen de mercado:', err);
+      status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
+    }
+  }
+
   // Mostrar sección de construcción de cartera
   const portfolioSection = document.getElementById('portfolioSection');
   if (portfolioSection && currentResults.length > 0) {
     portfolioSection.style.display = 'block';
+
+    // Regime option
+    const regimeOption = document.getElementById('regimeAdjustmentOption');
+    if (regimeOption && appState.regime) {
+      regimeOption.style.display = 'block';
+    }
   }
 }
 
@@ -278,10 +325,28 @@ window.buildPortfolio = function () {
   }
 
   try {
-    const topAssets = appState.scanResults.slice(0, topN);
+
+    // Si hay ajuste de régimen: Aplicar.
+    let adjustedAssets = appState.scanResults.slice(0, topN);
+
+    // Si hay régimen:
+    if (appState.regime && document.getElementById('applyRegimeAdjustment')?.checked) {
+      // Recalcular scores con ajustes de régimen
+      const regimeAdjustment = appState.regime.strategyAdjustment;
+
+      adjustedAssets = adjustedAssets.map(asset => ({
+        ...asset,
+        scoreTotal: Math.max(0, Math.min(100, asset.scoreTotal + regimeAdjustment.min_score))
+      }));
+
+      // Re-ordenar por nuevo score
+      adjustedAssets.sort((a, b) => b.scoreTotal - a.scoreTotal);
+
+      console.log('✅ Régimen aplicado:', regimeAdjustment);
+    }
 
     // 1. Calcular asignación
-    const portfolioData = allocation.allocateCapital(topAssets, method);
+    const portfolioData = allocation.allocateCapital(adjustedAssets, method);
 
     // 2. Añadir capital recomendado
     const withCapital = allocation.calculateCapitalRecommendations(
@@ -559,6 +624,43 @@ function renderScorePill(score) {
   return `<span class="score-pill" style="color:${color}; border-color:${color}">${score}</span>`;
 }
 
+
+// Renderizar régimen
+function renderRegimeIndicator(regimeData) {
+  const container = document.getElementById('regimeIndicator');
+  if (!container) return;
+
+  const confidencePct = (regimeData.confidence * 100).toFixed(0);
+
+  container.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: ${regimeData.color}20; border-left: 4px solid ${regimeData.color}; border-radius: 8px;">
+      <div style="font-size: 2em;">${regimeData.emoji}</div>
+      <div style="flex: 1;">
+        <div style="font-weight: bold; color: ${regimeData.color}; font-size: 1.1em; margin-bottom: 5px;">
+          Régimen de Mercado: ${regimeData.name}
+        </div>
+        <div style="font-size: 0.85em; color: #94a3b8;">
+          ${regimeData.description}
+        </div>
+        <div style="margin-top: 8px; font-size: 0.8em; color: #64748b;">
+          <strong>Confianza:</strong> ${confidencePct}% |
+          <strong>Tendencia:</strong> ${regimeData.benchmarkAnalysis.details.trendDescription} |
+          <strong>Volatilidad:</strong> ${regimeData.benchmarkAnalysis.details.volDescription}
+          ${regimeData.breadthAnalysis ? ` | <strong>Amplitud:</strong> ${regimeData.breadthAnalysis.breadth}% (${regimeData.breadthAnalysis.description})` : ''}
+        </div>
+      </div>
+      <button
+        onclick="showRegimeDetails()"
+        style="padding: 8px 16px; background: ${regimeData.color}; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85em; white-space: nowrap;"
+      >
+        Ver Detalles
+      </button>
+    </div>
+  `;
+
+  container.style.display = 'block';
+}
+
 function showDetails(result) {
   const modal = document.getElementById('detailModal');
   const content = document.getElementById('modalContent');
@@ -637,6 +739,93 @@ function showDetails(result) {
   `;
 
   modal.style.display = 'flex';
+}
+
+// Regime frontend
+
+window.showRegimeDetails = function() {
+  if (!appState.regime) return;
+
+  const r = appState.regime;
+  const modal = document.getElementById('detailModal');
+  const content = document.getElementById('modalContent');
+
+  content.innerHTML = `
+    <h2>${r.emoji} Análisis de Régimen de Mercado</h2>
+
+    <div class="detail-section">
+      <h3>📊 Clasificación</h3>
+      <div style="padding: 20px; background: ${r.color}20; border-left: 4px solid ${r.color}; border-radius: 8px;">
+        <div style="font-size: 1.5em; font-weight: bold; color: ${r.color}; margin-bottom: 10px;">
+          ${r.name}
+        </div>
+        <div style="color: #94a3b8; margin-bottom: 10px;">
+          ${r.description}
+        </div>
+        <div style="font-size: 0.9em; color: #64748b;">
+          <strong>Confianza:</strong> ${(r.confidence * 100).toFixed(0)}%
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h3>🔍 Señales del Benchmark</h3>
+      <ul>
+        <li>Tendencia: <strong>${r.benchmarkAnalysis.details.trendDescription}</strong> (${r.benchmarkAnalysis.signals.trend > 0 ? '🟢' : r.benchmarkAnalysis.signals.trend < 0 ? '🔴' : '🟡'})</li>
+        <li>Volatilidad: <strong>${r.benchmarkAnalysis.details.volDescription}</strong> (${r.benchmarkAnalysis.signals.volatility > 0 ? '🟢' : r.benchmarkAnalysis.signals.volatility < 0 ? '🔴' : '🟡'})</li>
+        <li>Momentum: <strong>${r.benchmarkAnalysis.details.momentumDescription}</strong> (${r.benchmarkAnalysis.signals.momentum > 0 ? '🟢' : r.benchmarkAnalysis.signals.momentum < 0 ? '🔴' : '🟡'})</li>
+        <li>Score Compuesto: <strong>${r.benchmarkAnalysis.signals.composite}</strong></li>
+      </ul>
+    </div>
+
+    ${r.breadthAnalysis ? `
+    <div class="detail-section">
+      <h3>📊 Amplitud de Mercado</h3>
+      <ul>
+        <li>Activos alcistas: <strong>${r.breadthAnalysis.bullishCount} / ${r.breadthAnalysis.totalAnalyzed}</strong></li>
+        <li>Porcentaje: <strong>${r.breadthAnalysis.breadth}%</strong></li>
+        <li>Clasificación: <strong>${r.breadthAnalysis.description}</strong></li>
+      </ul>
+      <div style="margin-top: 15px; height: 8px; background: #334155; border-radius: 4px; overflow: hidden;">
+        <div style="height: 100%; width: ${r.breadthAnalysis.breadth}%; background: ${r.color}; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="detail-section">
+      <h3>⚙️ Ajustes de Estrategia Recomendados</h3>
+      <ul>
+        <li>Peso Momentum: <strong>${(r.strategyAdjustment.momentum_weight * 100).toFixed(0)}%</strong> ${r.strategyAdjustment.momentum_weight > 1 ? '(aumentar)' : r.strategyAdjustment.momentum_weight < 1 ? '(reducir)' : '(mantener)'}</li>
+        <li>Penalización Riesgo: <strong>${(r.strategyAdjustment.risk_penalty * 100).toFixed(0)}%</strong> ${r.strategyAdjustment.risk_penalty > 1 ? '(más estricto)' : r.strategyAdjustment.risk_penalty < 1 ? '(más permisivo)' : '(normal)'}</li>
+        <li>Ajuste Score Mínimo: <strong>${r.strategyAdjustment.min_score > 0 ? '+' : ''}${r.strategyAdjustment.min_score}</strong> puntos</li>
+      </ul>
+    </div>
+
+    <div class="detail-section" style="background: #0f172a; border-left: 4px solid #38bdf8;">
+      <h3>💡 Interpretación</h3>
+      <p style="color: #94a3b8; line-height: 1.6;">
+        ${getRegimeInterpretation(r.regime)}
+      </p>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+};
+
+function getRegimeInterpretation(regimeType) {
+  switch(regimeType) {
+    case 'risk_on':
+      return 'El mercado está en modo alcista con baja volatilidad. Este es un entorno favorable para estrategias de momentum y growth. Se recomienda aumentar la exposición a activos con fuerte impulso y reducir las restricciones por riesgo.';
+
+    case 'risk_off':
+      return 'El mercado está en modo defensivo con alta volatilidad o tendencia bajista. Se recomienda aumentar la calidad de los activos seleccionados, reducir exposición a momentum extremo y priorizar estabilidad. Considera aumentar cash o activos defensivos.';
+
+    case 'neutral':
+      return 'El mercado no muestra una tendencia clara. Este entorno favorece estrategias equilibradas y diversificación. Mantén pesos balanceados entre factores y evita sobre-concentración en momentum o value.';
+
+    default:
+      return 'Régimen no identificado.';
+  }
 }
 
 function closeModal() {
