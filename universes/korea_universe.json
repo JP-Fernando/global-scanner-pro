@@ -1,77 +1,452 @@
 [
-  {"ticker":"005930","name":"Samsung Electronics"},
-  {"ticker":"000660","name":"SK Hynix Inc."},
-  {"ticker":"373220","name":"LG Energy Solution"},
-  {"ticker":"207940","name":"Samsung Biologics"},
-  {"ticker":"005380","name":"Hyundai Motor Company"},
-  {"ticker":"051910","name":"LG Chem Ltd."},
-  {"ticker":"035420","name":"NAVER Corporation"},
-  {"ticker":"035720","name":"Kakao Corp."},
-  {"ticker":"068270","name":"Celltrion, Inc."},
-  {"ticker":"055550","name":"Shinhan Financial Group"},
-  {"ticker":"105560","name":"Kookmin Bank"},
-  {"ticker":"000270","name":"Kia Corporation"},
-  {"ticker":"051900","name":"LG Household & Health Care"},
-  {"ticker":"034730","name":"SK"},
-  {"ticker":"028260","name":"Samsung C&T"},
-  {"ticker":"012330","name":"Hyundai Mobis"},
-  {"ticker":"010950","name":"S-Oil Corporation"},
-  {"ticker":"009150","name":"Samsung Electro-Mechanics"},
-  {"ticker":"017670","name":"SK Telecom"},
-  {"ticker":"032830","name":"Samsung Life Insurance"},
-  {"ticker":"005490","name":"POSCO Holdings Inc."},
-  {"ticker":"003550","name":"LG Corp."},
-  {"ticker":"000100","name":"Yuhan"},
-  {"ticker":"000810","name":"Samsung Fire & Marine"},
-  {"ticker":"011170","name":"Lotte Chemical"},
-  {"ticker":"033780","name":"KT&G Corporation"},
-  {"ticker":"086790","name":"Hana"},
-  {"ticker":"036570","name":"NCSoft Corporation"},
-  {"ticker":"402340","name":"SK Square"},
-  {"ticker":"042660","name":"Hanwha Ocean"},
-  {"ticker":"012450","name":"Hanwha Aerospace"},
-  {"ticker":"015760","name":"Korea Electric Power Corporation"},
-  {"ticker":"267260","name":"HD Hyundai Electric"},
-  {"ticker":"329180","name":"HD Hyundai Heavy Industries"},
-  {"ticker":"009540","name":"HD Korea Shipbuilding & Offshore Engineering"},
-  {"ticker":"010130","name":"Korea Zinc"},
-  {"ticker":"316140","name":"Woori"},
-  {"ticker":"011200","name":"HMM"},
-  {"ticker":"064350","name":"Hyundai Rotem"},
-  {"ticker":"138040","name":"Meritz"},
-  {"ticker":"066570","name":"LG Electronics"},
-  {"ticker":"096770","name":"SK Innovation"},
-  {"ticker":"298040","name":"Hyosung Heavy Industries"},
-  {"ticker":"024110","name":"Industrial Bank of Korea"},
-  {"ticker":"010120","name":"LS Electric"},
-  {"ticker":"086280","name":"Hyundai Glovis"},
-  {"ticker":"030200","name":"KT Corporation"},
-  {"ticker":"352820","name":"HYBE"},
-  {"ticker":"000150","name":"Doosan"},
-  {"ticker":"006800","name":"Mirae Asset Securities"},
-  {"ticker":"259960","name":"KRAFTON"},
-  {"ticker":"042700","name":"HANMI Semiconductor"},
-  {"ticker":"047810","name":"KAI"},
-  {"ticker":"272210","name":"Hanwha Systems"},
-  {"ticker":"326030","name":"SK Biopharmaceuticals"},
-  {"ticker":"003230","name":"Samyang Foods"},
-  {"ticker":"278470","name":"APR"},
-  {"ticker":"071050","name":"Korea Investment Holdings"},
-  {"ticker":"007660","name":"ISU Petasys"},
-  {"ticker":"443060","name":"HD HYUNDAI Marine Solution"},
-  {"ticker":"079550","name":"LIG Nex1"},
-  {"ticker":"003490","name":"Korean Air"},
-  {"ticker":"180640","name":"Hanjin Kal"},
-  {"ticker":"090430","name":"Amorepacific"},
-  {"ticker":"005830","name":"DB Insurance"},
-  {"ticker":"161390","name":"Hankook"},
-  {"ticker":"039490","name":"Kiwoom Securities"},
-  {"ticker":"307950","name":"Hyundai Autoever"},
-  {"ticker":"011070","name":"LG Innotek"},
-  {"ticker":"021240","name":"COWAY"},
-  {"ticker":"064400","name":"LG CNS"},
-  {"ticker":"377300","name":"Kakao Pay"},
-  {"ticker":"241560","name":"Doosan Bobcat"},
-  {"ticker":"001040","name":"CJ Corporation"},
-  {"ticker":"034020","name":"Doosan Enerbility"}
+  {
+    "ticker": "005930",
+    "name": "Samsung Electronics",
+    "sector": "Technology",
+    "industry": "Consumer Electronics"
+  },
+  {
+    "ticker": "000660",
+    "name": "SK Hynix Inc.",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "373220",
+    "name": "LG Energy Solution",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "207940",
+    "name": "Samsung Biologics",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "005380",
+    "name": "Hyundai Motor Company",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "051910",
+    "name": "LG Chem Ltd.",
+    "sector": "Basic Materials",
+    "industry": "Chemicals"
+  },
+  {
+    "ticker": "035420",
+    "name": "NAVER Corporation",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "035720",
+    "name": "Kakao Corp.",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "068270",
+    "name": "Celltrion, Inc.",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "055550",
+    "name": "Shinhan Financial Group",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "105560",
+    "name": "Kookmin Bank",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "000270",
+    "name": "Kia Corporation",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "051900",
+    "name": "LG Household & Health Care",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "034730",
+    "name": "SK",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "028260",
+    "name": "Samsung C&T",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "012330",
+    "name": "Hyundai Mobis",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "010950",
+    "name": "S-Oil Corporation",
+    "sector": "Energy",
+    "industry": "Oil & Gas Refining & Marketing"
+  },
+  {
+    "ticker": "009150",
+    "name": "Samsung Electro-Mechanics",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "017670",
+    "name": "SK Telecom",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "032830",
+    "name": "Samsung Life Insurance",
+    "sector": "Financial Services",
+    "industry": "Insurance - Life"
+  },
+  {
+    "ticker": "005490",
+    "name": "POSCO Holdings Inc.",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "003550",
+    "name": "LG Corp.",
+    "sector": "Technology",
+    "industry": "Consumer Electronics"
+  },
+  {
+    "ticker": "000100",
+    "name": "Yuhan",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "000810",
+    "name": "Samsung Fire & Marine",
+    "sector": "Financial Services",
+    "industry": "Insurance - Property & Casualty"
+  },
+  {
+    "ticker": "011170",
+    "name": "Lotte Chemical",
+    "sector": "Basic Materials",
+    "industry": "Chemicals"
+  },
+  {
+    "ticker": "033780",
+    "name": "KT&G Corporation",
+    "sector": "Consumer Defensive",
+    "industry": "Tobacco"
+  },
+  {
+    "ticker": "086790",
+    "name": "Hana",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "036570",
+    "name": "NCSoft Corporation",
+    "sector": "Communication Services",
+    "industry": "Electronic Gaming & Multimedia"
+  },
+  {
+    "ticker": "402340",
+    "name": "SK Square",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "042660",
+    "name": "Hanwha Ocean",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "012450",
+    "name": "Hanwha Aerospace",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "015760",
+    "name": "Korea Electric Power Corporation",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "267260",
+    "name": "HD Hyundai Electric",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "329180",
+    "name": "HD Hyundai Heavy Industries",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "009540",
+    "name": "HD Korea Shipbuilding & Offshore Engineering",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "010130",
+    "name": "Korea Zinc",
+    "sector": "Basic Materials",
+    "industry": "Other Industrial Metals & Mining"
+  },
+  {
+    "ticker": "316140",
+    "name": "Woori",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "011200",
+    "name": "HMM",
+    "sector": "Industrials",
+    "industry": "Marine Shipping"
+  },
+  {
+    "ticker": "064350",
+    "name": "Hyundai Rotem",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "138040",
+    "name": "Meritz",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "066570",
+    "name": "LG Electronics",
+    "sector": "Technology",
+    "industry": "Consumer Electronics"
+  },
+  {
+    "ticker": "096770",
+    "name": "SK Innovation",
+    "sector": "Energy",
+    "industry": "Oil & Gas Refining & Marketing"
+  },
+  {
+    "ticker": "298040",
+    "name": "Hyosung Heavy Industries",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "024110",
+    "name": "Industrial Bank of Korea",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "010120",
+    "name": "LS Electric",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "086280",
+    "name": "Hyundai Glovis",
+    "sector": "Industrials",
+    "industry": "Integrated Freight & Logistics"
+  },
+  {
+    "ticker": "030200",
+    "name": "KT Corporation",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "352820",
+    "name": "HYBE",
+    "sector": "Communication Services",
+    "industry": "Entertainment"
+  },
+  {
+    "ticker": "000150",
+    "name": "Doosan",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "006800",
+    "name": "Mirae Asset Securities",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "259960",
+    "name": "KRAFTON",
+    "sector": "Communication Services",
+    "industry": "Electronic Gaming & Multimedia"
+  },
+  {
+    "ticker": "042700",
+    "name": "HANMI Semiconductor",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "047810",
+    "name": "KAI",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "272210",
+    "name": "Hanwha Systems",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "326030",
+    "name": "SK Biopharmaceuticals",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "003230",
+    "name": "Samyang Foods",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "278470",
+    "name": "APR",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "071050",
+    "name": "Korea Investment Holdings",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "007660",
+    "name": "ISU Petasys",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "443060",
+    "name": "HD HYUNDAI Marine Solution",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "079550",
+    "name": "LIG Nex1",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "003490",
+    "name": "Korean Air",
+    "sector": "Industrials",
+    "industry": "Airlines"
+  },
+  {
+    "ticker": "180640",
+    "name": "Hanjin Kal",
+    "sector": "Consumer Cyclical",
+    "industry": "Lodging"
+  },
+  {
+    "ticker": "090430",
+    "name": "Amorepacific",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "005830",
+    "name": "DB Insurance",
+    "sector": "Financial Services",
+    "industry": "Insurance - Property & Casualty"
+  },
+  {
+    "ticker": "161390",
+    "name": "Hankook",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "039490",
+    "name": "Kiwoom Securities",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "307950",
+    "name": "Hyundai Autoever",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "011070",
+    "name": "LG Innotek",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "021240",
+    "name": "COWAY",
+    "sector": "Consumer Cyclical",
+    "industry": "Furnishings, Fixtures & Appliances"
+  },
+  {
+    "ticker": "064400",
+    "name": "LG CNS",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "377300",
+    "name": "Kakao Pay",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "241560",
+    "name": "Doosan Bobcat",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "001040",
+    "name": "CJ Corporation",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "034020",
+    "name": "Doosan Enerbility",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  }
 ]

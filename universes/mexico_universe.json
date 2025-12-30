@@ -1,44 +1,244 @@
 [
-  {"ticker":"GMEXICOB","name":"Grupo México, S.A.B. de C.V."},
-  {"ticker":"WALMEX","name":"Walmart de México y Centroamérica"},
-  {"ticker":"GAPB","name":"Grupo Aeroportuario del Pacífico"},
-  {"ticker":"GFNORTEO","name":"Grupo Financiero Banorte O"},
-  {"ticker":"BIMBOA","name":"Grupo Bimbo, S.A.B. de C.V."},
-  {"ticker":"CEMEXCPO","name":"Cemex CPO"},
-  {"ticker":"FEMSAUBD","name":"FEMSA UBD"},
-  {"ticker":"KOFUBL","name":"Coca-Cola FEMSA"},
-  {"ticker":"ALFAA","name":"Alfa S.A.B. de C.V."},
-  {"ticker":"ASURB","name":"Grupo Aeroportuario del Sureste B"},
-  {"ticker":"GENTERA","name":"Gentera, S.A.B. de C.V."},
-  {"ticker":"GFINBURO","name":"Grupo Financiero Inbursa"},
-  {"ticker":"ICA","name":"ICA S.A.B. de C.V."},
-  {"ticker":"KIMBERA","name":"Kimberly-Clark de México"},
-  {"ticker":"LABB","name":"Laboratorios Bagó México"},
-  {"ticker":"LIVEPOLC1","name":"Liverpool CPO"},
-  {"ticker":"MEGACPO","name":"Megacable Holdings CPO"},
-  {"ticker":"OMAB","name":"Grupo Aeroportuario del Centro Norte"},
-  {"ticker":"PINFRA","name":"Promotora y Operadora de Infraestructura"},
-  {"ticker":"RA","name":"Regional S.A.B. de C.V."},
-  {"ticker":"SITES1A-1","name":"SITES"},
-  {"ticker":"SIMECB","name":"Simec Internacional"},
-  {"ticker":"TLEVISACPO","name":"Televisa CPO"},
-  {"ticker":"TV","name":"Televisa"},
-  {"ticker":"VESTA","name":"Vesta S.A.B. de C.V."},
-  {"ticker":"AC","name":"Acerero del Norte"},
-  {"ticker":"ALPEKA","name":"Alpek S.A.B. de C.V."},
-  {"ticker":"AUTLANB","name":"Autlán"},
-  {"ticker":"BOLSAA","name":"Bolsa Mexicana de Valores"},
-  {"ticker":"CULTIBAB","name":"Cultiba"},
-  {"ticker":"ELEKTRA","name":"Grupo Elektra"},
-  {"ticker":"FIBRAPL14","name":"Fibra Prologis"},
-  {"ticker":"GCC","name":"GCC, S.A.B. de C.V."},
-  {"ticker":"GNP","name":"Grupo Nacional Provincial"},
-  {"ticker":"GRUMAB","name":"Gruma"},
-  {"ticker":"HOMEX","name":"Homex"},
-  {"ticker":"LAMOSA","name":"Lamosa"},
-  {"ticker":"ORBIA","name":"Orbia"},
-  {"ticker":"SAB","name":"Grupo Modelo (AB InBev Mexico)"},
-  {"ticker":"DINEA","name":"Dine S.A."},
-  {"ticker":"FIBRAUP18","name":"Fibra Upsite"},
-  {"ticker":"ZAP","name":"ZAP Group Mexico"}
+  {
+    "ticker": "GMEXICOB",
+    "name": "Grupo México, S.A.B. de C.V.",
+    "sector": "Basic Materials",
+    "industry": "Other Industrial Metals & Mining"
+  },
+  {
+    "ticker": "WALMEX",
+    "name": "Walmart de México y Centroamérica",
+    "sector": "Consumer Defensive",
+    "industry": "Discount Stores"
+  },
+  {
+    "ticker": "GAPB",
+    "name": "Grupo Aeroportuario del Pacífico",
+    "sector": "Industrials",
+    "industry": "Airports & Air Services"
+  },
+  {
+    "ticker": "GFNORTEO",
+    "name": "Grupo Financiero Banorte O",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "BIMBOA",
+    "name": "Grupo Bimbo, S.A.B. de C.V.",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "CEMEXCPO",
+    "name": "Cemex CPO",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "FEMSAUBD",
+    "name": "FEMSA UBD",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Brewers"
+  },
+  {
+    "ticker": "KOFUBL",
+    "name": "Coca-Cola FEMSA",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Non-Alcoholic"
+  },
+  {
+    "ticker": "ALFAA",
+    "name": "Alfa S.A.B. de C.V.",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "ASURB",
+    "name": "Grupo Aeroportuario del Sureste B",
+    "sector": "Industrials",
+    "industry": "Airports & Air Services"
+  },
+  {
+    "ticker": "GENTERA",
+    "name": "Gentera, S.A.B. de C.V.",
+    "sector": "Financial Services",
+    "industry": "Credit Services"
+  },
+  {
+    "ticker": "GFINBURO",
+    "name": "Grupo Financiero Inbursa",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "ICA",
+    "name": "ICA S.A.B. de C.V."
+  },
+  {
+    "ticker": "KIMBERA",
+    "name": "Kimberly-Clark de México",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "LABB",
+    "name": "Laboratorios Bagó México",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "LIVEPOLC1",
+    "name": "Liverpool CPO"
+  },
+  {
+    "ticker": "MEGACPO",
+    "name": "Megacable Holdings CPO"
+  },
+  {
+    "ticker": "OMAB",
+    "name": "Grupo Aeroportuario del Centro Norte",
+    "sector": "Industrials",
+    "industry": "Airports & Air Services"
+  },
+  {
+    "ticker": "PINFRA",
+    "name": "Promotora y Operadora de Infraestructura",
+    "sector": "Industrials",
+    "industry": "Infrastructure Operations"
+  },
+  {
+    "ticker": "RA",
+    "name": "Regional S.A.B. de C.V.",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "SITES1A-1",
+    "name": "SITES",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "SIMECB",
+    "name": "Simec Internacional",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "TLEVISACPO",
+    "name": "Televisa CPO",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "TV",
+    "name": "Televisa"
+  },
+  {
+    "ticker": "VESTA",
+    "name": "Vesta S.A.B. de C.V.",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Diversified"
+  },
+  {
+    "ticker": "AC",
+    "name": "Acerero del Norte",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Non-Alcoholic"
+  },
+  {
+    "ticker": "ALPEKA",
+    "name": "Alpek S.A.B. de C.V.",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "AUTLANB",
+    "name": "Autlán",
+    "sector": "Basic Materials",
+    "industry": "Other Industrial Metals & Mining"
+  },
+  {
+    "ticker": "BOLSAA",
+    "name": "Bolsa Mexicana de Valores",
+    "sector": "Financial Services",
+    "industry": "Financial Data & Stock Exchanges"
+  },
+  {
+    "ticker": "CULTIBAB",
+    "name": "Cultiba",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Non-Alcoholic"
+  },
+  {
+    "ticker": "ELEKTRA",
+    "name": "Grupo Elektra",
+    "sector": "Financial Services",
+    "industry": "Financial Conglomerates"
+  },
+  {
+    "ticker": "FIBRAPL14",
+    "name": "Fibra Prologis",
+    "sector": "Real Estate",
+    "industry": "REIT - Industrial"
+  },
+  {
+    "ticker": "GCC",
+    "name": "GCC, S.A.B. de C.V.",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "GNP",
+    "name": "Grupo Nacional Provincial",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "GRUMAB",
+    "name": "Gruma",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "HOMEX",
+    "name": "Homex",
+    "sector": "Consumer Cyclical",
+    "industry": "Residential Construction"
+  },
+  {
+    "ticker": "LAMOSA",
+    "name": "Lamosa",
+    "sector": "Industrials",
+    "industry": "Building Products & Equipment"
+  },
+  {
+    "ticker": "ORBIA",
+    "name": "Orbia",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "SAB",
+    "name": "Grupo Modelo (AB InBev Mexico)"
+  },
+  {
+    "ticker": "DINEA",
+    "name": "Dine S.A.",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "FIBRAUP18",
+    "name": "Fibra Upsite",
+    "sector": "Industrials",
+    "industry": "Specialty Business Services"
+  },
+  {
+    "ticker": "ZAP",
+    "name": "ZAP Group Mexico",
+    "sector": "Unknown",
+    "industry": "Unknown"
+  }
 ]

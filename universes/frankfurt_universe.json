@@ -1,31 +1,470 @@
 [
-  {"ticker":"SAP", "name":"SAP SE"}, {"ticker":"SIE", "name":"Siemens AG"}, {"ticker":"ALV", "name":"Allianz SE"},
-  {"ticker":"AIR", "name":"Airbus SE"}, {"ticker":"DTE", "name":"Deutsche Telekom"}, {"ticker":"MBG", "name":"Mercedes-Benz Group"},
-  {"ticker":"BMW", "name":"BMW AG"}, {"ticker":"VOW3", "name":"Volkswagen AG"}, {"ticker":"BAS", "name":"BASF SE"},
-  {"ticker":"MUV2", "name":"Munich Re"}, {"ticker":"IFX", "name":"Infineon Technologies"}, {"ticker":"DHL", "name":"DHL Group"},
-  {"ticker":"ADS", "name":"Adidas AG"}, {"ticker":"MRK", "name":"Merck KGaA"}, {"ticker":"BEI", "name":"Beiersdorf AG"},
-  {"ticker":"RWE", "name":"RWE AG"}, {"ticker":"EOAN", "name":"E.ON SE"}, {"ticker":"DBK", "name":"Deutsche Bank"},
-  {"ticker":"DB1", "name":"Deutsche Börse"}, {"ticker":"HNR1", "name":"Hannover Rück"}, {"ticker":"CBK", "name":"Commerzbank"},
-  {"ticker":"RHM", "name":"Rheinmetall AG"}, {"ticker":"SY1", "name":"Symrise AG"}, {"ticker":"MTX", "name":"MTU Aero Engines"},
-  {"ticker":"HEN3", "name":"Henkel Vz"}, {"ticker":"CON", "name":"Continental AG"}, {"ticker":"PAH3", "name":"Porsche SE"},
-  {"ticker":"ZAL", "name":"Zalando SE"}, {"ticker":"HFG", "name":"HelloFresh SE"}, {"ticker":"PUM", "name":"Puma SE"},
-  {"ticker":"VNA", "name":"Vonovia SE"}, {"ticker":"TLX", "name":"Talanx AG"}, {"ticker":"HOT", "name":"Hochtief AG"},
-  {"ticker":"G1A", "name":"GEA Group AG"}, {"ticker":"KGX", "name":"KION Group AG"},
-  {"ticker":"EVK", "name":"Evonik Industries"}, {"ticker":"BNR", "name":"Brenntag SE"}, {"ticker":"FME", "name":"Fresenius Medical"},
-  {"ticker":"FRE", "name":"Fresenius SE"}, {"ticker":"SRB", "name":"Stratec SE"}, {"ticker":"BOSS", "name":"Hugo Boss AG"},
-  {"ticker":"FRA", "name":"Fraport AG"}, {"ticker":"JUN3", "name":"Jungheinrich AG"}, {"ticker":"GXI", "name":"Gerresheimer AG"},
-  {"ticker":"TKA", "name":"ThyssenKrupp AG"}, {"ticker":"WAF", "name":"Siltronic AG"},
-  {"ticker":"SZG", "name":"Salzgitter AG"}, {"ticker":"HLE", "name":"Hella GmbH"},
-  {"ticker":"NDA", "name":"Aurubis AG"}, {"ticker":"PSM", "name":"ProSiebenSat.1"}, {"ticker":"EVT", "name":"Evotec SE"},
-  {"ticker":"SLMC", "name":"iShares MSCI ETF"}, {"ticker":"AIXA", "name":"Aixtron SE"}, {"ticker":"ADV", "name":"Adva Optical"},
-  {"ticker":"AFX", "name":"Carl Zeiss Meditec"}, {"ticker":"GFT", "name":"GFT Technologies"}, {"ticker":"UTDI", "name":"United Internet"},
-  {"ticker":"NEM", "name":"Nemetschek SE"}, {"ticker":"JEN", "name":"Jenoptik AG"},
-  {"ticker":"DRW3", "name":"Draegerwerk AG"}, {"ticker":"SGL", "name":"SGL Carbon SE"},
-  {"ticker":"TEG", "name":"TAG Immobilien"}, {"ticker":"LEG", "name":"LEG Immobilien"}, {"ticker":"DWNI", "name":"Deutsche Wohnen"},
-  {"ticker":"HEI", "name":"Heidelberg Materials"}, {"ticker":"QIA", "name":"Qiagen NV"},
-  {"ticker":"SRT3", "name":"Sartorius Vz"}, {"ticker":"GFG", "name":"Global Fashion Group"},
-  {"ticker":"BC8", "name":"Bechtle AG"}, {"ticker":"KRN", "name":"Krones AG"},
-  {"ticker":"WCH", "name":"Wacker Chemie"}, {"ticker":"LXS", "name":"Lanxess AG"},
-  {"ticker":"KCO", "name":"Klöckner & Co"}, {"ticker":"BAYN", "name":"Bayer"}, {"ticker":"SHL", "name":"Siemens Healthinears"},
-  {"ticker":"DTG", "name":"Daimler"}, {"ticker":"G24", "name": "Scout24"}, {"ticker":"ENR", "name": "Siemens Energy"}
+  {
+    "ticker": "SAP",
+    "name": "SAP SE",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "SIE",
+    "name": "Siemens AG",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "ALV",
+    "name": "Allianz SE",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "AIR",
+    "name": "Airbus SE",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "DTE",
+    "name": "Deutsche Telekom",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "MBG",
+    "name": "Mercedes-Benz Group",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "BMW",
+    "name": "BMW AG",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "VOW3",
+    "name": "Volkswagen AG",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "BAS",
+    "name": "BASF SE",
+    "sector": "Basic Materials",
+    "industry": "Chemicals"
+  },
+  {
+    "ticker": "MUV2",
+    "name": "Munich Re",
+    "sector": "Financial Services",
+    "industry": "Insurance - Reinsurance"
+  },
+  {
+    "ticker": "IFX",
+    "name": "Infineon Technologies",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "DHL",
+    "name": "DHL Group",
+    "sector": "Industrials",
+    "industry": "Integrated Freight & Logistics"
+  },
+  {
+    "ticker": "ADS",
+    "name": "Adidas AG",
+    "sector": "Consumer Cyclical",
+    "industry": "Footwear & Accessories"
+  },
+  {
+    "ticker": "MRK",
+    "name": "Merck KGaA",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "BEI",
+    "name": "Beiersdorf AG",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "RWE",
+    "name": "RWE AG",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "EOAN",
+    "name": "E.ON SE",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "DBK",
+    "name": "Deutsche Bank",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "DB1",
+    "name": "Deutsche Börse",
+    "sector": "Financial Services",
+    "industry": "Financial Data & Stock Exchanges"
+  },
+  {
+    "ticker": "HNR1",
+    "name": "Hannover Rück",
+    "sector": "Financial Services",
+    "industry": "Insurance - Reinsurance"
+  },
+  {
+    "ticker": "CBK",
+    "name": "Commerzbank",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "RHM",
+    "name": "Rheinmetall AG",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "SY1",
+    "name": "Symrise AG",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "MTX",
+    "name": "MTU Aero Engines",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "HEN3",
+    "name": "Henkel Vz",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "CON",
+    "name": "Continental AG",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "PAH3",
+    "name": "Porsche SE",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "ZAL",
+    "name": "Zalando SE",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail"
+  },
+  {
+    "ticker": "HFG",
+    "name": "HelloFresh SE",
+    "sector": "Consumer Cyclical",
+    "industry": "Restaurants"
+  },
+  {
+    "ticker": "PUM",
+    "name": "Puma SE",
+    "sector": "Consumer Cyclical",
+    "industry": "Footwear & Accessories"
+  },
+  {
+    "ticker": "VNA",
+    "name": "Vonovia SE",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "TLX",
+    "name": "Talanx AG",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "HOT",
+    "name": "Hochtief AG",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "G1A",
+    "name": "GEA Group AG",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "KGX",
+    "name": "KION Group AG",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "EVK",
+    "name": "Evonik Industries",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "BNR",
+    "name": "Brenntag SE",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "FME",
+    "name": "Fresenius Medical",
+    "sector": "Healthcare",
+    "industry": "Medical Care Facilities"
+  },
+  {
+    "ticker": "FRE",
+    "name": "Fresenius SE",
+    "sector": "Healthcare",
+    "industry": "Medical Care Facilities"
+  },
+  {
+    "ticker": "SRB",
+    "name": "Stratec SE",
+    "sector": "Consumer Cyclical",
+    "industry": "Restaurants"
+  },
+  {
+    "ticker": "BOSS",
+    "name": "Hugo Boss AG",
+    "sector": "Consumer Cyclical",
+    "industry": "Apparel Manufacturing"
+  },
+  {
+    "ticker": "FRA",
+    "name": "Fraport AG",
+    "sector": "Industrials",
+    "industry": "Airports & Air Services"
+  },
+  {
+    "ticker": "JUN3",
+    "name": "Jungheinrich AG",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "GXI",
+    "name": "Gerresheimer AG",
+    "sector": "Healthcare",
+    "industry": "Medical Instruments & Supplies"
+  },
+  {
+    "ticker": "TKA",
+    "name": "ThyssenKrupp AG",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "WAF",
+    "name": "Siltronic AG",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "SZG",
+    "name": "Salzgitter AG",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "HLE",
+    "name": "Hella GmbH",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "NDA",
+    "name": "Aurubis AG",
+    "sector": "Industrials",
+    "industry": "Metal Fabrication"
+  },
+  {
+    "ticker": "PSM",
+    "name": "ProSiebenSat.1",
+    "sector": "Communication Services",
+    "industry": "Broadcasting"
+  },
+  {
+    "ticker": "EVT",
+    "name": "Evotec SE",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "SLMC",
+    "name": "iShares MSCI ETF",
+    "sector": "Unknown",
+    "industry": "Unknown"
+  },
+  {
+    "ticker": "AIXA",
+    "name": "Aixtron SE",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "ADV",
+    "name": "Adva Optical",
+    "sector": "Technology",
+    "industry": "Communication Equipment"
+  },
+  {
+    "ticker": "AFX",
+    "name": "Carl Zeiss Meditec",
+    "sector": "Healthcare",
+    "industry": "Medical Instruments & Supplies"
+  },
+  {
+    "ticker": "GFT",
+    "name": "GFT Technologies",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "UTDI",
+    "name": "United Internet",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "NEM",
+    "name": "Nemetschek SE",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "JEN",
+    "name": "Jenoptik AG",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "DRW3",
+    "name": "Draegerwerk AG",
+    "sector": "Healthcare",
+    "industry": "Medical Devices"
+  },
+  {
+    "ticker": "SGL",
+    "name": "SGL Carbon SE",
+    "sector": "Basic Materials",
+    "industry": "Chemicals"
+  },
+  {
+    "ticker": "TEG",
+    "name": "TAG Immobilien",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Diversified"
+  },
+  {
+    "ticker": "LEG",
+    "name": "LEG Immobilien",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "DWNI",
+    "name": "Deutsche Wohnen",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "HEI",
+    "name": "Heidelberg Materials",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "QIA",
+    "name": "Qiagen NV",
+    "sector": "Healthcare",
+    "industry": "Diagnostics & Research"
+  },
+  {
+    "ticker": "SRT3",
+    "name": "Sartorius Vz",
+    "sector": "Healthcare",
+    "industry": "Medical Instruments & Supplies"
+  },
+  {
+    "ticker": "GFG",
+    "name": "Global Fashion Group",
+    "sector": "Consumer Cyclical",
+    "industry": "Apparel Retail"
+  },
+  {
+    "ticker": "BC8",
+    "name": "Bechtle AG",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "KRN",
+    "name": "Krones AG",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "WCH",
+    "name": "Wacker Chemie",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "LXS",
+    "name": "Lanxess AG",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "KCO",
+    "name": "Klöckner & Co",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "BAYN",
+    "name": "Bayer",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "SHL",
+    "name": "Siemens Healthinears",
+    "sector": "Healthcare",
+    "industry": "Medical Devices"
+  },
+  {
+    "ticker": "DTG",
+    "name": "Daimler",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "G24",
+    "name": "Scout24",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "ENR",
+    "name": "Siemens Energy",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  }
 ]

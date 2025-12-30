@@ -630,6 +630,7 @@ export const generateRiskReport = (portfolio, totalCapital) => {
       riskMetrics: {
         riskiestAsset: {
           ticker: riskiestAsset.ticker,
+          name: riskiestAsset.name,
           volatility: riskiestAsset.volatility,
           weight: ((riskiestAsset.weight || 0) * 100).toFixed(2) + '%'
         },

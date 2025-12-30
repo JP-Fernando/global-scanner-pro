@@ -1,49 +1,282 @@
 [
-  {"ticker":"RY","name":"Royal Bank of Canada"},
-  {"ticker":"TD","name":"The Toronto-Dominion Bank"},
-  {"ticker":"BNS","name":"Bank of Nova Scotia"},
-  {"ticker":"BMO","name":"Bank of Montreal"},
-  {"ticker":"ENB","name":"Enbridge Inc."},
-  {"ticker":"TRP","name":"TC Energy Corporation"},
-  {"ticker":"CNQ","name":"Canadian Natural Resources Ltd."},
-  {"ticker":"SU","name":"Suncor Energy Inc."},
-  {"ticker":"BCE","name":"BCE Inc."},
-  {"ticker":"SHOP","name":"Shopify Inc."},
-  {"ticker":"AEM","name":"Agnico Eagle Mines Ltd."},
-  {"ticker":"ABX","name":"Barrick Gold Corporation"},
-  {"ticker":"MFC","name":"Manulife Financial Corporation"},
-  {"ticker":"GWO","name":"Great-West Lifeco Inc."},
-  {"ticker":"CNR","name":"Canadian National Railway Company"},
-  {"ticker":"CP","name":"Canadian Pacific Kansas City"},
-  {"ticker":"PPL","name":"Pembina Pipeline Corporation"},
-  {"ticker":"WEED","name":"Canopy Growth Corporation"},
-  {"ticker":"MG","name":"Magna International Inc."},
-  {"ticker":"L","name":"Loblaw Companies Limited"},
-  {"ticker":"MRU","name":"Metro Inc."},
-  {"ticker":"QSR","name":"Restaurant Brands International"},
-  {"ticker":"WCN","name":"Waste Connections, Inc."},
-  {"ticker":"FTS","name":"Fortis Inc."},
-  {"ticker":"TEL","name":"TELUS Corporation"},
-  {"ticker":"CVE","name":"Cenovus Energy Inc."},
-  {"ticker":"TOU","name":"Tourmaline Oil Corp."},
-  {"ticker":"SLF","name":"Sun Life Financial Inc."},
-  {"ticker":"ARX","name":"ARC Resources Ltd."},
-  {"ticker":"BTE","name":"Baytex Energy Corp."},
-  {"ticker":"FNV","name":"Franco-Nevada Corporation"},
-  {"ticker":"IFC","name":"Intact Financial Corporation"},
-  {"ticker":"LUN","name":"Lundin Mining Corporation"},
-  {"ticker":"NTR","name":"Nutrien Ltd."},
-  {"ticker":"OTEX","name":"Open Text Corporation"},
-  {"ticker":"VET","name":"Vermilion Energy Inc."},
-  {"ticker":"WPM","name":"Wheaton Precious Metals Corp."},
-  {"ticker":"AC","name":"Air Canada"},
-  {"ticker":"AGI","name":"Alamos Gold Inc."},
-  {"ticker":"AIF","name":"Altagas Ltd."},
-  {"ticker":"DOL","name":"Dollarama Inc."},
-  {"ticker":"FCR-UN","name":"First Capital REIT"},
-  {"ticker":"H","name":"Hydro One Limited"},
-  {"ticker":"IGM","name":"IGM Financial Inc."},
-  {"ticker":"NWC","name":"North West Company"},
-  {"ticker":"RBA","name":"Ritchie Bros. Auctioneers"},
-  {"ticker":"ATRL","name":"AtkinsRealis (ex-SNC)"}
+  {
+    "ticker": "RY",
+    "name": "Royal Bank of Canada",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "TD",
+    "name": "The Toronto-Dominion Bank",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "BNS",
+    "name": "Bank of Nova Scotia",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "BMO",
+    "name": "Bank of Montreal",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "ENB",
+    "name": "Enbridge Inc.",
+    "sector": "Energy",
+    "industry": "Oil & Gas Midstream"
+  },
+  {
+    "ticker": "TRP",
+    "name": "TC Energy Corporation",
+    "sector": "Energy",
+    "industry": "Oil & Gas Midstream"
+  },
+  {
+    "ticker": "CNQ",
+    "name": "Canadian Natural Resources Ltd.",
+    "sector": "Energy",
+    "industry": "Oil & Gas E&P"
+  },
+  {
+    "ticker": "SU",
+    "name": "Suncor Energy Inc.",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "BCE",
+    "name": "BCE Inc.",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "SHOP",
+    "name": "Shopify Inc.",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "AEM",
+    "name": "Agnico Eagle Mines Ltd.",
+    "sector": "Basic Materials",
+    "industry": "Gold"
+  },
+  {
+    "ticker": "ABX",
+    "name": "Barrick Gold Corporation",
+    "sector": "Basic Materials",
+    "industry": "Gold"
+  },
+  {
+    "ticker": "MFC",
+    "name": "Manulife Financial Corporation",
+    "sector": "Financial Services",
+    "industry": "Insurance - Life"
+  },
+  {
+    "ticker": "GWO",
+    "name": "Great-West Lifeco Inc.",
+    "sector": "Financial Services",
+    "industry": "Insurance - Life"
+  },
+  {
+    "ticker": "CNR",
+    "name": "Canadian National Railway Company",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "CP",
+    "name": "Canadian Pacific Kansas City",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "PPL",
+    "name": "Pembina Pipeline Corporation",
+    "sector": "Energy",
+    "industry": "Oil & Gas Midstream"
+  },
+  {
+    "ticker": "WEED",
+    "name": "Canopy Growth Corporation",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "MG",
+    "name": "Magna International Inc.",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "L",
+    "name": "Loblaw Companies Limited",
+    "sector": "Consumer Defensive",
+    "industry": "Grocery Stores"
+  },
+  {
+    "ticker": "MRU",
+    "name": "Metro Inc.",
+    "sector": "Consumer Defensive",
+    "industry": "Grocery Stores"
+  },
+  {
+    "ticker": "QSR",
+    "name": "Restaurant Brands International",
+    "sector": "Consumer Cyclical",
+    "industry": "Restaurants"
+  },
+  {
+    "ticker": "WCN",
+    "name": "Waste Connections, Inc.",
+    "sector": "Industrials",
+    "industry": "Waste Management"
+  },
+  {
+    "ticker": "FTS",
+    "name": "Fortis Inc.",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "TEL",
+    "name": "TELUS Corporation"
+  },
+  {
+    "ticker": "CVE",
+    "name": "Cenovus Energy Inc.",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "TOU",
+    "name": "Tourmaline Oil Corp.",
+    "sector": "Energy",
+    "industry": "Oil & Gas E&P"
+  },
+  {
+    "ticker": "SLF",
+    "name": "Sun Life Financial Inc.",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "ARX",
+    "name": "ARC Resources Ltd.",
+    "sector": "Energy",
+    "industry": "Oil & Gas E&P"
+  },
+  {
+    "ticker": "BTE",
+    "name": "Baytex Energy Corp.",
+    "sector": "Energy",
+    "industry": "Oil & Gas E&P"
+  },
+  {
+    "ticker": "FNV",
+    "name": "Franco-Nevada Corporation",
+    "sector": "Basic Materials",
+    "industry": "Gold"
+  },
+  {
+    "ticker": "IFC",
+    "name": "Intact Financial Corporation",
+    "sector": "Financial Services",
+    "industry": "Insurance - Property & Casualty"
+  },
+  {
+    "ticker": "LUN",
+    "name": "Lundin Mining Corporation",
+    "sector": "Basic Materials",
+    "industry": "Copper"
+  },
+  {
+    "ticker": "NTR",
+    "name": "Nutrien Ltd.",
+    "sector": "Basic Materials",
+    "industry": "Agricultural Inputs"
+  },
+  {
+    "ticker": "OTEX",
+    "name": "Open Text Corporation",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "VET",
+    "name": "Vermilion Energy Inc.",
+    "sector": "Energy",
+    "industry": "Oil & Gas E&P"
+  },
+  {
+    "ticker": "WPM",
+    "name": "Wheaton Precious Metals Corp.",
+    "sector": "Basic Materials",
+    "industry": "Gold"
+  },
+  {
+    "ticker": "AC",
+    "name": "Air Canada",
+    "sector": "Industrials",
+    "industry": "Airlines"
+  },
+  {
+    "ticker": "AGI",
+    "name": "Alamos Gold Inc.",
+    "sector": "Basic Materials",
+    "industry": "Gold"
+  },
+  {
+    "ticker": "AIF",
+    "name": "Altagas Ltd.",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "DOL",
+    "name": "Dollarama Inc.",
+    "sector": "Consumer Defensive",
+    "industry": "Discount Stores"
+  },
+  {
+    "ticker": "FCR-UN",
+    "name": "First Capital REIT",
+    "sector": "Real Estate",
+    "industry": "REIT - Retail"
+  },
+  {
+    "ticker": "H",
+    "name": "Hydro One Limited",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "IGM",
+    "name": "IGM Financial Inc.",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "NWC",
+    "name": "North West Company",
+    "sector": "Consumer Defensive",
+    "industry": "Grocery Stores"
+  },
+  {
+    "ticker": "RBA",
+    "name": "Ritchie Bros. Auctioneers",
+    "sector": "Industrials",
+    "industry": "Specialty Business Services"
+  },
+  {
+    "ticker": "ATRL",
+    "name": "AtkinsRealis (ex-SNC)",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  }
 ]

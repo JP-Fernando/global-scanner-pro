@@ -1,76 +1,440 @@
 [
-  {"ticker":"ENI","name":"Eni"},
-  {"ticker":"ENEL","name":"Enel"},
-  {"ticker":"ISP","name":"Intesa Sanpaolo"},
-  {"ticker":"UCG","name":"UniCredit"},
-  {"ticker":"G","name":"Generali"},
-  {"ticker":"STLAM","name":"Stellantis N.V."},
-  {"ticker":"AZM","name":"Azimut Holding"},
-  {"ticker":"A2A","name":"A2A"},
-  {"ticker":"AMP","name":"Amplifon"},
-  {"ticker":"BMED","name":"Banca Mediolanum"},
-  {"ticker":"BMPS","name":"Banca Monte dei Paschi di Siena"},
-  {"ticker":"BAMI","name":"Banco BPM"},
-  {"ticker":"BPE","name":"BPER Banca"},
-  {"ticker":"DAN","name":"Danieli & C. Officine Meccaniche"},
-  {"ticker":"FNM","name":"Ferrovie dello Stato (FNM)"},
-  {"ticker":"GVS","name":"GVS"},
-  {"ticker":"IRE","name":"Iren"},
-  {"ticker":"MONC","name":"Moncler"},
-  {"ticker":"PST","name":"Poste Italiane"},
-  {"ticker":"PRY","name":"Prysmian"},
-  {"ticker":"RACE","name":"Ferrari N.V."},
-  {"ticker":"SFER","name":"Snam"},
-  {"ticker":"TEN","name":"Tenaris S.A."},
-  {"ticker":"TIT","name":"Telecom Italia"},
-  {"ticker":"UNI","name":"Unipol Gruppo"},
-  {"ticker":"ZV","name":"Zignago Vetro"},
-  {"ticker":"BRE","name":"Brembo"},
-  {"ticker":"CALT","name":"Calzedonia"},
-  {"ticker":"DLG","name":"De'Longhi"},
-  {"ticker":"ELN","name":"El.En."},
-  {"ticker":"FNM","name":"FNM"},
-  {"ticker":"IGD","name":"IGD"},
-  {"ticker":"KME","name":"KME Group"},
-  {"ticker":"LDO","name":"Leonardo"},
-  {"ticker":"MARR","name":"MARR"},
-  {"ticker":"NEXI","name":"Nexi"},
-  {"ticker":"OIL","name":"Saipem"},
-  {"ticker":"RDM","name":"RDM Group"},
-  {"ticker":"SAC","name":"SACE"},
-  {"ticker":"TITN","name":"Tiscali Italia"},
-  {"ticker":"VIT","name":"Vittoria Assicurazioni"},
-  {"ticker":"WIIT","name":"WIIT"},
-  {"ticker":"SRG","name":"Snam"},
-  {"ticker":"TRN","name":"Terna"},
-  {"ticker":"MB","name":"Mediobanca"},
-  {"ticker":"FBK","name":"FinecoBank"},
-  {"ticker":"EDNR","name":"Edison"},
-  {"ticker":"REC","name":"Recordati"},
-  {"ticker":"BZU","name":"Buzzi"},
-  {"ticker":"IG","name":"Italgas"},
-  {"ticker":"TPRO","name":"Technoprobe"},
-  {"ticker":"BPSO","name":"Banca Popolare di Sondrio"},
-  {"ticker":"INW","name":"INWIT"},
-  {"ticker":"BC","name":"Brunello Cucinelli"},
-  {"ticker":"CPR","name":"Campari"},
-  {"ticker":"PIRC","name":"Pirelli"},
-  {"ticker":"HER","name":"Hera"},
-  {"ticker":"LTMC","name":"Lottomatica"},
-  {"ticker":"CE","name":"Credito Emiliano"},
-  {"ticker":"FCT","name":"Fincantieri"},
-  {"ticker":"IVG","name":"Iveco"},
-  {"ticker":"IP","name":"Interpump"},
-  {"ticker":"ACE","name":"ACEA"},
-  {"ticker":"SPM","name":"Saipem"},
-  {"ticker":"REY","name":"Reply"},
-  {"ticker":"SOL","name":"SOL"},
-  {"ticker":"MAIRE","name":"Maire"},
-  {"ticker":"WBD","name":"Webuild"},
-  {"ticker":"DIA","name":"DiaSorin"},
-  {"ticker":"TGYM","name":"Technogym"},
-  {"ticker":"ERG","name":"ERG"},
-  {"ticker":"CEM","name":"Cementir"},
-  {"ticker":"CRL","name":"Carel"},
-  {"ticker":"ENAV","name":"ENAV"}
+  {
+    "ticker": "ENI",
+    "name": "Eni",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "ENEL",
+    "name": "Enel",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "ISP",
+    "name": "Intesa Sanpaolo",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "UCG",
+    "name": "UniCredit",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "G",
+    "name": "Generali",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "STLAM",
+    "name": "Stellantis N.V.",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "AZM",
+    "name": "Azimut Holding",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "A2A",
+    "name": "A2A",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "AMP",
+    "name": "Amplifon",
+    "sector": "Healthcare",
+    "industry": "Medical Distribution"
+  },
+  {
+    "ticker": "BMED",
+    "name": "Banca Mediolanum",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "BMPS",
+    "name": "Banca Monte dei Paschi di Siena",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "BAMI",
+    "name": "Banco BPM",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "BPE",
+    "name": "BPER Banca",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "DAN",
+    "name": "Danieli & C. Officine Meccaniche",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "FNM",
+    "name": "Ferrovie dello Stato (FNM)",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "GVS",
+    "name": "GVS",
+    "sector": "Industrials",
+    "industry": "Pollution & Treatment Controls"
+  },
+  {
+    "ticker": "IRE",
+    "name": "Iren",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "MONC",
+    "name": "Moncler",
+    "sector": "Consumer Cyclical",
+    "industry": "Apparel Manufacturing"
+  },
+  {
+    "ticker": "PST",
+    "name": "Poste Italiane",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "PRY",
+    "name": "Prysmian",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "RACE",
+    "name": "Ferrari N.V.",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "SFER",
+    "name": "Snam",
+    "sector": "Consumer Cyclical",
+    "industry": "Luxury Goods"
+  },
+  {
+    "ticker": "TEN",
+    "name": "Tenaris S.A.",
+    "sector": "Energy",
+    "industry": "Oil & Gas Equipment & Services"
+  },
+  {
+    "ticker": "TIT",
+    "name": "Telecom Italia",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "UNI",
+    "name": "Unipol Gruppo",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "ZV",
+    "name": "Zignago Vetro",
+    "sector": "Consumer Cyclical",
+    "industry": "Packaging & Containers"
+  },
+  {
+    "ticker": "BRE",
+    "name": "Brembo",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "CALT",
+    "name": "Calzedonia",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "DLG",
+    "name": "De'Longhi",
+    "sector": "Consumer Cyclical",
+    "industry": "Furnishings, Fixtures & Appliances"
+  },
+  {
+    "ticker": "ELN",
+    "name": "El.En.",
+    "sector": "Healthcare",
+    "industry": "Medical Devices"
+  },
+  {
+    "ticker": "FNM",
+    "name": "FNM",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "IGD",
+    "name": "IGD",
+    "sector": "Real Estate",
+    "industry": "REIT - Retail"
+  },
+  {
+    "ticker": "KME",
+    "name": "KME Group",
+    "sector": "Basic Materials",
+    "industry": "Copper"
+  },
+  {
+    "ticker": "LDO",
+    "name": "Leonardo",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "MARR",
+    "name": "MARR",
+    "sector": "Consumer Defensive",
+    "industry": "Food Distribution"
+  },
+  {
+    "ticker": "NEXI",
+    "name": "Nexi",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "OIL",
+    "name": "Saipem",
+    "sector": "Unknown",
+    "industry": "Unknown"
+  },
+  {
+    "ticker": "RDM",
+    "name": "RDM Group"
+  },
+  {
+    "ticker": "SAC",
+    "name": "SACE",
+    "sector": "Consumer Cyclical",
+    "industry": "Packaging & Containers"
+  },
+  {
+    "ticker": "TITN",
+    "name": "Tiscali Italia"
+  },
+  {
+    "ticker": "VIT",
+    "name": "Vittoria Assicurazioni"
+  },
+  {
+    "ticker": "WIIT",
+    "name": "WIIT",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "SRG",
+    "name": "Snam",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Gas"
+  },
+  {
+    "ticker": "TRN",
+    "name": "Terna",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "MB",
+    "name": "Mediobanca",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "FBK",
+    "name": "FinecoBank",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "EDNR",
+    "name": "Edison",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "REC",
+    "name": "Recordati",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "BZU",
+    "name": "Buzzi",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "IG",
+    "name": "Italgas",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Gas"
+  },
+  {
+    "ticker": "TPRO",
+    "name": "Technoprobe",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "BPSO",
+    "name": "Banca Popolare di Sondrio",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "INW",
+    "name": "INWIT",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "BC",
+    "name": "Brunello Cucinelli",
+    "sector": "Consumer Cyclical",
+    "industry": "Luxury Goods"
+  },
+  {
+    "ticker": "CPR",
+    "name": "Campari",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Wineries & Distilleries"
+  },
+  {
+    "ticker": "PIRC",
+    "name": "Pirelli",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "HER",
+    "name": "Hera",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "LTMC",
+    "name": "Lottomatica",
+    "sector": "Consumer Cyclical",
+    "industry": "Gambling"
+  },
+  {
+    "ticker": "CE",
+    "name": "Credito Emiliano",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "FCT",
+    "name": "Fincantieri",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "IVG",
+    "name": "Iveco",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "IP",
+    "name": "Interpump",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "ACE",
+    "name": "ACEA",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "SPM",
+    "name": "Saipem",
+    "sector": "Energy",
+    "industry": "Oil & Gas Equipment & Services"
+  },
+  {
+    "ticker": "REY",
+    "name": "Reply",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "SOL",
+    "name": "SOL",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "MAIRE",
+    "name": "Maire",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "WBD",
+    "name": "Webuild",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "DIA",
+    "name": "DiaSorin",
+    "sector": "Healthcare",
+    "industry": "Diagnostics & Research"
+  },
+  {
+    "ticker": "TGYM",
+    "name": "Technogym",
+    "sector": "Consumer Cyclical",
+    "industry": "Leisure"
+  },
+  {
+    "ticker": "ERG",
+    "name": "ERG",
+    "sector": "Utilities",
+    "industry": "Utilities - Renewable"
+  },
+  {
+    "ticker": "CEM",
+    "name": "Cementir",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "CRL",
+    "name": "Carel",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "ENAV",
+    "name": "ENAV",
+    "sector": "Industrials",
+    "industry": "Airports & Air Services"
+  }
 ]

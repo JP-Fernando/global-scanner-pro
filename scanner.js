@@ -9,6 +9,8 @@ import * as allocation from './allocation.js';
 import * as risk from './risk_engine.js';
 import * as regime from './market_regime.js';
 import * as governance from './governance.js';
+import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from './sectors.js';
+import { detectAnomalies } from './anomalies.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
@@ -21,6 +23,34 @@ const appState = {
   market: null,
   strategy: null
 };
+
+
+const SECTOR_COLORS = {
+  100: '#ef4444', // Energy
+  200: '#94a3b8', // Materials
+  300: '#fbbf24', // Industrials
+  400: '#f472b6', // Consumer Discretionary
+  500: '#10b981', // Consumer Staples
+  600: '#22d3ee', // Health Care
+  700: '#fb923c', // Financials
+  800: '#818cf8', // IT
+  900: '#a855f7', // Communication
+  1000: '#facc15', // Utilities
+  1100: '#4ade80', // Real Estate
+  999: '#475569'   // Unknown
+};
+
+const ANOMALY_THEME = {
+  CRITICAL_PUMP_RISK: { color: '#ef4444', label: '🚀 PUMP', bg: '#450a0a' },
+  HIGH_VOLUME_SPIKE: { color: '#fbbf24', label: '📊 VOL+', bg: '#451a03' },
+  CRITICAL_DUMP_RISK: { color: '#f87171', label: '📉 DUMP', bg: '#450a0a' }
+};
+
+
+const SECTOR_NAMES = SECTOR_TAXONOMY.reduce((acc, sector) => {
+  acc[sector.sectorId] = sector.name;
+  return acc;
+}, { 999: 'Otros' }); // Añadimos el default
 
 // =====================================================
 // CARGA DE DATOS
@@ -138,7 +168,7 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
       scoreRisk: Math.round(riskResult.score),
       scoreLiquidity: Math.round(liquidityResult.score),
       signal,
-      vRatio: vRatio.toFixed(2),
+      vRatio: vRatio,
       details: {
         trend: trendResult.details,
         momentum: momentumResult.details,
@@ -196,6 +226,51 @@ async function loadBenchmark(suffix) {
   }
 }
 
+function getRSIDescription(rsi) {
+  if (rsi >= 70) return { text: 'Sobrecompra: Riesgo de corrección', color: '#f87171', icon: '⚠️' };
+  if (rsi >= 60) return { text: 'Tendencia Alcista Saludable', color: '#fbbf24', icon: '📈' };
+  if (rsi <= 30) return { text: 'Sobreventa: Posible rebote', color: '#4ade80', icon: '🎯' };
+  if (rsi <= 40) return { text: 'Debilidad: Interés comprador bajo', color: '#60a5fa', icon: '📉' };
+  return { text: 'Régimen Neutral / Consolidación', color: '#94a3b8', icon: '⚖️' };
+}
+
+function updateSectorUI(sectorStats) {
+  const container = document.getElementById('sectorSummary');
+  if (!container) return;
+
+  // Limpiamos y generamos tarjetas
+  container.innerHTML = Object.entries(sectorStats).map(([id, stat]) => {
+    const dotColor = SECTOR_COLORS[id] || SECTOR_COLORS[999];
+    const sectorName = SECTOR_NAMES[id] || `Sector ${id}`;
+    const rsiInfo = getRSIDescription(stat.avgRsi);
+
+    return `
+      <div style="background:#1e293b; padding:15px; border-radius:12px; border-left: 5px solid ${dotColor}; border: 1px solid #334155; transition: transform 0.2s;">
+        <div style="color:#94a3b8; font-size:0.7em; text-transform:uppercase; font-weight:800; letter-spacing:1px; margin-bottom:8px;">
+          ${sectorName}
+        </div>
+
+        <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:4px;">
+          <span style="font-size:1.4em; font-weight:bold; color:#f8fafc;">${stat.avgRsi.toFixed(1)}</span>
+          <span style="color:#64748b; font-size:0.8em;">RSI Avg</span>
+        </div>
+
+        <div style="color:${rsiInfo.color}; font-size:0.85em; font-weight: 600; display:flex; align-items:center; gap:5px;">
+          ${rsiInfo.icon} ${rsiInfo.text}
+        </div>
+
+        <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#475569; font-size:0.75em;">${stat.count} activos</span>
+          <div style="width:40px; height:4px; background:#334155; border-radius:2px;">
+             <div style="width:${stat.avgRsi}%; height:100%; background:${dotColor}; border-radius:2px;"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+
 // =====================================================
 // ESCANEO PRINCIPAL
 // =====================================================
@@ -237,24 +312,68 @@ export async function runScan() {
       )
     );
 
-    for (const res of batchResults) {
+    batchResults.forEach((res, idx) => {
       if (res?.passed) {
-        currentResults.push(res);
+        const originalStockData = batch[idx]; // Recuperamos la data original (sector, industry)
+        const sectorId = getSectorId(originalStockData.sector || originalStockData.industry || 'Unknown');
+        const tempStats = calculateSectorStats(currentResults);
+        const anomalyData = detectAnomalies(res, tempStats);
+        currentResults.push({
+          ...res,
+          vRatio: Number(res.vRatio) || 1.0,
+          sectorId,
+          sectorRaw: originalStockData.sector || originalStockData.industry || 'Unknown',
+          hasAnomalies: anomalyData.hasAnomalies,
+          anomalies: anomalyData.anomalies,
+          anomalyMetrics: anomalyData.metrics || {}
+        });
         analyzed++;
       } else {
         filtered++;
       }
-    }
+    });
 
     if (i % (BATCH_SIZE * 2) === 0) {
+      const sectorStats = calculateSectorStats(currentResults);
       renderTable(currentResults);
+      updateSectorUI(sectorStats); // Llamada al resumen superior
     }
 
     await sleep(50);
   }
 
   currentResults.sort((a, b) => b.scoreTotal - a.scoreTotal);
+  const finalStats = calculateSectorStats(currentResults);
+
+  currentResults = currentResults.map(asset => {
+    const anomalyData = detectAnomalies(asset, finalStats);
+
+    let updatedScore = asset.scoreTotal;
+    let penalty = 0;
+
+    if (anomalyData.hasAnomalies) {
+      // Cálculo de penalización: máximo 15 puntos basado en el Z-Score
+      penalty = Math.min(15, Math.round((anomalyData.metrics?.volumeZScore || 0) * 3));
+      updatedScore = Math.max(0, updatedScore - penalty);
+    }
+
+    return {
+      ...asset,
+      anomalies: anomalyData.anomalies,
+      warnings: [
+        ...(asset.warnings || []),
+        ...(anomalyData.warnings || [])
+      ],
+      hasAnomalies: anomalyData.hasAnomalies,
+      anomalyMetrics: anomalyData.metrics,
+            scoreTotal: updatedScore,
+      anomalyPenalty: penalty
+    };
+  });
+
+
   renderTable(currentResults);
+  updateSectorUI(finalStats);
 
   status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
   filterInfo.innerHTML = `✅ ${analyzed} aprobados | ❌ ${filtered} filtrados`;
@@ -532,7 +651,7 @@ function renderAdvancedRiskDashboard(riskReport) {
         <div class="risk-panel-dark">
           <h4>⚠️ Activo Más Arriesgado</h4>
           <div style="font-size: 1.5em; color: #fbbf24; font-weight: bold; margin: 15px 0;">
-            ${riskReport.riskMetrics?.riskiestAsset?.ticker || 'N/A'}
+            ${riskReport.riskMetrics?.riskiestAsset?.ticker || 'N/A'} (${riskReport.riskMetrics?.riskiestAsset?.name})
           </div>
           <div class="small-text">
             <strong>Volatilidad:</strong> ${riskReport.riskMetrics.riskiestAsset.volatility}%<br>
@@ -675,24 +794,50 @@ function renderTable(data) {
   tbody.innerHTML = '';
 
   data.forEach((r, idx) => {
-    const displayScore = r[viewKey] || r.scoreTotal;
+    const displayScore = r[viewKey] || r.finalScore;
+    const dotColor = SECTOR_COLORS[r.sectorId] || SECTOR_COLORS[999];
+
+    // Lógica de Anomalías
+    let anomalyBadge = '';
+    let rowClass = 'result-row';
+    if (r.hasAnomalies) {
+      const warningType = r.anomalies[0] || 'RISK';
+      const tooltip = `${warningType}: Z-Score ${r.anomalyMetrics?.volumeZScore?.toFixed(2) || 0}, Sector Rel ${r.anomalyMetrics?.sectorRelVolume?.toFixed(1) || 0}x`;
+      anomalyBadge = `<div class="anomaly-pill" title="${tooltip}" style="background:#450a0a; color:#ef4444; border:1px solid #ef4444; display:inline-block; padding:2px 6px; border-radius:4px; font-size:0.7em; margin-left:5px;">⚠️ ${warningType.replace('_', ' ')}</div>`;
+      rowClass += ' row-warning';
+    }
 
     const tr = document.createElement('tr');
-    tr.className = 'result-row';
-    tr.onclick = () => showDetails(r);
+    tr.className = rowClass;
+    tr.style.cursor = 'pointer';
+    tr.onclick = () => showDetails(r.ticker);
 
     tr.innerHTML = `
-      <td class="rank-cell">${idx + 1}</td>
-      <td><strong>${r.ticker}</strong></td>
-      <td class="name-cell">${r.name}</td>
-      <td>${renderScorePill(displayScore)}</td>
-      <td class="volume-cell">x${r.vRatio}</td>
+      <td class="rank-cell" style="color:#94a3b8; font-size:0.8em;">${idx + 1}</td>
       <td>
-        <span class="signal-badge" style="background: ${r.signal.color}20; color: ${r.signal.color}; border: 1px solid ${r.signal.color}">
-          ${r.signal.text}
+        <div style="font-weight:bold; color:#f8fafc;">${r.ticker} ${anomalyBadge}</div>
+      </td>
+      <td class="name-cell">
+        <div style="font-weight: 600; color: #f8fafc; margin-bottom: 2px;">${r.name}</div>
+        <div style="font-size: 0.7em; color: #94a3b8; text-transform: uppercase; display: flex; align-items: center; gap: 4px;">
+           <span style="color: ${dotColor}; font-size: 1.2em;">•</span> ${r.sectorRaw || 'No clasificado'}
+        </div>
+        </td>
+        <td>${renderScorePill(displayScore)}</td>
+        <td class="volume-cell">
+        <span style="font-family: monospace; color:#38bdf8;">
+        x${Number(r.vRatio || 1).toFixed(2)}
         </span>
-        <div class="confidence-bar">
-          <div class="confidence-fill" style="width: ${r.signal.confidence}%; background: ${r.signal.color}"></div>
+        ${r.anomalyMetrics?.volumeZScore > 3 ?
+          `<span style="cursor:help" title="Volumen inusual (Z-Score: ${r.anomalyMetrics.volumeZScore.toFixed(2)})">🔥</span>`
+          : ''}
+      </td>
+      <td>
+        <div class="signal-badge" style="background: ${r.signal.color}20; color: ${r.signal.color}; border: 1px solid ${r.signal.color}; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; display: inline-block;">
+          ${r.signal.text}
+        </div>
+        <div class="confidence-bar" style="width: 100%; height: 4px; background: #334155; border-radius: 2px; margin-top: 5px;">
+          <div class="confidence-fill" style="width: ${r.signal.confidence}%; background: ${r.signal.color}; height: 100%; border-radius: 2px;"></div>
         </div>
       </td>
     `;
@@ -809,6 +954,20 @@ function showDetails(result) {
         <li>Max Drawdown 52w: <strong>${d.risk.maxDrawdown}%</strong></li>
       </ul>
     </div>
+    ${result.hasAnomalies ? `
+    <div class="detail-section" style="border-left: 4px solid #f43f5e; background: #450a0a;">
+      <h3 style="color: #f43f5e;">🚨 Detección de Anomalías</h3>
+      <div style="margin-bottom: 10px; color: #fca5a5;">
+        Este activo presenta comportamiento inusual y ha recibido una <strong>penalización de -${result.anomalyPenalty} puntos</strong>.
+      </div>
+      <ul>
+        <li>Tipo: <strong>${result.anomalies.join(', ')}</strong></li>
+        <li>Z-Score Volumen: <strong>${result.anomalyMetrics.volumeZScore}</strong> (Normal < 3.0)</li>
+        <li>Ratio vs Sector: <strong>${result.anomalyMetrics.sectorRelVolume}x</strong> (Normal ~1.0)</li>
+        <li>Retorno 1d: <strong>${result.anomalyMetrics.priceReturn1d}</strong></li>
+      </ul>
+    </div>
+    ` : ''}
     <div class="detail-section">
       <h3>💧 Análisis de Liquidez</h3>
       <ul>

@@ -1,32 +1,542 @@
 [
-  {"ticker":"7203", "name":"Toyota Motor"}, {"ticker":"6758", "name":"Sony Group"}, {"ticker":"9984", "name":"SoftBank Group"},
-  {"ticker":"8035", "name":"Tokyo Electron"}, {"ticker":"6098", "name":"Recruit Holdings"}, {"ticker":"7974", "name":"Nintendo"},
-  {"ticker":"4063", "name":"Shin-Etsu Chemical"}, {"ticker":"6861", "name":"Keyence Corp"}, {"ticker":"8306", "name":"Mitsubishi UFJ"},
-  {"ticker":"9432", "name":"NTT"}, {"ticker":"8001", "name":"Itochu Corp"}, {"ticker":"8031", "name":"Mitsui & Co"},
-  {"ticker":"8058", "name":"Mitsubishi Corp"}, {"ticker":"4502", "name":"Takeda Pharma"}, {"ticker":"6367", "name":"Daikin Industries"},
-  {"ticker":"6501", "name":"Hitachi"}, {"ticker":"6902", "name":"DENSO"}, {"ticker":"6954", "name":"Fanuc"},
-  {"ticker":"7267", "name":"Honda Motor"}, {"ticker":"7741", "name":"HOYA"}, {"ticker":"8316", "name":"Sumitomo Mitsui FG"},
-  {"ticker":"9020", "name":"JR East"}, {"ticker":"9022", "name":"JR Central"}, {"ticker":"9433", "name":"KDDI"},
-  {"ticker":"9983", "name":"Fast Retailing"}, {"ticker":"2802", "name":"Ajinomoto"}, {"ticker":"4503", "name":"Astellas Pharma"},
-  {"ticker":"4519", "name":"Chugai Pharma"}, {"ticker":"4568", "name":"Daiichi Sankyo"}, {"ticker":"4901", "name":"Fujifilm Holdings"},
-  {"ticker":"5108", "name":"Bridgestone"}, {"ticker":"6178", "name":"Japan Post Holdings"}, {"ticker":"6301", "name":"Komatsu"},
-  {"ticker":"6503", "name":"Mitsubishi Electric"}, {"ticker":"6701", "name":"NEC"}, {"ticker":"6702", "name":"Fujitsu"},
-  {"ticker":"6723", "name":"Renesas Electronics"}, {"ticker":"6752", "name":"Panasonic"}, {"ticker":"6857", "name":"Advantest"},
-  {"ticker":"6920", "name":"Lasertec Corp"}, {"ticker":"6971", "name":"Kyocera"}, {"ticker":"6981", "name":"Murata Manufacturing"},
-  {"ticker":"7011", "name":"Mitsubishi Heavy Industries"}, {"ticker":"7201", "name":"Nissan Motor"}, {"ticker":"8002", "name":"Marubeni"},
-  {"ticker":"8411", "name":"Mizuho Financial"}, {"ticker":"8766", "name":"Tokio Marine"}, {"ticker":"8801", "name":"Mitsui Fudosan"},
-  {"ticker":"8802", "name":"Mitsubishi Estate"}, {"ticker":"9101", "name":"NYK Line"}, {"ticker":"9201", "name":"JAL"},
-  {"ticker":"9202", "name":"ANA Holdings"}, {"ticker":"9501", "name":"TEPCO"}, {"ticker":"9503", "name":"Kansai Electric"},
-  {"ticker":"3850", "name":"NTT Data"}, {"ticker":"9735", "name":"Secom"}, {"ticker":"9766", "name":"Konami Group"},
-  {"ticker":"9843", "name":"Nitori Holdings"}, {"ticker":"2413", "name":"M3 Inc"}, {"ticker":"4385", "name":"Mercari Inc"},
-  {"ticker":"4477", "name":"Base Inc"}, {"ticker":"4523", "name":"Eisai"}, {"ticker":"4661", "name":"Oriental Land"},
-  {"ticker":"4755", "name":"Rakuten Group"}, {"ticker":"4911", "name":"Shiseido"}, {"ticker":"6273", "name":"SMC Corp"},
-  {"ticker":"6506", "name":"Yaskawa Electric"}, {"ticker":"6594", "name":"Nidec Corp"}, {"ticker":"7261", "name":"Mazda Motor"},
-  {"ticker":"7269", "name":"Suzuki Motor"}, {"ticker":"7270", "name":"Subaru Corp"}, {"ticker":"7309", "name":"Shimano"},
-  {"ticker":"7733", "name":"Olympus"}, {"ticker":"7832", "name":"Bandai Namco"}, {"ticker":"8267", "name":"Aeon"},
-  {"ticker":"8604", "name":"Nomura Holdings"}, {"ticker":"9104", "name":"MOL"}, {"ticker":"9107", "name":"K-Line"},
-  {"ticker":"9531", "name":"Tokyo Gas"}, {"ticker":"9532", "name":"Osaka Gas"}, {"ticker":"9143", "name":"SG Holdings"},
-  {"ticker":"9434", "name":"SoftBank"}, {"ticker":"2914", "name":"Japan Tobacco"}, {"ticker":"7182", "name":"Japan Post Bank"},
-  {"ticker":"8053", "name":"Sumitomo"}, {"ticker":"8015", "name":"Toyota Tsusho"}, {"ticker":"3382", "name":"Seven & i Holdings"},
-  {"ticker":"285A", "name":"Kioxia Holdings"}, {"ticker":"6201", "name":"Toyota Industries"}, {"ticker":"8591", "name":"ORIX"}
+  {
+    "ticker": "7203",
+    "name": "Toyota Motor",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "6758",
+    "name": "Sony Group",
+    "sector": "Technology",
+    "industry": "Consumer Electronics"
+  },
+  {
+    "ticker": "9984",
+    "name": "SoftBank Group",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "8035",
+    "name": "Tokyo Electron",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "6098",
+    "name": "Recruit Holdings",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "7974",
+    "name": "Nintendo",
+    "sector": "Communication Services",
+    "industry": "Electronic Gaming & Multimedia"
+  },
+  {
+    "ticker": "4063",
+    "name": "Shin-Etsu Chemical",
+    "sector": "Basic Materials",
+    "industry": "Chemicals"
+  },
+  {
+    "ticker": "6861",
+    "name": "Keyence Corp",
+    "sector": "Technology",
+    "industry": "Scientific & Technical Instruments"
+  },
+  {
+    "ticker": "8306",
+    "name": "Mitsubishi UFJ",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "9432",
+    "name": "NTT",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "8001",
+    "name": "Itochu Corp",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "8031",
+    "name": "Mitsui & Co",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "8058",
+    "name": "Mitsubishi Corp",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "4502",
+    "name": "Takeda Pharma",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "6367",
+    "name": "Daikin Industries",
+    "sector": "Industrials",
+    "industry": "Building Products & Equipment"
+  },
+  {
+    "ticker": "6501",
+    "name": "Hitachi",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "6902",
+    "name": "DENSO",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "6954",
+    "name": "Fanuc",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "7267",
+    "name": "Honda Motor",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "7741",
+    "name": "HOYA",
+    "sector": "Healthcare",
+    "industry": "Medical Instruments & Supplies"
+  },
+  {
+    "ticker": "8316",
+    "name": "Sumitomo Mitsui FG",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "9020",
+    "name": "JR East",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "9022",
+    "name": "JR Central",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "9433",
+    "name": "KDDI",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "9983",
+    "name": "Fast Retailing",
+    "sector": "Consumer Cyclical",
+    "industry": "Apparel Retail"
+  },
+  {
+    "ticker": "2802",
+    "name": "Ajinomoto",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "4503",
+    "name": "Astellas Pharma",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "4519",
+    "name": "Chugai Pharma",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "4568",
+    "name": "Daiichi Sankyo",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "4901",
+    "name": "Fujifilm Holdings",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "5108",
+    "name": "Bridgestone",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "6178",
+    "name": "Japan Post Holdings",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "6301",
+    "name": "Komatsu",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "6503",
+    "name": "Mitsubishi Electric",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "6701",
+    "name": "NEC",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "6702",
+    "name": "Fujitsu",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "6723",
+    "name": "Renesas Electronics",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "6752",
+    "name": "Panasonic",
+    "sector": "Technology",
+    "industry": "Consumer Electronics"
+  },
+  {
+    "ticker": "6857",
+    "name": "Advantest",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "6920",
+    "name": "Lasertec Corp",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "6971",
+    "name": "Kyocera",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "6981",
+    "name": "Murata Manufacturing",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "7011",
+    "name": "Mitsubishi Heavy Industries",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "7201",
+    "name": "Nissan Motor",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "8002",
+    "name": "Marubeni",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "8411",
+    "name": "Mizuho Financial",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "8766",
+    "name": "Tokio Marine",
+    "sector": "Financial Services",
+    "industry": "Insurance - Property & Casualty"
+  },
+  {
+    "ticker": "8801",
+    "name": "Mitsui Fudosan",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Diversified"
+  },
+  {
+    "ticker": "8802",
+    "name": "Mitsubishi Estate",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Diversified"
+  },
+  {
+    "ticker": "9101",
+    "name": "NYK Line",
+    "sector": "Industrials",
+    "industry": "Marine Shipping"
+  },
+  {
+    "ticker": "9201",
+    "name": "JAL",
+    "sector": "Industrials",
+    "industry": "Airlines"
+  },
+  {
+    "ticker": "9202",
+    "name": "ANA Holdings",
+    "sector": "Industrials",
+    "industry": "Airlines"
+  },
+  {
+    "ticker": "9501",
+    "name": "TEPCO",
+    "sector": "Utilities",
+    "industry": "Utilities - Renewable"
+  },
+  {
+    "ticker": "9503",
+    "name": "Kansai Electric",
+    "sector": "Utilities",
+    "industry": "Utilities - Renewable"
+  },
+  {
+    "ticker": "3850",
+    "name": "NTT Data",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "9735",
+    "name": "Secom",
+    "sector": "Industrials",
+    "industry": "Security & Protection Services"
+  },
+  {
+    "ticker": "9766",
+    "name": "Konami Group",
+    "sector": "Communication Services",
+    "industry": "Electronic Gaming & Multimedia"
+  },
+  {
+    "ticker": "9843",
+    "name": "Nitori Holdings",
+    "sector": "Consumer Cyclical",
+    "industry": "Furnishings, Fixtures & Appliances"
+  },
+  {
+    "ticker": "2413",
+    "name": "M3 Inc",
+    "sector": "Healthcare",
+    "industry": "Health Information Services"
+  },
+  {
+    "ticker": "4385",
+    "name": "Mercari Inc",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail"
+  },
+  {
+    "ticker": "4477",
+    "name": "Base Inc",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "4523",
+    "name": "Eisai",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "4661",
+    "name": "Oriental Land",
+    "sector": "Consumer Cyclical",
+    "industry": "Leisure"
+  },
+  {
+    "ticker": "4755",
+    "name": "Rakuten Group",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail"
+  },
+  {
+    "ticker": "4911",
+    "name": "Shiseido",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "6273",
+    "name": "SMC Corp",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "6506",
+    "name": "Yaskawa Electric",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "6594",
+    "name": "Nidec Corp",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "7261",
+    "name": "Mazda Motor",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "7269",
+    "name": "Suzuki Motor",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "7270",
+    "name": "Subaru Corp",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "7309",
+    "name": "Shimano",
+    "sector": "Consumer Cyclical",
+    "industry": "Leisure"
+  },
+  {
+    "ticker": "7733",
+    "name": "Olympus",
+    "sector": "Healthcare",
+    "industry": "Medical Devices"
+  },
+  {
+    "ticker": "7832",
+    "name": "Bandai Namco",
+    "sector": "Consumer Cyclical",
+    "industry": "Leisure"
+  },
+  {
+    "ticker": "8267",
+    "name": "Aeon",
+    "sector": "Consumer Cyclical",
+    "industry": "Department Stores"
+  },
+  {
+    "ticker": "8604",
+    "name": "Nomura Holdings",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "9104",
+    "name": "MOL",
+    "sector": "Industrials",
+    "industry": "Marine Shipping"
+  },
+  {
+    "ticker": "9107",
+    "name": "K-Line",
+    "sector": "Industrials",
+    "industry": "Marine Shipping"
+  },
+  {
+    "ticker": "9531",
+    "name": "Tokyo Gas",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Gas"
+  },
+  {
+    "ticker": "9532",
+    "name": "Osaka Gas",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Gas"
+  },
+  {
+    "ticker": "9143",
+    "name": "SG Holdings",
+    "sector": "Industrials",
+    "industry": "Integrated Freight & Logistics"
+  },
+  {
+    "ticker": "9434",
+    "name": "SoftBank",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "2914",
+    "name": "Japan Tobacco",
+    "sector": "Consumer Defensive",
+    "industry": "Tobacco"
+  },
+  {
+    "ticker": "7182",
+    "name": "Japan Post Bank",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "8053",
+    "name": "Sumitomo",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "8015",
+    "name": "Toyota Tsusho",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "3382",
+    "name": "Seven & i Holdings",
+    "sector": "Consumer Defensive",
+    "industry": "Grocery Stores"
+  },
+  {
+    "ticker": "285A",
+    "name": "Kioxia Holdings",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "6201",
+    "name": "Toyota Industries",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "8591",
+    "name": "ORIX",
+    "sector": "Financial Services",
+    "industry": "Financial Conglomerates"
+  }
 ]

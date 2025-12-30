@@ -1,73 +1,424 @@
 [
-  {"ticker":"VALE3","name":"Vale S.A."},
-  {"ticker":"PETR4","name":"Petrobras (Preferente)"},
-  {"ticker":"PETR3","name":"Petrobras (Ordinaria)"},
-  {"ticker":"ITUB4","name":"Itaú Unibanco (Preferente)"},
-  {"ticker":"BBDC4","name":"Bradesco (Preferente)"},
-  {"ticker":"ABEV3","name":"Ambev S.A."},
-  {"ticker":"B3SA3","name":"B3 S.A."},
-  {"ticker":"BBAS3","name":"Banco do Brasil (Ordinaria)"},
-  {"ticker":"GGBR4","name":"Gerdau (Preferente)"},
-  {"ticker":"USIM5","name":"Usiminas (Preferente)A"},
-  {"ticker":"LREN3","name":"Lojas Renner"},
-  {"ticker":"WEGE3","name":"WEG S.A."},
-  {"ticker":"SUZB3","name":"Suzano S.A."},
-  {"ticker":"RAIL3","name":"Rumo S.A."},
-  {"ticker":"CSNA3","name":"CSN (Ordinaria)"},
-  {"ticker":"BRKM5","name":"Braskem (Preferente)"},
-  {"ticker":"EMBR3","name":"Embraer S.A."},
-  {"ticker":"EQTL3","name":"Equatorial Energia"},
-  {"ticker":"CPLE6","name":"COPEL (Preferente)B"},
-  {"ticker":"CMIG4","name":"Cemig (Preferente)"},
-  {"ticker":"ELET3","name":"Eletrobras (Ordinaria)"},
-  {"ticker":"HYPE3","name":"Hypera Pharma"},
-  {"ticker":"JBSS32","name":"JBS S.A."},
-  {"ticker":"KLBN11","name":"Klabin S.A."},
-  {"ticker":"MGLU3","name":"Magazine Luiza"},
-  {"ticker":"MBRF3Q","name":"Marfrig Global Foods"},
-  {"ticker":"MULT3","name":"Multiplan Empreendimentos"},
-  {"ticker":"PCAR3","name":"GPA (Grupo Pão de Açúcar)"},
-  {"ticker":"PRIO3","name":"PetroRio"},
-  {"ticker":"RADL3","name":"Raia Drogasil"},
-  {"ticker":"SBSP3","name":"Sabesp"},
-  {"ticker":"TAEE11","name":"Taesa"},
-  {"ticker":"TIMS3","name":"TIM S.A."},
-  {"ticker":"TOTS3","name":"TOTVS S.A."},
-  {"ticker":"UGPA3","name":"Ultrapar Participações"},
-  {"ticker":"VIVT3","name":"Telefônica Brasil"},
-  {"ticker":"YDUQ3","name":"Yduqs Participações"},
-  {"ticker":"AZUL4","name":"Azul S.A."},
-  {"ticker":"BBDC3","name":"Bradesco (Ordinaria)"},
-  {"ticker":"BRAP4","name":"Bradespar (Preferente)"},
-  {"ticker":"CPFE3","name":"CPFL Energia"},
-  {"ticker":"CSAN3","name":"Cosan S.A."},
-  {"ticker":"CVCB3","name":"CVC Brasil"},
-  {"ticker":"ENGI3","name":"Energisa"},
-  {"ticker":"ENGI11","name":"Engie Brasil"},
-  {"ticker":"FLRY3","name":"Fleury S.A."},
-  {"ticker":"FHER3","name":"Fertilizantes Heringer"},
-  {"ticker":"IGTI3","name":"Iguatemi"},
-  {"ticker":"IRBR3","name":"IRB Brasil Resseguros"},
-  {"ticker":"LPSB3","name":"LPS Brasil"},
-  {"ticker":"MELI34","name":"MercadoLibre"},
-  {"ticker":"MRVE3","name":"MRV Engenharia"},
-  {"ticker":"NATU3","name":"Natura &Co"},
-  {"ticker":"PETZ3","name":"Petz S.A."},
-  {"ticker":"QUAL3","name":"Qualicorp"},
-  {"ticker":"RENT3","name":"Localiza Rent a Car"},
-  {"ticker":"SMTO3","name":"Sanepar"},
-  {"ticker":"VULC3","name":"Vulcabras Azaleia"},
-  {"ticker":"ALPA4","name":"Alpargatas (Preferente)"},
-  {"ticker":"BEEF3","name":"Minerva Foods"},
-  {"ticker":"CASH3","name":"CASH3 S.A."},
-  {"ticker":"DASA3","name":"Dasa S.A."},
-  {"ticker":"ECPR3","name":"Ecopetrol (Brazil proxy)"},
-  {"ticker":"FESA4","name":"Ferbasa (Preferente)"},
-  {"ticker":"JHSF3","name":"JHSF Participações"},
-  {"ticker":"KEPL3","name":"Kepler Weber"},
-  {"ticker":"LIGT3","name":"Light S.A."},
-  {"ticker":"MILS3","name":"Mills Estruturas e Serviços"},
-  {"ticker":"OIBR3","name":"Oi S.A."},
-  {"ticker":"PSSA3","name":"Porto Seguro"},
-  {"ticker":"RAPT4","name":"Rand(Ordinaria) Implementos"}
+  {
+    "ticker": "VALE3",
+    "name": "Vale S.A.",
+    "sector": "Basic Materials",
+    "industry": "Other Industrial Metals & Mining"
+  },
+  {
+    "ticker": "PETR4",
+    "name": "Petrobras (Preferente)",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "PETR3",
+    "name": "Petrobras (Ordinaria)",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "ITUB4",
+    "name": "Itaú Unibanco (Preferente)",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "BBDC4",
+    "name": "Bradesco (Preferente)",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "ABEV3",
+    "name": "Ambev S.A.",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Brewers"
+  },
+  {
+    "ticker": "B3SA3",
+    "name": "B3 S.A.",
+    "sector": "Financial Services",
+    "industry": "Financial Data & Stock Exchanges"
+  },
+  {
+    "ticker": "BBAS3",
+    "name": "Banco do Brasil (Ordinaria)",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "GGBR4",
+    "name": "Gerdau (Preferente)",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "USIM5",
+    "name": "Usiminas (Preferente)A",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "LREN3",
+    "name": "Lojas Renner",
+    "sector": "Consumer Cyclical",
+    "industry": "Department Stores"
+  },
+  {
+    "ticker": "WEGE3",
+    "name": "WEG S.A.",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "SUZB3",
+    "name": "Suzano S.A.",
+    "sector": "Basic Materials",
+    "industry": "Paper & Paper Products"
+  },
+  {
+    "ticker": "RAIL3",
+    "name": "Rumo S.A.",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "CSNA3",
+    "name": "CSN (Ordinaria)",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "BRKM5",
+    "name": "Braskem (Preferente)",
+    "sector": "Basic Materials",
+    "industry": "Chemicals"
+  },
+  {
+    "ticker": "EMBR3",
+    "name": "Embraer S.A.",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "EQTL3",
+    "name": "Equatorial Energia",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "CPLE6",
+    "name": "COPEL (Preferente)B",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "CMIG4",
+    "name": "Cemig (Preferente)",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "ELET3",
+    "name": "Eletrobras (Ordinaria)",
+    "sector": "Utilities",
+    "industry": "Utilities - Renewable"
+  },
+  {
+    "ticker": "HYPE3",
+    "name": "Hypera Pharma",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "JBSS32",
+    "name": "JBS S.A.",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "KLBN11",
+    "name": "Klabin S.A.",
+    "sector": "Basic Materials",
+    "industry": "Paper & Paper Products"
+  },
+  {
+    "ticker": "MGLU3",
+    "name": "Magazine Luiza",
+    "sector": "Consumer Cyclical",
+    "industry": "Specialty Retail"
+  },
+  {
+    "ticker": "MBRF3Q",
+    "name": "Marfrig Global Foods"
+  },
+  {
+    "ticker": "MULT3",
+    "name": "Multiplan Empreendimentos",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "PCAR3",
+    "name": "GPA (Grupo Pão de Açúcar)",
+    "sector": "Consumer Cyclical",
+    "industry": "Department Stores"
+  },
+  {
+    "ticker": "PRIO3",
+    "name": "PetroRio",
+    "sector": "Energy",
+    "industry": "Oil & Gas E&P"
+  },
+  {
+    "ticker": "RADL3",
+    "name": "Raia Drogasil",
+    "sector": "Healthcare",
+    "industry": "Pharmaceutical Retailers"
+  },
+  {
+    "ticker": "SBSP3",
+    "name": "Sabesp",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Water"
+  },
+  {
+    "ticker": "TAEE11",
+    "name": "Taesa",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "TIMS3",
+    "name": "TIM S.A.",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "TOTS3",
+    "name": "TOTVS S.A.",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "UGPA3",
+    "name": "Ultrapar Participações",
+    "sector": "Energy",
+    "industry": "Oil & Gas Refining & Marketing"
+  },
+  {
+    "ticker": "VIVT3",
+    "name": "Telefônica Brasil",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "YDUQ3",
+    "name": "Yduqs Participações",
+    "sector": "Consumer Defensive",
+    "industry": "Education & Training Services"
+  },
+  {
+    "ticker": "AZUL4",
+    "name": "Azul S.A.",
+    "sector": "Industrials",
+    "industry": "Airlines"
+  },
+  {
+    "ticker": "BBDC3",
+    "name": "Bradesco (Ordinaria)",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "BRAP4",
+    "name": "Bradespar (Preferente)",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "CPFE3",
+    "name": "CPFL Energia",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "CSAN3",
+    "name": "Cosan S.A.",
+    "sector": "Energy",
+    "industry": "Oil & Gas Refining & Marketing"
+  },
+  {
+    "ticker": "CVCB3",
+    "name": "CVC Brasil",
+    "sector": "Consumer Cyclical",
+    "industry": "Travel Services"
+  },
+  {
+    "ticker": "ENGI3",
+    "name": "Energisa",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "ENGI11",
+    "name": "Engie Brasil",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "FLRY3",
+    "name": "Fleury S.A.",
+    "sector": "Healthcare",
+    "industry": "Diagnostics & Research"
+  },
+  {
+    "ticker": "FHER3",
+    "name": "Fertilizantes Heringer",
+    "sector": "Basic Materials",
+    "industry": "Agricultural Inputs"
+  },
+  {
+    "ticker": "IGTI3",
+    "name": "Iguatemi",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "IRBR3",
+    "name": "IRB Brasil Resseguros",
+    "sector": "Financial Services",
+    "industry": "Insurance - Reinsurance"
+  },
+  {
+    "ticker": "LPSB3",
+    "name": "LPS Brasil",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "MELI34",
+    "name": "MercadoLibre",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail"
+  },
+  {
+    "ticker": "MRVE3",
+    "name": "MRV Engenharia",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "NATU3",
+    "name": "Natura &Co",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "PETZ3",
+    "name": "Petz S.A.",
+    "sector": "Consumer Cyclical",
+    "industry": "Specialty Retail"
+  },
+  {
+    "ticker": "QUAL3",
+    "name": "Qualicorp",
+    "sector": "Healthcare",
+    "industry": "Healthcare Plans"
+  },
+  {
+    "ticker": "RENT3",
+    "name": "Localiza Rent a Car",
+    "sector": "Industrials",
+    "industry": "Rental & Leasing Services"
+  },
+  {
+    "ticker": "SMTO3",
+    "name": "Sanepar",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "VULC3",
+    "name": "Vulcabras Azaleia",
+    "sector": "Consumer Cyclical",
+    "industry": "Footwear & Accessories"
+  },
+  {
+    "ticker": "ALPA4",
+    "name": "Alpargatas (Preferente)",
+    "sector": "Consumer Cyclical",
+    "industry": "Footwear & Accessories"
+  },
+  {
+    "ticker": "BEEF3",
+    "name": "Minerva Foods",
+    "sector": "Consumer Defensive",
+    "industry": "Farm Products"
+  },
+  {
+    "ticker": "CASH3",
+    "name": "CASH3 S.A.",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "DASA3",
+    "name": "Dasa S.A.",
+    "sector": "Healthcare",
+    "industry": "Diagnostics & Research"
+  },
+  {
+    "ticker": "ECPR3",
+    "name": "Ecopetrol (Brazil proxy)"
+  },
+  {
+    "ticker": "FESA4",
+    "name": "Ferbasa (Preferente)",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "JHSF3",
+    "name": "JHSF Participações",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "KEPL3",
+    "name": "Kepler Weber",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "LIGT3",
+    "name": "Light S.A.",
+    "sector": "Utilities",
+    "industry": "Utilities - Renewable"
+  },
+  {
+    "ticker": "MILS3",
+    "name": "Mills Estruturas e Serviços",
+    "sector": "Industrials",
+    "industry": "Rental & Leasing Services"
+  },
+  {
+    "ticker": "OIBR3",
+    "name": "Oi S.A.",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "PSSA3",
+    "name": "Porto Seguro",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "RAPT4",
+    "name": "Rand(Ordinaria) Implementos",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  }
 ]

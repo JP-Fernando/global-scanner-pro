@@ -1,82 +1,482 @@
 [
-  { "ticker": "AAPL", "name": "Apple" },
-  { "ticker": "MSFT", "name": "Microsoft" },
-  { "ticker": "NVDA", "name": "NVIDIA" },
-  { "ticker": "AMZN", "name": "Amazon" },
-  { "ticker": "META", "name": "Meta Platforms" },
-  { "ticker": "GOOGL", "name": "Alphabet A" },
-  { "ticker": "GOOG", "name": "Alphabet C" },
-  { "ticker": "TSLA", "name": "Tesla" },
-  { "ticker": "BRK-B", "name": "Berkshire Hathaway" },
-  { "ticker": "JPM", "name": "JPMorgan Chase" },
-  { "ticker": "V", "name": "Visa" },
-  { "ticker": "MA", "name": "Mastercard" },
-  { "ticker": "UNH", "name": "UnitedHealth" },
-  { "ticker": "XOM", "name": "Exxon Mobil" },
-  { "ticker": "LLY", "name": "Eli Lilly" },
-  { "ticker": "AVGO", "name": "Broadcom" },
-  { "ticker": "COST", "name": "Costco" },
-  { "ticker": "PEP", "name": "PepsiCo" },
-  { "ticker": "KO", "name": "Coca-Cola" },
-  { "ticker": "WMT", "name": "Walmart" },
-  { "ticker": "HD", "name": "Home Depot" },
-  { "ticker": "BAC", "name": "Bank of America" },
-  { "ticker": "MRK", "name": "Merck" },
-  { "ticker": "ABBV", "name": "AbbVie" },
-  { "ticker": "TMO", "name": "Thermo Fisher Scientific" },
-  { "ticker": "CSCO", "name": "Cisco Systems" },
-  { "ticker": "ORCL", "name": "Oracle" },
-  { "ticker": "NFLX", "name": "Netflix" },
-  { "ticker": "INTC", "name": "Intel" },
-  { "ticker": "AMD", "name": "Advanced Micro Devices" },
-  { "ticker": "QCOM", "name": "Qualcomm" },
-  { "ticker": "TXN", "name": "Texas Instruments" },
-  { "ticker": "IBM", "name": "IBM" },
-  { "ticker": "GE", "name": "General Electric" },
-  { "ticker": "CAT", "name": "Caterpillar" },
-  { "ticker": "DE", "name": "Deere & Company" },
-  { "ticker": "BA", "name": "Boeing" },
-  { "ticker": "UPS", "name": "UPS" },
-  { "ticker": "FDX", "name": "FedEx" },
-  { "ticker": "SPGI", "name": "S&P Global" },
-  { "ticker": "ADBE", "name": "Adobe" },
-  { "ticker": "CRM", "name": "Salesforce" },
-  { "ticker": "NOW", "name": "ServiceNow" },
-  { "ticker": "INTU", "name": "Intuit" },
-  { "ticker": "ISRG", "name": "Intuitive Surgical" },
-  { "ticker": "AMAT", "name": "Applied Materials" },
-  { "ticker": "MU", "name": "Micron Technology" },
-  { "ticker": "LRCX", "name": "Lam Research" },
-  { "ticker": "BKNG", "name": "Booking Holdings" },
-  { "ticker": "MDT", "name": "Medtronic" },
-  { "ticker": "REGN", "name": "Regeneron Pharmaceuticals" },
-  { "ticker": "VRTX", "name": "Vertex Pharmaceuticals" },
-  { "ticker": "PANW", "name": "Palo Alto Networks" },
-  { "ticker": "SNOW", "name": "Snowflake" },
-  { "ticker": "CRWD", "name": "CrowdStrike" },
-  { "ticker": "MCD", "name": "McDonald's" },
-  { "ticker": "SBUX", "name": "Starbucks" },
-  { "ticker": "LOW", "name": "Lowe's" },
-  { "ticker": "GS", "name": "Goldman Sachs" },
-  { "ticker": "MS", "name": "Morgan Stanley" },
-  { "ticker": "BLK", "name": "BlackRock" },
-  { "ticker": "AXP", "name": "American Express" },
-  { "ticker": "CVX", "name": "Chevron" },
-  { "ticker": "SLB", "name": "Schlumberger" },
-  { "ticker": "PGR", "name": "Progressive" },
-  { "ticker": "SCHW", "name": "Charles Schwab" },
-  { "ticker": "TGT", "name": "Target" },
-  { "ticker": "USB", "name": "U.S. Bancorp" },
-  { "ticker": "ADP", "name": "Automatic Data Processing" },
-  { "ticker": "GILD", "name": "Gilead Sciences" },
-  { "ticker": "TJX", "name": "TJX Companies" },
-  { "ticker": "PLTR", "name": "Palantir Technologies" },
-  { "ticker": "UBER", "name": "Uber Technologies" },
-  { "ticker": "ABNB", "name": "Airbnb" },
-  { "ticker": "MAR", "name": "Marriott International" },
-  { "ticker": "FI", "name": "Fiserv" },
-  { "ticker": "LMT", "name": "Lockheed Martin" },
-  { "ticker": "NOC", "name": "Northrop Grumman" },
-  { "ticker": "C", "name": "Citigroup" },
-  { "ticker": "PYPL", "name": "PayPal Holdings" }
+  {
+    "ticker": "AAPL",
+    "name": "Apple",
+    "sector": "Technology",
+    "industry": "Consumer Electronics"
+  },
+  {
+    "ticker": "MSFT",
+    "name": "Microsoft",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "NVDA",
+    "name": "NVIDIA",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "AMZN",
+    "name": "Amazon",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail"
+  },
+  {
+    "ticker": "META",
+    "name": "Meta Platforms",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "GOOGL",
+    "name": "Alphabet A",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "GOOG",
+    "name": "Alphabet C",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "TSLA",
+    "name": "Tesla",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "BRK-B",
+    "name": "Berkshire Hathaway",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "JPM",
+    "name": "JPMorgan Chase",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "V",
+    "name": "Visa",
+    "sector": "Financial Services",
+    "industry": "Credit Services"
+  },
+  {
+    "ticker": "MA",
+    "name": "Mastercard",
+    "sector": "Financial Services",
+    "industry": "Credit Services"
+  },
+  {
+    "ticker": "UNH",
+    "name": "UnitedHealth",
+    "sector": "Healthcare",
+    "industry": "Healthcare Plans"
+  },
+  {
+    "ticker": "XOM",
+    "name": "Exxon Mobil",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "LLY",
+    "name": "Eli Lilly",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "AVGO",
+    "name": "Broadcom",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "COST",
+    "name": "Costco",
+    "sector": "Consumer Defensive",
+    "industry": "Discount Stores"
+  },
+  {
+    "ticker": "PEP",
+    "name": "PepsiCo",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Non-Alcoholic"
+  },
+  {
+    "ticker": "KO",
+    "name": "Coca-Cola",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Non-Alcoholic"
+  },
+  {
+    "ticker": "WMT",
+    "name": "Walmart",
+    "sector": "Consumer Defensive",
+    "industry": "Discount Stores"
+  },
+  {
+    "ticker": "HD",
+    "name": "Home Depot",
+    "sector": "Consumer Cyclical",
+    "industry": "Home Improvement Retail"
+  },
+  {
+    "ticker": "BAC",
+    "name": "Bank of America",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "MRK",
+    "name": "Merck",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "ABBV",
+    "name": "AbbVie",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "TMO",
+    "name": "Thermo Fisher Scientific",
+    "sector": "Healthcare",
+    "industry": "Diagnostics & Research"
+  },
+  {
+    "ticker": "CSCO",
+    "name": "Cisco Systems",
+    "sector": "Technology",
+    "industry": "Communication Equipment"
+  },
+  {
+    "ticker": "ORCL",
+    "name": "Oracle",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "NFLX",
+    "name": "Netflix",
+    "sector": "Communication Services",
+    "industry": "Entertainment"
+  },
+  {
+    "ticker": "INTC",
+    "name": "Intel",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "AMD",
+    "name": "Advanced Micro Devices",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "QCOM",
+    "name": "Qualcomm",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "TXN",
+    "name": "Texas Instruments",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "IBM",
+    "name": "IBM",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "GE",
+    "name": "General Electric",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "CAT",
+    "name": "Caterpillar",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "DE",
+    "name": "Deere & Company",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "BA",
+    "name": "Boeing",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "UPS",
+    "name": "UPS",
+    "sector": "Industrials",
+    "industry": "Integrated Freight & Logistics"
+  },
+  {
+    "ticker": "FDX",
+    "name": "FedEx",
+    "sector": "Industrials",
+    "industry": "Integrated Freight & Logistics"
+  },
+  {
+    "ticker": "SPGI",
+    "name": "S&P Global",
+    "sector": "Financial Services",
+    "industry": "Financial Data & Stock Exchanges"
+  },
+  {
+    "ticker": "ADBE",
+    "name": "Adobe",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "CRM",
+    "name": "Salesforce",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "NOW",
+    "name": "ServiceNow",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "INTU",
+    "name": "Intuit",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "ISRG",
+    "name": "Intuitive Surgical",
+    "sector": "Healthcare",
+    "industry": "Medical Instruments & Supplies"
+  },
+  {
+    "ticker": "AMAT",
+    "name": "Applied Materials",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "MU",
+    "name": "Micron Technology",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "LRCX",
+    "name": "Lam Research",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "BKNG",
+    "name": "Booking Holdings",
+    "sector": "Consumer Cyclical",
+    "industry": "Travel Services"
+  },
+  {
+    "ticker": "MDT",
+    "name": "Medtronic",
+    "sector": "Healthcare",
+    "industry": "Medical Devices"
+  },
+  {
+    "ticker": "REGN",
+    "name": "Regeneron Pharmaceuticals",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "VRTX",
+    "name": "Vertex Pharmaceuticals",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "PANW",
+    "name": "Palo Alto Networks",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "SNOW",
+    "name": "Snowflake",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "CRWD",
+    "name": "CrowdStrike",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "MCD",
+    "name": "McDonald's",
+    "sector": "Consumer Cyclical",
+    "industry": "Restaurants"
+  },
+  {
+    "ticker": "SBUX",
+    "name": "Starbucks",
+    "sector": "Consumer Cyclical",
+    "industry": "Restaurants"
+  },
+  {
+    "ticker": "LOW",
+    "name": "Lowe's",
+    "sector": "Consumer Cyclical",
+    "industry": "Home Improvement Retail"
+  },
+  {
+    "ticker": "GS",
+    "name": "Goldman Sachs",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "MS",
+    "name": "Morgan Stanley",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "BLK",
+    "name": "BlackRock",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "AXP",
+    "name": "American Express",
+    "sector": "Financial Services",
+    "industry": "Credit Services"
+  },
+  {
+    "ticker": "CVX",
+    "name": "Chevron",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "SLB",
+    "name": "Schlumberger",
+    "sector": "Energy",
+    "industry": "Oil & Gas Equipment & Services"
+  },
+  {
+    "ticker": "PGR",
+    "name": "Progressive",
+    "sector": "Financial Services",
+    "industry": "Insurance - Property & Casualty"
+  },
+  {
+    "ticker": "SCHW",
+    "name": "Charles Schwab",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "TGT",
+    "name": "Target",
+    "sector": "Consumer Defensive",
+    "industry": "Discount Stores"
+  },
+  {
+    "ticker": "USB",
+    "name": "U.S. Bancorp",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "ADP",
+    "name": "Automatic Data Processing",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "GILD",
+    "name": "Gilead Sciences",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "TJX",
+    "name": "TJX Companies",
+    "sector": "Consumer Cyclical",
+    "industry": "Apparel Retail"
+  },
+  {
+    "ticker": "PLTR",
+    "name": "Palantir Technologies",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "UBER",
+    "name": "Uber Technologies",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "ABNB",
+    "name": "Airbnb",
+    "sector": "Consumer Cyclical",
+    "industry": "Travel Services"
+  },
+  {
+    "ticker": "MAR",
+    "name": "Marriott International",
+    "sector": "Consumer Cyclical",
+    "industry": "Lodging"
+  },
+  {
+    "ticker": "FI",
+    "name": "Fiserv",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "LMT",
+    "name": "Lockheed Martin",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "NOC",
+    "name": "Northrop Grumman",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "C",
+    "name": "Citigroup",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "PYPL",
+    "name": "PayPal Holdings",
+    "sector": "Financial Services",
+    "industry": "Credit Services"
+  }
 ]

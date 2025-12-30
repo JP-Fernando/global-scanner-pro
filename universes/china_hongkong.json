@@ -1,27 +1,444 @@
 [
-  {"ticker":"0700", "name":"Tencent Holdings"}, {"ticker":"9988", "name":"Alibaba Group"}, {"ticker":"1299", "name":"AIA Group"},
-  {"ticker":"0005", "name":"HSBC Holdings"}, {"ticker":"3690", "name":"Meituan"}, {"ticker":"0939", "name":"China Construction Bank (HK)"},
-  {"ticker":"1398", "name":"ICBC (HK)"}, {"ticker":"2318", "name":"Ping An (HK)"}, {"ticker":"3988", "name":"Bank of China (HK)"},
-  {"ticker":"0388", "name":"HKEX"}, {"ticker":"0883", "name":"CNOOC"}, {"ticker":"1810", "name":"Xiaomi Corp"},
-  {"ticker":"2269", "name":"WuXi Biologics"}, {"ticker":"0001", "name":"CK Hutchison"}, {"ticker":"1024", "name":"Kuaishou Tech"},
-  {"ticker":"2382", "name":"Sunny Optical"}, {"ticker":"0016", "name":"SHKP"}, {"ticker":"0002", "name":"CLP Holdings"},
-  {"ticker":"0003", "name":"HKCG"}, {"ticker":"0006", "name":"Power Assets"}, {"ticker":"0011", "name":"Hang Seng Bank"},
-  {"ticker":"0012", "name":"Henderson Land"}, {"ticker":"0027", "name":"Galaxy Entertainment"}, {"ticker":"0066", "name":"MTR Corp"},
-  {"ticker":"0267", "name":"CITIC Ltd"}, {"ticker":"0291", "name":"China Resources Beer"}, {"ticker":"0386", "name":"Sinopec (HK)"},
-  {"ticker":"0669", "name":"Techtronic Industries"}, {"ticker":"0688", "name":"China Overseas Land"}, {"ticker":"0941", "name":"China Mobile"},
-  {"ticker":"1109", "name":"China Resources Land"}, {"ticker":"1113", "name":"CK Asset"}, {"ticker":"1177", "name":"Sino Biopharm"},
-  {"ticker":"1211", "name":"BYD Company (HK)"}, {"ticker":"1928", "name":"Sands China"}, {"ticker":"2020", "name":"Anta Sports"},
-  {"ticker":"2313", "name":"Shenzhou Intl"}, {"ticker":"2319", "name":"Mengniu Dairy"}, {"ticker":"2331", "name":"Li Ning"},
-  {"ticker":"2628", "name":"China Life (HK)"}, {"ticker":"2688", "name":"ENN Energy"}, {"ticker":"6098", "name":"Country Garden Svc"},
-  {"ticker":"6862", "name":"Haidilao Intl"}, {"ticker":"9618", "name":"JD.com"}, {"ticker":"9633", "name":"Nongfu Spring"},
-  {"ticker":"9888", "name":"Baidu Inc"}, {"ticker":"9961", "name":"Trip.com"}, {"ticker":"9999", "name":"NetEase Inc"},
-  {"ticker":"0017", "name":"New World Dev"}, {"ticker":"0101", "name":"Hang Lung Properties"}, {"ticker":"0151", "name":"Want Want China"},
-  {"ticker":"0175", "name":"Geely Automobile"}, {"ticker":"0268", "name":"Kingdee Intl"}, {"ticker":"0285", "name":"BYD Electronic"},
-  {"ticker":"0322", "name":"Master Kong"}, {"ticker":"0410", "name":"SOHO China"}, {"ticker":"0604", "name":"Shenzhen Inv"},
-  {"ticker":"0762", "name":"China Unicom (HK)"}, {"ticker":"0817", "name":"China Jinmao"}, {"ticker":"0857", "name":"PetroChina (HK)"},
-  {"ticker":"0868", "name":"Xinyi Glass"}, {"ticker":"0960", "name":"Longfor Group"}, {"ticker":"0968", "name":"Xinyi Solar"},
-  {"ticker":"0981", "name":"SMIC"}, {"ticker":"1038", "name":"CKI Holdings"}, {"ticker":"1044", "name":"Hengan Intl"},
-  {"ticker":"1088", "name":"China Shenhua (HK)"}, {"ticker":"1093", "name":"CSPC Pharma"}, {"ticker":"1313", "name":"China Resources Cement"},
-  {"ticker":"1378", "name":"China Hongqiao"}, {"ticker":"1385", "name":"Sino-Ocean Group"}, {"ticker":"4333", "name":"Cisco"},
-  {"ticker":"4336", "name":"Applied Materials"}, {"ticker":"4335", "name":"Intel"}
+  {
+    "ticker": "0700",
+    "name": "Tencent Holdings",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "9988",
+    "name": "Alibaba Group",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail"
+  },
+  {
+    "ticker": "1299",
+    "name": "AIA Group",
+    "sector": "Financial Services",
+    "industry": "Insurance - Life"
+  },
+  {
+    "ticker": "0005",
+    "name": "HSBC Holdings",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "3690",
+    "name": "Meituan",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail"
+  },
+  {
+    "ticker": "0939",
+    "name": "China Construction Bank (HK)",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "1398",
+    "name": "ICBC (HK)",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "2318",
+    "name": "Ping An (HK)",
+    "sector": "Financial Services",
+    "industry": "Insurance - Life"
+  },
+  {
+    "ticker": "3988",
+    "name": "Bank of China (HK)",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "0388",
+    "name": "HKEX",
+    "sector": "Financial Services",
+    "industry": "Financial Data & Stock Exchanges"
+  },
+  {
+    "ticker": "0883",
+    "name": "CNOOC",
+    "sector": "Energy",
+    "industry": "Oil & Gas E&P"
+  },
+  {
+    "ticker": "1810",
+    "name": "Xiaomi Corp",
+    "sector": "Technology",
+    "industry": "Consumer Electronics"
+  },
+  {
+    "ticker": "2269",
+    "name": "WuXi Biologics",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "0001",
+    "name": "CK Hutchison",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "1024",
+    "name": "Kuaishou Tech",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "2382",
+    "name": "Sunny Optical",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "0016",
+    "name": "SHKP",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "0002",
+    "name": "CLP Holdings",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "0003",
+    "name": "HKCG",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Gas"
+  },
+  {
+    "ticker": "0006",
+    "name": "Power Assets",
+    "sector": "Utilities",
+    "industry": "Utilities - Independent Power Producers"
+  },
+  {
+    "ticker": "0011",
+    "name": "Hang Seng Bank",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "0012",
+    "name": "Henderson Land",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Diversified"
+  },
+  {
+    "ticker": "0027",
+    "name": "Galaxy Entertainment",
+    "sector": "Consumer Cyclical",
+    "industry": "Resorts & Casinos"
+  },
+  {
+    "ticker": "0066",
+    "name": "MTR Corp",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "0267",
+    "name": "CITIC Ltd",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "0291",
+    "name": "China Resources Beer",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Brewers"
+  },
+  {
+    "ticker": "0386",
+    "name": "Sinopec (HK)",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "0669",
+    "name": "Techtronic Industries",
+    "sector": "Industrials",
+    "industry": "Tools & Accessories"
+  },
+  {
+    "ticker": "0688",
+    "name": "China Overseas Land",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "0941",
+    "name": "China Mobile",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "1109",
+    "name": "China Resources Land",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "1113",
+    "name": "CK Asset",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "1177",
+    "name": "Sino Biopharm",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "1211",
+    "name": "BYD Company (HK)",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "1928",
+    "name": "Sands China",
+    "sector": "Consumer Cyclical",
+    "industry": "Resorts & Casinos"
+  },
+  {
+    "ticker": "2020",
+    "name": "Anta Sports",
+    "sector": "Consumer Cyclical",
+    "industry": "Leisure"
+  },
+  {
+    "ticker": "2313",
+    "name": "Shenzhou Intl",
+    "sector": "Consumer Cyclical",
+    "industry": "Textile Manufacturing"
+  },
+  {
+    "ticker": "2319",
+    "name": "Mengniu Dairy",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "2331",
+    "name": "Li Ning",
+    "sector": "Consumer Cyclical",
+    "industry": "Leisure"
+  },
+  {
+    "ticker": "2628",
+    "name": "China Life (HK)",
+    "sector": "Financial Services",
+    "industry": "Insurance - Life"
+  },
+  {
+    "ticker": "2688",
+    "name": "ENN Energy",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Gas"
+  },
+  {
+    "ticker": "6098",
+    "name": "Country Garden Svc",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "6862",
+    "name": "Haidilao Intl",
+    "sector": "Consumer Cyclical",
+    "industry": "Restaurants"
+  },
+  {
+    "ticker": "9618",
+    "name": "JD.com",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail"
+  },
+  {
+    "ticker": "9633",
+    "name": "Nongfu Spring",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Non-Alcoholic"
+  },
+  {
+    "ticker": "9888",
+    "name": "Baidu Inc",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "9961",
+    "name": "Trip.com",
+    "sector": "Consumer Cyclical",
+    "industry": "Travel Services"
+  },
+  {
+    "ticker": "9999",
+    "name": "NetEase Inc",
+    "sector": "Communication Services",
+    "industry": "Electronic Gaming & Multimedia"
+  },
+  {
+    "ticker": "0017",
+    "name": "New World Dev",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Diversified"
+  },
+  {
+    "ticker": "0101",
+    "name": "Hang Lung Properties",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "0151",
+    "name": "Want Want China",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "0175",
+    "name": "Geely Automobile",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "0268",
+    "name": "Kingdee Intl",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "0285",
+    "name": "BYD Electronic",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "0322",
+    "name": "Master Kong",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "0410",
+    "name": "SOHO China",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "0604",
+    "name": "Shenzhen Inv",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "0762",
+    "name": "China Unicom (HK)",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "0817",
+    "name": "China Jinmao",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "0857",
+    "name": "PetroChina (HK)",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "0868",
+    "name": "Xinyi Glass",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "0960",
+    "name": "Longfor Group",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "0968",
+    "name": "Xinyi Solar",
+    "sector": "Technology",
+    "industry": "Solar"
+  },
+  {
+    "ticker": "0981",
+    "name": "SMIC",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "1038",
+    "name": "CKI Holdings",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "1044",
+    "name": "Hengan Intl",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "1088",
+    "name": "China Shenhua (HK)",
+    "sector": "Energy",
+    "industry": "Thermal Coal"
+  },
+  {
+    "ticker": "1093",
+    "name": "CSPC Pharma",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "1313",
+    "name": "China Resources Cement",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "1378",
+    "name": "China Hongqiao",
+    "sector": "Basic Materials",
+    "industry": "Aluminum"
+  },
+  {
+    "ticker": "1385",
+    "name": "Sino-Ocean Group",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "4333",
+    "name": "Cisco",
+    "sector": "Technology",
+    "industry": "Communication Equipment"
+  },
+  {
+    "ticker": "4336",
+    "name": "Applied Materials"
+  },
+  {
+    "ticker": "4335",
+    "name": "Intel",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  }
 ]

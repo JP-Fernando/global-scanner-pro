@@ -1,30 +1,506 @@
 [
-  {"ticker":"000858", "name":"Wuliangye Yibin"}, {"ticker":"000333", "name":"Midea Group"}, {"ticker":"300750", "name":"CATL"},
-  {"ticker":"002594", "name":"BYD Company"}, {"ticker":"002475", "name":"Luxshare Precision"}, {"ticker":"000651", "name":"Gree Electric"},
-  {"ticker":"002415", "name":"Hikvision"}, {"ticker":"000001", "name":"Ping An Bank"}, {"ticker":"000725", "name":"BOE Technology"},
-  {"ticker":"300059", "name":"East Money Info"}, {"ticker":"002304", "name":"Yanghe Brewery"}, {"ticker":"002352", "name":"SF Holding"},
-  {"ticker":"000768", "name":"AVIC Xian Aircraft"}, {"ticker":"002714", "name":"Muyuan Foods"}, {"ticker":"300015", "name":"Aier Eye Hospital"},
-  {"ticker":"002027", "name":"Focus Media"}, {"ticker":"300124", "name":"Inovance Tech"}, {"ticker":"300274", "name":"Sungrow Power"},
-  {"ticker":"000063", "name":"ZTE Corp"}, {"ticker":"300760", "name":"Mindray Bio-Medical"}, {"ticker":"002142", "name":"Bank of Ningbo"},
-  {"ticker":"300498", "name":"Wens Foodstuff"}, {"ticker":"002460", "name":"Ganfeng Lithium"}, {"ticker":"002466", "name":"Tianqi Lithium"},
-  {"ticker":"300408", "name":"Three Circles"}, {"ticker":"000792", "name":"Qinghai Salt Lake"}, {"ticker":"002230", "name":"iFLYTEK"},
-  {"ticker":"000100", "name":"TCL Technology"}, {"ticker":"002493", "name":"Rongsheng Petrochemical"}, {"ticker":"000538", "name":"Yunnan Baiyao"},
-  {"ticker":"002129", "name":"TCL Zhonghuan"}, {"ticker":"300142", "name":"Walvax Biotech"}, {"ticker":"300033", "name":"Hithink RoyalFlush"},
-  {"ticker":"002371", "name":"Naura Tech"}, {"ticker":"000002", "name":"Vanke Co"}, {"ticker":"000963", "name":"Huadong Medicine"},
-  {"ticker":"002821", "name":"Asymchem Labs"}, {"ticker":"002241", "name":"Goertek Inc"}, {"ticker":"000425", "name":"XCMG Construction"},
-  {"ticker":"002050", "name":"Sanhua Intelligent"}, {"ticker":"000876", "name":"New Hope Liuhe"}, {"ticker":"002007", "name":"Hualan Biological"},
-  {"ticker":"300122", "name":"Zhifei Biological"}, {"ticker":"000625", "name":"Changan Automobile"}, {"ticker":"000157", "name":"Zoomlion"},
-  {"ticker":"000977", "name":"Inspur Electronic"}, {"ticker":"002463", "name":"Lianchuang Opto"}, {"ticker":"300601", "name":"Kangtai Biological"},
-  {"ticker":"002456", "name":"Ofilm Group"}, {"ticker":"300347", "name":"Tigermed Consulting"}, {"ticker":"000938", "name":"Unisplendour"},
-  {"ticker":"300628", "name":"Yealink Network"}, {"ticker":"300014", "name":"EVE Energy"}, {"ticker":"002044", "name":"Meinian Onehealth"},
-  {"ticker":"002153", "name":"Shanshan Co"}, {"ticker":"300450", "name":"Xianju Pharmaceutical"}, {"ticker":"002601", "name":"Longbai Group"},
-  {"ticker":"000401", "name":"Jidong Cement"}, {"ticker":"300661", "name":"SG Micro Corp"}, {"ticker":"002001", "name":"Zhejiang Xinan"},
-  {"ticker":"002410", "name":"Glodon Co"}, {"ticker":"000895", "name":"Henan Shuanghui"}, {"ticker":"002648", "name":"Satellite Chemical"},
-  {"ticker":"000933", "name":"Shenhuo Aluminium"}, {"ticker":"000066", "name":"China Greatwall"}, {"ticker":"000877", "name":"Tianshan Cement"},
-  {"ticker":"002202", "name":"Goldwind Science"}, {"ticker":"002024", "name":"Suning.com"}, {"ticker":"002236", "name":"Dahua Tech"},
-  {"ticker":"300124", "name":"Inovance"}, {"ticker":"002422", "name":"Keda Manufacturing"}, {"ticker":"300308", "name":"Zhongji Innolight"},
-  {"ticker":"300502", "name": "Eoptolink"}, {"ticker":"302132", "name":"AVIC Chengdu Aircraft"}, {"ticker":"003816", "name":"CGN Power"},
-  {"ticker":"000568", "name":"Luzhou Laojiao"}, {"ticker":"300394", "name":"Suzhou TFC Optical"}, {"ticker":"300999", "name":"Yihai Kerry Arawana"},
-  {"ticker":"000776", "name":"GF Securities"}, {"ticker":"300433", "name":"Lens Technology"}, {"ticker":"000338", "name":"Weichai Power"},
-  {"ticker":"002916", "name":"Shennan Circuits"}, {"ticker":"002384", "name":"DSBJ"}, {"ticker":"002736", "name":"Guosen Securities"}
+  {
+    "ticker": "000858",
+    "name": "Wuliangye Yibin",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Wineries & Distilleries"
+  },
+  {
+    "ticker": "000333",
+    "name": "Midea Group",
+    "sector": "Consumer Cyclical",
+    "industry": "Furnishings, Fixtures & Appliances"
+  },
+  {
+    "ticker": "300750",
+    "name": "CATL",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "002594",
+    "name": "BYD Company",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "002475",
+    "name": "Luxshare Precision",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "000651",
+    "name": "Gree Electric",
+    "sector": "Consumer Cyclical",
+    "industry": "Furnishings, Fixtures & Appliances"
+  },
+  {
+    "ticker": "002415",
+    "name": "Hikvision",
+    "sector": "Technology",
+    "industry": "Computer Hardware"
+  },
+  {
+    "ticker": "000001",
+    "name": "Ping An Bank",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "000725",
+    "name": "BOE Technology",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "300059",
+    "name": "East Money Info",
+    "sector": "Financial Services",
+    "industry": "Financial Data & Stock Exchanges"
+  },
+  {
+    "ticker": "002304",
+    "name": "Yanghe Brewery",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Wineries & Distilleries"
+  },
+  {
+    "ticker": "002352",
+    "name": "SF Holding",
+    "sector": "Industrials",
+    "industry": "Integrated Freight & Logistics"
+  },
+  {
+    "ticker": "000768",
+    "name": "AVIC Xian Aircraft",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "002714",
+    "name": "Muyuan Foods",
+    "sector": "Consumer Defensive",
+    "industry": "Farm Products"
+  },
+  {
+    "ticker": "300015",
+    "name": "Aier Eye Hospital",
+    "sector": "Healthcare",
+    "industry": "Medical Care Facilities"
+  },
+  {
+    "ticker": "002027",
+    "name": "Focus Media",
+    "sector": "Communication Services",
+    "industry": "Advertising Agencies"
+  },
+  {
+    "ticker": "300124",
+    "name": "Inovance Tech",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "300274",
+    "name": "Sungrow Power",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "000063",
+    "name": "ZTE Corp",
+    "sector": "Technology",
+    "industry": "Communication Equipment"
+  },
+  {
+    "ticker": "300760",
+    "name": "Mindray Bio-Medical",
+    "sector": "Healthcare",
+    "industry": "Medical Devices"
+  },
+  {
+    "ticker": "002142",
+    "name": "Bank of Ningbo",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "300498",
+    "name": "Wens Foodstuff",
+    "sector": "Consumer Defensive",
+    "industry": "Farm Products"
+  },
+  {
+    "ticker": "002460",
+    "name": "Ganfeng Lithium",
+    "sector": "Basic Materials",
+    "industry": "Chemicals"
+  },
+  {
+    "ticker": "002466",
+    "name": "Tianqi Lithium",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "300408",
+    "name": "Three Circles",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "000792",
+    "name": "Qinghai Salt Lake",
+    "sector": "Basic Materials",
+    "industry": "Agricultural Inputs"
+  },
+  {
+    "ticker": "002230",
+    "name": "iFLYTEK",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "000100",
+    "name": "TCL Technology",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "002493",
+    "name": "Rongsheng Petrochemical",
+    "sector": "Basic Materials",
+    "industry": "Chemicals"
+  },
+  {
+    "ticker": "000538",
+    "name": "Yunnan Baiyao",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "002129",
+    "name": "TCL Zhonghuan",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "300142",
+    "name": "Walvax Biotech",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "300033",
+    "name": "Hithink RoyalFlush",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "002371",
+    "name": "Naura Tech",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "000002",
+    "name": "Vanke Co",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "000963",
+    "name": "Huadong Medicine",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "002821",
+    "name": "Asymchem Labs",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "002241",
+    "name": "Goertek Inc",
+    "sector": "Technology",
+    "industry": "Consumer Electronics"
+  },
+  {
+    "ticker": "000425",
+    "name": "XCMG Construction",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "002050",
+    "name": "Sanhua Intelligent",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "000876",
+    "name": "New Hope Liuhe",
+    "sector": "Consumer Defensive",
+    "industry": "Farm Products"
+  },
+  {
+    "ticker": "002007",
+    "name": "Hualan Biological",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "300122",
+    "name": "Zhifei Biological",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "000625",
+    "name": "Changan Automobile",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "000157",
+    "name": "Zoomlion",
+    "sector": "Industrials",
+    "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "000977",
+    "name": "Inspur Electronic",
+    "sector": "Technology",
+    "industry": "Computer Hardware"
+  },
+  {
+    "ticker": "002463",
+    "name": "Lianchuang Opto",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "300601",
+    "name": "Kangtai Biological",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "002456",
+    "name": "Ofilm Group",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "300347",
+    "name": "Tigermed Consulting",
+    "sector": "Healthcare",
+    "industry": "Diagnostics & Research"
+  },
+  {
+    "ticker": "000938",
+    "name": "Unisplendour",
+    "sector": "Technology",
+    "industry": "Electronics & Computer Distribution"
+  },
+  {
+    "ticker": "300628",
+    "name": "Yealink Network",
+    "sector": "Technology",
+    "industry": "Communication Equipment"
+  },
+  {
+    "ticker": "300014",
+    "name": "EVE Energy",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "002044",
+    "name": "Meinian Onehealth",
+    "sector": "Healthcare",
+    "industry": "Medical Care Facilities"
+  },
+  {
+    "ticker": "002153",
+    "name": "Shanshan Co",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "300450",
+    "name": "Xianju Pharmaceutical",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "002601",
+    "name": "Longbai Group",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "000401",
+    "name": "Jidong Cement",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "300661",
+    "name": "SG Micro Corp",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "002001",
+    "name": "Zhejiang Xinan",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "002410",
+    "name": "Glodon Co",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "000895",
+    "name": "Henan Shuanghui",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "002648",
+    "name": "Satellite Chemical",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "000933",
+    "name": "Shenhuo Aluminium",
+    "sector": "Basic Materials",
+    "industry": "Aluminum"
+  },
+  {
+    "ticker": "000066",
+    "name": "China Greatwall",
+    "sector": "Technology",
+    "industry": "Computer Hardware"
+  },
+  {
+    "ticker": "000877",
+    "name": "Tianshan Cement",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "002202",
+    "name": "Goldwind Science",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "002024",
+    "name": "Suning.com",
+    "sector": "Consumer Cyclical",
+    "industry": "Specialty Retail"
+  },
+  {
+    "ticker": "002236",
+    "name": "Dahua Tech",
+    "sector": "Industrials",
+    "industry": "Security & Protection Services"
+  },
+  {
+    "ticker": "300124",
+    "name": "Inovance",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "002422",
+    "name": "Keda Manufacturing",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "300308",
+    "name": "Zhongji Innolight",
+    "sector": "Technology",
+    "industry": "Communication Equipment"
+  },
+  {
+    "ticker": "300502",
+    "name": "Eoptolink",
+    "sector": "Technology",
+    "industry": "Communication Equipment"
+  },
+  {
+    "ticker": "302132",
+    "name": "AVIC Chengdu Aircraft",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "003816",
+    "name": "CGN Power",
+    "sector": "Utilities",
+    "industry": "Utilities - Independent Power Producers"
+  },
+  {
+    "ticker": "000568",
+    "name": "Luzhou Laojiao",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Wineries & Distilleries"
+  },
+  {
+    "ticker": "300394",
+    "name": "Suzhou TFC Optical",
+    "sector": "Technology",
+    "industry": "Communication Equipment"
+  },
+  {
+    "ticker": "300999",
+    "name": "Yihai Kerry Arawana",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "000776",
+    "name": "GF Securities",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "300433",
+    "name": "Lens Technology",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "000338",
+    "name": "Weichai Power",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "002916",
+    "name": "Shennan Circuits",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "002384",
+    "name": "DSBJ",
+    "sector": "Technology",
+    "industry": "Electronic Components"
+  },
+  {
+    "ticker": "002736",
+    "name": "Guosen Securities",
+    "sector": "Financial Services",
+    "industry": "Financial Conglomerates"
+  }
 ]

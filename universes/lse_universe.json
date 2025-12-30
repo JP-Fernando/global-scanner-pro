@@ -1,87 +1,510 @@
 [
-{ "ticker": "AZN", "name": "AstraZeneca" },
-{ "ticker": "SHEL", "name": "Shell" },
-{ "ticker": "BP", "name": "BP" },
-{ "ticker": "HSBA", "name": "HSBC Holdings" },
-{ "ticker": "ULVR", "name": "Unilever" },
-{ "ticker": "RIO", "name": "Rio Tinto" },
-{ "ticker": "GLEN", "name": "Glencore" },
-{ "ticker": "BATS", "name": "British American Tobacco" },
-{ "ticker": "DGE", "name": "Diageo" },
-{ "ticker": "REL", "name": "RELX" },
-{ "ticker": "NG", "name": "National Grid" },
-{ "ticker": "LLOY", "name": "Lloyds Banking Group" },
-{ "ticker": "BARC", "name": "Barclays" },
-{ "ticker": "PRU", "name": "Prudential" },
-{ "ticker": "VOD", "name": "Vodafone" },
-{ "ticker": "GSK", "name": "GSK" },
-{ "ticker": "HLMA", "name": "Halma" },
-{ "ticker": "EXPN", "name": "Experian" },
-{ "ticker": "AAL", "name": "Anglo American" },
-{ "ticker": "ANTO", "name": "Antofagasta" },
-{ "ticker": "STAN", "name": "Standard Chartered" },
-{ "ticker": "BA", "name": "BAE Systems" },
-{ "ticker": "SMIN", "name": "Smiths Group" },
-{ "ticker": "IMB", "name": "Imperial Brands" },
-{ "ticker": "CRH", "name": "CRH" },
-{ "ticker": "SSE", "name": "SSE" },
-{ "ticker": "WEIR", "name": "Weir Group" },
-{ "ticker": "SDR", "name": "Schroders" },
-{ "ticker": "INF", "name": "Informa" },
-{ "ticker": "RMV", "name": "Rightmove" },
-{ "ticker": "SGE", "name": "Sage Group" },
-{ "ticker": "KGF", "name": "Kingfisher" },
-{ "ticker": "JD", "name": "JD Sports Fashion" },
-{ "ticker": "PSN", "name": "Persimmon" },
-{ "ticker": "TW", "name": "Taylor Wimpey" },
-{ "ticker": "BKG", "name": "Berkeley Group" },
-{ "ticker": "CNA", "name": "Centrica" },
-{ "ticker": "RS1", "name": "RS Group" },
-{ "ticker": "ABF", "name": "Associated British Foods" },
-{ "ticker": "AUTO", "name": "Auto Trader Group" },
-{ "ticker": "FLTR", "name": "Flutter Entertainment" },
-{ "ticker": "ITRK", "name": "Intertek Group" },
-{ "ticker": "HSP", "name": "Hargreaves" },
-{ "ticker": "MNDI", "name": "Mondi" },
-{ "ticker": "PNN", "name": "Pennon Group" },
-{ "ticker": "STJ", "name": "St James's Place" },
-{ "ticker": "LAND", "name": "Land Securities" },
-{ "ticker": "III", "name": "3i Group" },
-{ "ticker": "SPX", "name": "Spirax Group" },
-{ "ticker": "LGEN", "name": "Legal & General" },
-{ "ticker": "PHNX", "name": "Phoenix Group" },
-{ "ticker": "AV", "name": "Aviva" },
-{ "ticker": "CCH", "name": "Coca-Cola HBC" },
-{ "ticker": "CCEP", "name": "Coca-Cola Europacific Partners" },
-{ "ticker": "HSX", "name": "Hiscox" },
-{ "ticker": "SBRY", "name": "Sainsbury's" },
-{ "ticker": "WPP", "name": "WPP" },
-{ "ticker": "PSON", "name": "Pearson" },
-{ "ticker": "IMI", "name": "IMI plc" },
-{ "ticker": "RTO", "name": "Rentokil Initial" },
-{ "ticker": "SN", "name": "Smith & Nephew" },
-{ "ticker": "SMT", "name": "Scottish Mortgage Trust" },
-{ "ticker": "BRBY", "name": "Burberry" },
-{ "ticker": "SVT", "name": "Severn Trent" },
-{ "ticker": "BME", "name": "B&M European Value Retail" },
-{ "ticker": "TATE", "name": "Tate & Lyle" },
-{ "ticker": "BYG", "name": "Big Yellow Group" },
-{ "ticker": "FGGP", "name": "FirstGroup" },
-{ "ticker": "KLR", "name": "Keller Group" },
-{ "ticker": "LRE", "name": "Lloyds Register" },
-{ "ticker": "MKS", "name": "Marks & Spencer" },
-{ "ticker": "CPG", "name": "Compass Group" },
-{ "ticker": "VSVS", "name": "Vesuvius" },
-{ "ticker": "DOM", "name": "Domino's Pizza Group" },
-{ "ticker": "QLT", "name": "Quilter" },
-{ "ticker": "AAF", "name": "Airtel Africa" },
-{ "ticker": "DPLM", "name": "Diploma" },
-{ "ticker": "TSCO", "name": "Tesco" },
-{ "ticker": "HLN", "name": "Haleon" },
-{ "ticker": "AHT", "name": "Ashtead Group" },
-{ "ticker": "ENT", "name": "Entain" },
-{ "ticker": "EZJ", "name": "easyJet" },
-{ "ticker": "RR", "name": "Rolls-Royce" },
-{ "ticker": "MTLN", "name": "Metlen" },
-{ "ticker": "ICG", "name": "ICG" }
+  {
+    "ticker": "AZN",
+    "name": "AstraZeneca",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "SHEL",
+    "name": "Shell",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "BP",
+    "name": "BP",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "HSBA",
+    "name": "HSBC Holdings",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "ULVR",
+    "name": "Unilever",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "RIO",
+    "name": "Rio Tinto",
+    "sector": "Basic Materials",
+    "industry": "Other Industrial Metals & Mining"
+  },
+  {
+    "ticker": "GLEN",
+    "name": "Glencore",
+    "sector": "Basic Materials",
+    "industry": "Other Industrial Metals & Mining"
+  },
+  {
+    "ticker": "BATS",
+    "name": "British American Tobacco",
+    "sector": "Consumer Defensive",
+    "industry": "Tobacco"
+  },
+  {
+    "ticker": "DGE",
+    "name": "Diageo",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Wineries & Distilleries"
+  },
+  {
+    "ticker": "REL",
+    "name": "RELX",
+    "sector": "Industrials",
+    "industry": "Specialty Business Services"
+  },
+  {
+    "ticker": "NG",
+    "name": "National Grid",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "LLOY",
+    "name": "Lloyds Banking Group",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "BARC",
+    "name": "Barclays",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "PRU",
+    "name": "Prudential",
+    "sector": "Financial Services",
+    "industry": "Insurance - Life"
+  },
+  {
+    "ticker": "VOD",
+    "name": "Vodafone",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "GSK",
+    "name": "GSK",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "HLMA",
+    "name": "Halma",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "EXPN",
+    "name": "Experian",
+    "sector": "Industrials",
+    "industry": "Consulting Services"
+  },
+  {
+    "ticker": "AAL",
+    "name": "Anglo American",
+    "sector": "Basic Materials",
+    "industry": "Other Industrial Metals & Mining"
+  },
+  {
+    "ticker": "ANTO",
+    "name": "Antofagasta",
+    "sector": "Basic Materials",
+    "industry": "Copper"
+  },
+  {
+    "ticker": "STAN",
+    "name": "Standard Chartered",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "BA",
+    "name": "BAE Systems",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "SMIN",
+    "name": "Smiths Group",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "IMB",
+    "name": "Imperial Brands",
+    "sector": "Consumer Defensive",
+    "industry": "Tobacco"
+  },
+  {
+    "ticker": "CRH",
+    "name": "CRH",
+    "sector": "Basic Materials",
+    "industry": "Building Materials"
+  },
+  {
+    "ticker": "SSE",
+    "name": "SSE",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "WEIR",
+    "name": "Weir Group",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "SDR",
+    "name": "Schroders",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "INF",
+    "name": "Informa",
+    "sector": "Communication Services",
+    "industry": "Publishing"
+  },
+  {
+    "ticker": "RMV",
+    "name": "Rightmove",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "SGE",
+    "name": "Sage Group",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "KGF",
+    "name": "Kingfisher",
+    "sector": "Consumer Cyclical",
+    "industry": "Home Improvement Retail"
+  },
+  {
+    "ticker": "JD",
+    "name": "JD Sports Fashion",
+    "sector": "Consumer Cyclical",
+    "industry": "Apparel Retail"
+  },
+  {
+    "ticker": "PSN",
+    "name": "Persimmon",
+    "sector": "Consumer Cyclical",
+    "industry": "Residential Construction"
+  },
+  {
+    "ticker": "TW",
+    "name": "Taylor Wimpey",
+    "sector": "Consumer Cyclical",
+    "industry": "Residential Construction"
+  },
+  {
+    "ticker": "BKG",
+    "name": "Berkeley Group",
+    "sector": "Consumer Cyclical",
+    "industry": "Residential Construction"
+  },
+  {
+    "ticker": "CNA",
+    "name": "Centrica",
+    "sector": "Utilities",
+    "industry": "Utilities - Independent Power Producers"
+  },
+  {
+    "ticker": "RS1",
+    "name": "RS Group",
+    "sector": "Industrials",
+    "industry": "Industrial Distribution"
+  },
+  {
+    "ticker": "ABF",
+    "name": "Associated British Foods",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "AUTO",
+    "name": "Auto Trader Group",
+    "sector": "Communication Services",
+    "industry": "Internet Content & Information"
+  },
+  {
+    "ticker": "FLTR",
+    "name": "Flutter Entertainment",
+    "sector": "Consumer Cyclical",
+    "industry": "Gambling"
+  },
+  {
+    "ticker": "ITRK",
+    "name": "Intertek Group",
+    "sector": "Industrials",
+    "industry": "Specialty Business Services"
+  },
+  {
+    "ticker": "HSP",
+    "name": "Hargreaves",
+    "sector": "Industrials",
+    "industry": "Conglomerates"
+  },
+  {
+    "ticker": "MNDI",
+    "name": "Mondi",
+    "sector": "Basic Materials",
+    "industry": "Paper & Paper Products"
+  },
+  {
+    "ticker": "PNN",
+    "name": "Pennon Group",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Water"
+  },
+  {
+    "ticker": "STJ",
+    "name": "St James's Place",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "LAND",
+    "name": "Land Securities",
+    "sector": "Real Estate",
+    "industry": "REIT - Diversified"
+  },
+  {
+    "ticker": "III",
+    "name": "3i Group",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "SPX",
+    "name": "Spirax Group",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "LGEN",
+    "name": "Legal & General",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "PHNX",
+    "name": "Phoenix Group",
+    "sector": "Financial Services",
+    "industry": "Insurance - Life"
+  },
+  {
+    "ticker": "AV",
+    "name": "Aviva",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "CCH",
+    "name": "Coca-Cola HBC",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Non-Alcoholic"
+  },
+  {
+    "ticker": "CCEP",
+    "name": "Coca-Cola Europacific Partners",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Non-Alcoholic"
+  },
+  {
+    "ticker": "HSX",
+    "name": "Hiscox",
+    "sector": "Financial Services",
+    "industry": "Insurance - Property & Casualty"
+  },
+  {
+    "ticker": "SBRY",
+    "name": "Sainsbury's",
+    "sector": "Consumer Defensive",
+    "industry": "Grocery Stores"
+  },
+  {
+    "ticker": "WPP",
+    "name": "WPP",
+    "sector": "Communication Services",
+    "industry": "Advertising Agencies"
+  },
+  {
+    "ticker": "PSON",
+    "name": "Pearson",
+    "sector": "Communication Services",
+    "industry": "Publishing"
+  },
+  {
+    "ticker": "IMI",
+    "name": "IMI plc",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "RTO",
+    "name": "Rentokil Initial",
+    "sector": "Industrials",
+    "industry": "Specialty Business Services"
+  },
+  {
+    "ticker": "SN",
+    "name": "Smith & Nephew",
+    "sector": "Healthcare",
+    "industry": "Medical Devices"
+  },
+  {
+    "ticker": "SMT",
+    "name": "Scottish Mortgage Trust"
+  },
+  {
+    "ticker": "BRBY",
+    "name": "Burberry",
+    "sector": "Consumer Cyclical",
+    "industry": "Luxury Goods"
+  },
+  {
+    "ticker": "SVT",
+    "name": "Severn Trent",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Water"
+  },
+  {
+    "ticker": "BME",
+    "name": "B&M European Value Retail",
+    "sector": "Consumer Defensive",
+    "industry": "Discount Stores"
+  },
+  {
+    "ticker": "TATE",
+    "name": "Tate & Lyle",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "BYG",
+    "name": "Big Yellow Group",
+    "sector": "Real Estate",
+    "industry": "REIT - Industrial"
+  },
+  {
+    "ticker": "FGGP",
+    "name": "FirstGroup",
+    "sector": "Unknown",
+    "industry": "Unknown"
+  },
+  {
+    "ticker": "KLR",
+    "name": "Keller Group",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "LRE",
+    "name": "Lloyds Register",
+    "sector": "Financial Services",
+    "industry": "Insurance - Specialty"
+  },
+  {
+    "ticker": "MKS",
+    "name": "Marks & Spencer",
+    "sector": "Consumer Cyclical",
+    "industry": "Department Stores"
+  },
+  {
+    "ticker": "CPG",
+    "name": "Compass Group",
+    "sector": "Consumer Cyclical",
+    "industry": "Restaurants"
+  },
+  {
+    "ticker": "VSVS",
+    "name": "Vesuvius",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "DOM",
+    "name": "Domino's Pizza Group",
+    "sector": "Consumer Cyclical",
+    "industry": "Restaurants"
+  },
+  {
+    "ticker": "QLT",
+    "name": "Quilter",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "AAF",
+    "name": "Airtel Africa",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "DPLM",
+    "name": "Diploma",
+    "sector": "Industrials",
+    "industry": "Industrial Distribution"
+  },
+  {
+    "ticker": "TSCO",
+    "name": "Tesco",
+    "sector": "Consumer Defensive",
+    "industry": "Grocery Stores"
+  },
+  {
+    "ticker": "HLN",
+    "name": "Haleon",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "AHT",
+    "name": "Ashtead Group",
+    "sector": "Industrials",
+    "industry": "Rental & Leasing Services"
+  },
+  {
+    "ticker": "ENT",
+    "name": "Entain",
+    "sector": "Consumer Cyclical",
+    "industry": "Gambling"
+  },
+  {
+    "ticker": "EZJ",
+    "name": "easyJet",
+    "sector": "Industrials",
+    "industry": "Airlines"
+  },
+  {
+    "ticker": "RR",
+    "name": "Rolls-Royce",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "MTLN",
+    "name": "Metlen",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "ICG",
+    "name": "ICG",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  }
 ]

@@ -1,30 +1,484 @@
 [
-  {"ticker":"ITX","name":"Inditex"}, {"ticker":"IBE","name":"Iberdrola"}, {"ticker":"SAN","name":"Banco Santander"},
-  {"ticker":"BBVA","name":"BBVA"}, {"ticker":"CABK","name":"CaixaBank"}, {"ticker":"BKT","name":"Bankinter"},
-  {"ticker":"SAB","name":"Banco Sabadell"}, {"ticker":"UNI","name":"Unicaja"}, {"ticker":"AMS","name":"Amadeus"},
-  {"ticker":"FER","name":"Ferrovial"}, {"ticker":"ACS","name":"ACS"}, {"ticker":"FCC","name":"FCC"},
-  {"ticker":"SCYR","name":"Sacyr"}, {"ticker":"OHLA","name":"OHLA"}, {"ticker":"ANA","name":"Acciona"},
-  {"ticker":"REP","name":"Repsol"}, {"ticker":"ELE","name":"Endesa"}, {"ticker":"NTGY","name":"Naturgy"},
-  {"ticker":"RED","name":"Redeia"}, {"ticker":"ENG","name":"Enagás"}, {"ticker":"CLNX","name":"Cellnex"},
-  {"ticker":"TEF","name":"Telefónica"}, {"ticker":"IAG","name":"IAG"}, {"ticker":"AENA","name":"Aena"},
-  {"ticker":"GRF","name":"Grifols"}, {"ticker":"ROVI","name":"Rovi"}, {"ticker":"ALM","name":"Almirall"},
-  {"ticker":"FAE","name":"Faes Farma"}, {"ticker":"PHM","name":"PharmaMar"}, {"ticker":"VID","name":"Vidrala"},
-  {"ticker":"VIS","name":"Viscofan"}, {"ticker":"CAF","name":"CAF"}, {"ticker":"CIE","name":"CIE Automotive"},
-  {"ticker":"GEST","name":"Gestamp"}, {"ticker":"FDR","name":"Fluidra"}, {"ticker":"LOG","name":"Logista"},
-  {"ticker":"EBRO","name":"Ebro Foods"}, {"ticker":"MAP","name":"Mapfre"}, {"ticker":"LDA","name":"Línea Directa"},
-  {"ticker":"GCO","name":"G. Catalana Occ."}, {"ticker":"CBAV","name":"Clínica Baviera"}, {"ticker":"MEL","name":"Meliá Hotels"},
-  {"ticker":"TLGO","name":"Talgo"}, {"ticker":"TUB","name":"Tubacex"},
-  {"ticker":"ACX","name":"Acerinox"}, {"ticker":"MTS","name":"ArcelorMittal"}, {"ticker":"MCM","name":"Miquel y Costas"},
-  {"ticker":"IBP","name":"Iberpapel"}, {"ticker":"ISUR","name":"Inmobiliaria del Sur"}, {"ticker":"MRL","name":"Merlin Properties"},
-  {"ticker":"COL","name":"Inmobiliaria Colonial"}, {"ticker":"MVC","name":"Metrovacesa"},
-  {"ticker":"RLIA","name":"Realia"}, {"ticker":"DOM","name":"Global Dominion"}, {"ticker":"AZK","name":"Azkoyen"},
-  {"ticker":"DGI","name":"Duro Felguera"}, {"ticker":"ENC","name":"Ence Energía"},
-  {"ticker":"EZE","name":"Ezentis"}, {"ticker":"PSG","name":"Prosegur"}, {"ticker":"CASH","name":"Prosegur Cash"},
-  {"ticker":"SOL","name":"Soltec"}, {"ticker":"GRE","name":"Grenergy"}, {"ticker":"ADZ","name":"Adolfo Domínguez"},
-  {"ticker":"VOC","name":"Vocento"}, {"ticker":"PRS","name":"Prisa"}, {"ticker":"ALNT","name":"Alantra"},
-  {"ticker":"ANE","name":"Acciona Energía"}, {"ticker":"IDR","name":"Indra"}, {"ticker":"REN","name":"Renta 4"},
-  {"ticker":"TRG","name":"Tubos Reunidos"}, {"ticker":"HOME","name":"Neinor Homes"}, {"ticker":"AEDAS","name":"Aedas Homes"},
-  {"ticker":"AMP","name":"Amper"}, {"ticker":"DIA","name":"Supermercados DIA"}, {"ticker":"EDR","name":"eDreams ODIGEO"},
-  {"ticker":"NXT","name":"Nextil"}, {"ticker":"GAM","name":"General de Alquiler"}, {"ticker":"PUIG", "name":"Puig Brands"},
-  {"ticker":"NYE","name":"Nyesa Valores"}, {"ticker":"VANA","name":"Vanadi"}, {"ticker":"YEIS","name":"Elaia"}
+  {
+    "ticker": "ITX",
+    "name": "Inditex",
+    "sector": "Consumer Cyclical",
+    "industry": "Apparel Retail"
+  },
+  {
+    "ticker": "IBE",
+    "name": "Iberdrola",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "SAN",
+    "name": "Banco Santander",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "BBVA",
+    "name": "BBVA",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "CABK",
+    "name": "CaixaBank",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "BKT",
+    "name": "Bankinter",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "SAB",
+    "name": "Banco Sabadell",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "UNI",
+    "name": "Unicaja",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "AMS",
+    "name": "Amadeus",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "FER",
+    "name": "Ferrovial",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "ACS",
+    "name": "ACS",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "FCC",
+    "name": "FCC",
+    "sector": "Industrials",
+    "industry": "Waste Management"
+  },
+  {
+    "ticker": "SCYR",
+    "name": "Sacyr",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "OHLA",
+    "name": "OHLA",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "ANA",
+    "name": "Acciona",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "REP",
+    "name": "Repsol",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "ELE",
+    "name": "Endesa",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "NTGY",
+    "name": "Naturgy",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Gas"
+  },
+  {
+    "ticker": "RED",
+    "name": "Redeia",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "ENG",
+    "name": "Enagás",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Gas"
+  },
+  {
+    "ticker": "CLNX",
+    "name": "Cellnex",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "TEF",
+    "name": "Telefónica",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "IAG",
+    "name": "IAG",
+    "sector": "Industrials",
+    "industry": "Airlines"
+  },
+  {
+    "ticker": "AENA",
+    "name": "Aena",
+    "sector": "Industrials",
+    "industry": "Airports & Air Services"
+  },
+  {
+    "ticker": "GRF",
+    "name": "Grifols",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "ROVI",
+    "name": "Rovi",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "ALM",
+    "name": "Almirall",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "FAE",
+    "name": "Faes Farma",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "PHM",
+    "name": "PharmaMar",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "VID",
+    "name": "Vidrala",
+    "sector": "Consumer Cyclical",
+    "industry": "Packaging & Containers"
+  },
+  {
+    "ticker": "VIS",
+    "name": "Viscofan",
+    "sector": "Consumer Cyclical",
+    "industry": "Packaging & Containers"
+  },
+  {
+    "ticker": "CAF",
+    "name": "CAF",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "CIE",
+    "name": "CIE Automotive",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "GEST",
+    "name": "Gestamp",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts"
+  },
+  {
+    "ticker": "FDR",
+    "name": "Fluidra",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "LOG",
+    "name": "Logista",
+    "sector": "Industrials",
+    "industry": "Integrated Freight & Logistics"
+  },
+  {
+    "ticker": "EBRO",
+    "name": "Ebro Foods",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "MAP",
+    "name": "Mapfre",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "LDA",
+    "name": "Línea Directa",
+    "sector": "Financial Services",
+    "industry": "Insurance - Property & Casualty"
+  },
+  {
+    "ticker": "GCO",
+    "name": "G. Catalana Occ.",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "CBAV",
+    "name": "Clínica Baviera",
+    "sector": "Healthcare",
+    "industry": "Diagnostics & Research"
+  },
+  {
+    "ticker": "MEL",
+    "name": "Meliá Hotels",
+    "sector": "Consumer Cyclical",
+    "industry": "Lodging"
+  },
+  {
+    "ticker": "TLGO",
+    "name": "Talgo",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "TUB",
+    "name": "Tubacex",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "ACX",
+    "name": "Acerinox",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "MTS",
+    "name": "ArcelorMittal",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "MCM",
+    "name": "Miquel y Costas",
+    "sector": "Basic Materials",
+    "industry": "Paper & Paper Products"
+  },
+  {
+    "ticker": "IBP",
+    "name": "Iberpapel"
+  },
+  {
+    "ticker": "ISUR",
+    "name": "Inmobiliaria del Sur",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "MRL",
+    "name": "Merlin Properties",
+    "sector": "Real Estate",
+    "industry": "REIT - Office"
+  },
+  {
+    "ticker": "COL",
+    "name": "Inmobiliaria Colonial",
+    "sector": "Real Estate",
+    "industry": "REIT - Office"
+  },
+  {
+    "ticker": "MVC",
+    "name": "Metrovacesa",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "RLIA",
+    "name": "Realia",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "DOM",
+    "name": "Global Dominion",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "AZK",
+    "name": "Azkoyen",
+    "sector": "Industrials",
+    "industry": "Business Equipment & Supplies"
+  },
+  {
+    "ticker": "DGI",
+    "name": "Duro Felguera"
+  },
+  {
+    "ticker": "ENC",
+    "name": "Ence Energía",
+    "sector": "Basic Materials",
+    "industry": "Paper & Paper Products"
+  },
+  {
+    "ticker": "EZE",
+    "name": "Ezentis",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "PSG",
+    "name": "Prosegur",
+    "sector": "Industrials",
+    "industry": "Security & Protection Services"
+  },
+  {
+    "ticker": "CASH",
+    "name": "Prosegur Cash",
+    "sector": "Industrials",
+    "industry": "Integrated Freight & Logistics"
+  },
+  {
+    "ticker": "SOL",
+    "name": "Soltec",
+    "sector": "Technology",
+    "industry": "Solar"
+  },
+  {
+    "ticker": "GRE",
+    "name": "Grenergy",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "ADZ",
+    "name": "Adolfo Domínguez",
+    "sector": "Consumer Cyclical",
+    "industry": "Apparel Manufacturing"
+  },
+  {
+    "ticker": "VOC",
+    "name": "Vocento",
+    "sector": "Communication Services",
+    "industry": "Publishing"
+  },
+  {
+    "ticker": "PRS",
+    "name": "Prisa",
+    "sector": "Communication Services",
+    "industry": "Publishing"
+  },
+  {
+    "ticker": "ALNT",
+    "name": "Alantra",
+    "sector": "Financial Services",
+    "industry": "Capital Markets"
+  },
+  {
+    "ticker": "ANE",
+    "name": "Acciona Energía",
+    "sector": "Utilities",
+    "industry": "Utilities - Renewable"
+  },
+  {
+    "ticker": "IDR",
+    "name": "Indra",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "REN",
+    "name": "Renta 4",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "TRG",
+    "name": "Tubos Reunidos",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "HOME",
+    "name": "Neinor Homes",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "AEDAS",
+    "name": "Aedas Homes",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "AMP",
+    "name": "Amper",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "DIA",
+    "name": "Supermercados DIA",
+    "sector": "Consumer Defensive",
+    "industry": "Discount Stores"
+  },
+  {
+    "ticker": "EDR",
+    "name": "eDreams ODIGEO",
+    "sector": "Consumer Cyclical",
+    "industry": "Travel Services"
+  },
+  {
+    "ticker": "NXT",
+    "name": "Nextil",
+    "sector": "Consumer Cyclical",
+    "industry": "Textile Manufacturing"
+  },
+  {
+    "ticker": "GAM",
+    "name": "General de Alquiler",
+    "sector": "Industrials",
+    "industry": "Rental & Leasing Services"
+  },
+  {
+    "ticker": "PUIG",
+    "name": "Puig Brands",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "NYE",
+    "name": "Nyesa Valores",
+    "sector": "Real Estate",
+    "industry": "Real Estate - Development"
+  },
+  {
+    "ticker": "VANA",
+    "name": "Vanadi",
+    "sector": "Consumer Cyclical",
+    "industry": "Restaurants"
+  },
+  {
+    "ticker": "YEIS",
+    "name": "Elaia",
+    "sector": "Real Estate",
+    "industry": "REIT - Hotel & Motel"
+  }
 ]

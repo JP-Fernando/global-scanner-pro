@@ -1,33 +1,542 @@
 [
-  {"ticker":"MC", "name":"LVMH"}, {"ticker":"OR", "name":"L'Oréal"}, {"ticker":"TTE", "name":"TotalEnergies"},
-  {"ticker":"ASML.AS", "name":"ASML Holding"}, {"ticker":"SAN", "name":"Sanofi"}, {"ticker":"RMS", "name":"Hermès"},
-  {"ticker":"KER", "name":"Kering"}, {"ticker":"BN", "name":"Danone"}, {"ticker":"EL", "name":"EssilorLuxottica"},
-  {"ticker":"AI", "name":"Air Liquide"}, {"ticker":"DG", "name":"Vinci"}, {"ticker":"CS", "name":"AXA SA"},
-  {"ticker":"STLAP", "name":"Stellantis NV"}, {"ticker":"STMPA", "name":"STMicroelectronics"}, {"ticker":"DSY", "name":"Dassault Systèmes"},
-  {"ticker":"VIV", "name":"Vivendi"}, {"ticker":"RNO", "name":"Renault"}, {"ticker":"PUB", "name":"Publicis Groupe"},
-  {"ticker":"ACA", "name":"Crédit Agricole"}, {"ticker":"GLE", "name":"Société Générale"}, {"ticker":"BNP", "name":"BNP Paribas"},
-  {"ticker":"CAP", "name":"Capgemini"}, {"ticker":"TE", "name":"Teleperformance"}, {"ticker":"ENGI", "name":"Engie"},
-  {"ticker":"VIE", "name":"Veolia"}, {"ticker":"ML", "name":"Michelin"}, {"ticker":"SU", "name":"Schneider Electric"},
-  {"ticker":"RI", "name":"Pernod Ricard"}, {"ticker":"LR", "name":"Legrand"}, {"ticker":"ATO", "name":"Atos"},
-  {"ticker":"BOL", "name":"Bolloré"}, {"ticker":"DIM", "name":"Sartorius Stedim"}, {"ticker":"GFC", "name":"Gecina"},
-  {"ticker":"GET", "name":"Getlink"}, {"ticker":"EMEIS", "name":"Emeis (antes Orpea)"}, {"ticker":"WLN", "name":"Worldline"},
-  {"ticker":"NEX", "name":"Nexans"}, {"ticker":"COV", "name":"Covivio"}, {"ticker":"ICAD", "name":"Icade"},
-  {"ticker":"ADP", "name":"Aéroports de Paris"}, {"ticker":"TFI", "name":"TF1"}, {"ticker":"JCDX", "name":"JCDecaux"},
-  {"ticker":"SK", "name":"SEB SA"}, {"ticker":"UBIP", "name":"Ubisoft Entertainment"}, {"ticker":"AMUN", "name":"Amundi"},
-  {"ticker":"VK", "name":"Vallourec"}, {"ticker":"VRLA", "name":"Verallia"}, {"ticker":"EN","name":"Bouygues"},
-  {"ticker":"ABCA", "name":"ABC Arbitrage"}, {"ticker":"AKZA.AS", "name":"Akzo Nobel"}, {"ticker":"ADYEN.AS", "name":"Adyen NV"},
-  {"ticker":"PRX.AS", "name":"Prosus"}, {"ticker":"INGA.AS", "name":"ING Group"}, {"ticker":"KPN.AS", "name":"KPN NV"},
-  {"ticker":"HEIA.AS", "name":"Heineken NV"}, {"ticker":"DSFIR.AS", "name":"DSM-Firmenich"}, {"ticker":"UNA.AS", "name":"Unilever"},
-  {"ticker":"URW", "name":"Unibail-Rodamco"}, {"ticker":"PHIA.AS", "name":"Philips"}, {"ticker":"RAND.AS", "name":"Randstad"},
-  {"ticker":"REN.AS", "name":"RELX Group"}, {"ticker":"IMCD.AS", "name":"IMCD NV"}, {"ticker":"BESI.AS", "name":"BESI"},
-  {"ticker":"ABI.BR", "name":"Anheuser-Busch InBev"}, {"ticker":"SOLB.BR", "name":"Solvay SA"}, {"ticker":"UCB.BR", "name":"UCB SA"},
-  {"ticker":"KBC.BR", "name":"KBC Group"}, {"ticker":"GBLB.BR", "name":"GBL"}, {"ticker":"WDP.BR", "name":"WDP NV"},
-  {"ticker":"COFB.BR", "name":"Cofinimmo"}, {"ticker":"AED.BR", "name":"Aedifica"}, {"ticker":"SOF.BR", "name":"Sofina"},
-  {"ticker":"PROX.BR", "name":"Proximus"}, {"ticker":"ELI.BR", "name":"Elia Group"}, {"ticker":"VGP.BR", "name":"VGP NV"},
-  {"ticker":"MELE.BR", "name":"Melexis"}, {"ticker":"BVI", "name":"Bureau Veritas"}, {"ticker":"SPIE", "name":"Spie SA"},
-  {"ticker":"HO", "name":"Thales"}, {"ticker":"AGS.BR", "name":"ageas"}, {"ticker":"EDP.LS", "name":"EDP"},
-  {"ticker":"AC", "name":"Accor"}, {"ticker":"IPN", "name":"Ipsen"}, {"ticker":"SW", "name":"Sodexo"},
-  {"ticker":"JMT.LS", "name":"Jerónimo Martins"}, {"ticker":"SHELL.AS", "name":"Shell"}, {"ticker":"GALP.LS", "name":"GALP"},
-  {"ticker":"SGO", "name":"Saint-Gobain"}, {"ticker":"AIR", "name":"Airbus"}, {"ticker":"CA", "name": "Carrefour"},
-  {"ticker":"ORA", "name":"Orange"}
+  {
+    "ticker": "MC",
+    "name": "LVMH",
+    "sector": "Consumer Cyclical",
+    "industry": "Luxury Goods"
+  },
+  {
+    "ticker": "OR",
+    "name": "L'Oréal",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "TTE",
+    "name": "TotalEnergies",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "ASML.AS",
+    "name": "ASML Holding",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "SAN",
+    "name": "Sanofi",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - General"
+  },
+  {
+    "ticker": "RMS",
+    "name": "Hermès",
+    "sector": "Consumer Cyclical",
+    "industry": "Luxury Goods"
+  },
+  {
+    "ticker": "KER",
+    "name": "Kering",
+    "sector": "Consumer Cyclical",
+    "industry": "Luxury Goods"
+  },
+  {
+    "ticker": "BN",
+    "name": "Danone",
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods"
+  },
+  {
+    "ticker": "EL",
+    "name": "EssilorLuxottica",
+    "sector": "Healthcare",
+    "industry": "Medical Instruments & Supplies"
+  },
+  {
+    "ticker": "AI",
+    "name": "Air Liquide",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "DG",
+    "name": "Vinci",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "CS",
+    "name": "AXA SA",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "STLAP",
+    "name": "Stellantis NV",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "STMPA",
+    "name": "STMicroelectronics",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "DSY",
+    "name": "Dassault Systèmes",
+    "sector": "Technology",
+    "industry": "Software - Application"
+  },
+  {
+    "ticker": "VIV",
+    "name": "Vivendi",
+    "sector": "Communication Services",
+    "industry": "Entertainment"
+  },
+  {
+    "ticker": "RNO",
+    "name": "Renault",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers"
+  },
+  {
+    "ticker": "PUB",
+    "name": "Publicis Groupe",
+    "sector": "Communication Services",
+    "industry": "Advertising Agencies"
+  },
+  {
+    "ticker": "ACA",
+    "name": "Crédit Agricole",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "GLE",
+    "name": "Société Générale",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "BNP",
+    "name": "BNP Paribas",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "CAP",
+    "name": "Capgemini",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "TE",
+    "name": "Teleperformance",
+    "sector": "Energy",
+    "industry": "Oil & Gas Equipment & Services"
+  },
+  {
+    "ticker": "ENGI",
+    "name": "Engie",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "VIE",
+    "name": "Veolia",
+    "sector": "Industrials",
+    "industry": "Waste Management"
+  },
+  {
+    "ticker": "ML",
+    "name": "Michelin"
+  },
+  {
+    "ticker": "SU",
+    "name": "Schneider Electric",
+    "sector": "Industrials",
+    "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "RI",
+    "name": "Pernod Ricard",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Wineries & Distilleries"
+  },
+  {
+    "ticker": "LR",
+    "name": "Legrand",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "ATO",
+    "name": "Atos",
+    "sector": "Technology",
+    "industry": "Information Technology Services"
+  },
+  {
+    "ticker": "BOL",
+    "name": "Bolloré",
+    "sector": "Communication Services",
+    "industry": "Entertainment"
+  },
+  {
+    "ticker": "DIM",
+    "name": "Sartorius Stedim",
+    "sector": "Healthcare",
+    "industry": "Medical Instruments & Supplies"
+  },
+  {
+    "ticker": "GFC",
+    "name": "Gecina",
+    "sector": "Real Estate",
+    "industry": "REIT - Office"
+  },
+  {
+    "ticker": "GET",
+    "name": "Getlink",
+    "sector": "Industrials",
+    "industry": "Railroads"
+  },
+  {
+    "ticker": "EMEIS",
+    "name": "Emeis (antes Orpea)",
+    "sector": "Healthcare",
+    "industry": "Medical Care Facilities"
+  },
+  {
+    "ticker": "WLN",
+    "name": "Worldline",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "NEX",
+    "name": "Nexans",
+    "sector": "Industrials",
+    "industry": "Electrical Equipment & Parts"
+  },
+  {
+    "ticker": "COV",
+    "name": "Covivio",
+    "sector": "Real Estate",
+    "industry": "REIT - Diversified"
+  },
+  {
+    "ticker": "ICAD",
+    "name": "Icade",
+    "sector": "Real Estate",
+    "industry": "REIT - Diversified"
+  },
+  {
+    "ticker": "ADP",
+    "name": "Aéroports de Paris",
+    "sector": "Industrials",
+    "industry": "Airports & Air Services"
+  },
+  {
+    "ticker": "TFI",
+    "name": "TF1",
+    "sector": "Communication Services",
+    "industry": "Broadcasting"
+  },
+  {
+    "ticker": "JCDX",
+    "name": "JCDecaux"
+  },
+  {
+    "ticker": "SK",
+    "name": "SEB SA",
+    "sector": "Consumer Cyclical",
+    "industry": "Furnishings, Fixtures & Appliances"
+  },
+  {
+    "ticker": "UBIP",
+    "name": "Ubisoft Entertainment"
+  },
+  {
+    "ticker": "AMUN",
+    "name": "Amundi",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "VK",
+    "name": "Vallourec",
+    "sector": "Basic Materials",
+    "industry": "Steel"
+  },
+  {
+    "ticker": "VRLA",
+    "name": "Verallia",
+    "sector": "Consumer Cyclical",
+    "industry": "Packaging & Containers"
+  },
+  {
+    "ticker": "EN",
+    "name": "Bouygues",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "ABCA",
+    "name": "ABC Arbitrage",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "AKZA.AS",
+    "name": "Akzo Nobel",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "ADYEN.AS",
+    "name": "Adyen NV",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure"
+  },
+  {
+    "ticker": "PRX.AS",
+    "name": "Prosus",
+    "sector": "Consumer Cyclical",
+    "industry": "Internet Retail"
+  },
+  {
+    "ticker": "INGA.AS",
+    "name": "ING Group",
+    "sector": "Financial Services",
+    "industry": "Banks - Diversified"
+  },
+  {
+    "ticker": "KPN.AS",
+    "name": "KPN NV",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "HEIA.AS",
+    "name": "Heineken NV",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Brewers"
+  },
+  {
+    "ticker": "DSFIR.AS",
+    "name": "DSM-Firmenich",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "UNA.AS",
+    "name": "Unilever",
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products"
+  },
+  {
+    "ticker": "URW",
+    "name": "Unibail-Rodamco",
+    "sector": "Real Estate",
+    "industry": "REIT - Retail"
+  },
+  {
+    "ticker": "PHIA.AS",
+    "name": "Philips",
+    "sector": "Healthcare",
+    "industry": "Medical Devices"
+  },
+  {
+    "ticker": "RAND.AS",
+    "name": "Randstad",
+    "sector": "Industrials",
+    "industry": "Staffing & Employment Services"
+  },
+  {
+    "ticker": "REN.AS",
+    "name": "RELX Group",
+    "sector": "Industrials",
+    "industry": "Specialty Business Services"
+  },
+  {
+    "ticker": "IMCD.AS",
+    "name": "IMCD NV",
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals"
+  },
+  {
+    "ticker": "BESI.AS",
+    "name": "BESI",
+    "sector": "Technology",
+    "industry": "Semiconductor Equipment & Materials"
+  },
+  {
+    "ticker": "ABI.BR",
+    "name": "Anheuser-Busch InBev",
+    "sector": "Consumer Defensive",
+    "industry": "Beverages - Brewers"
+  },
+  {
+    "ticker": "SOLB.BR",
+    "name": "Solvay SA",
+    "sector": "Basic Materials",
+    "industry": "Chemicals"
+  },
+  {
+    "ticker": "UCB.BR",
+    "name": "UCB SA",
+    "sector": "Healthcare",
+    "industry": "Biotechnology"
+  },
+  {
+    "ticker": "KBC.BR",
+    "name": "KBC Group",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional"
+  },
+  {
+    "ticker": "GBLB.BR",
+    "name": "GBL",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "WDP.BR",
+    "name": "WDP NV",
+    "sector": "Real Estate",
+    "industry": "REIT - Industrial"
+  },
+  {
+    "ticker": "COFB.BR",
+    "name": "Cofinimmo",
+    "sector": "Real Estate",
+    "industry": "REIT - Healthcare Facilities"
+  },
+  {
+    "ticker": "AED.BR",
+    "name": "Aedifica",
+    "sector": "Real Estate",
+    "industry": "REIT - Healthcare Facilities"
+  },
+  {
+    "ticker": "SOF.BR",
+    "name": "Sofina",
+    "sector": "Financial Services",
+    "industry": "Asset Management"
+  },
+  {
+    "ticker": "PROX.BR",
+    "name": "Proximus",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  },
+  {
+    "ticker": "ELI.BR",
+    "name": "Elia Group",
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric"
+  },
+  {
+    "ticker": "VGP.BR",
+    "name": "VGP NV",
+    "sector": "Real Estate",
+    "industry": "Real Estate Services"
+  },
+  {
+    "ticker": "MELE.BR",
+    "name": "Melexis",
+    "sector": "Technology",
+    "industry": "Semiconductors"
+  },
+  {
+    "ticker": "BVI",
+    "name": "Bureau Veritas",
+    "sector": "Industrials",
+    "industry": "Consulting Services"
+  },
+  {
+    "ticker": "SPIE",
+    "name": "Spie SA",
+    "sector": "Industrials",
+    "industry": "Engineering & Construction"
+  },
+  {
+    "ticker": "HO",
+    "name": "Thales",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "AGS.BR",
+    "name": "ageas",
+    "sector": "Financial Services",
+    "industry": "Insurance - Diversified"
+  },
+  {
+    "ticker": "EDP.LS",
+    "name": "EDP",
+    "sector": "Utilities",
+    "industry": "Utilities - Diversified"
+  },
+  {
+    "ticker": "AC",
+    "name": "Accor",
+    "sector": "Consumer Cyclical",
+    "industry": "Lodging"
+  },
+  {
+    "ticker": "IPN",
+    "name": "Ipsen",
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic"
+  },
+  {
+    "ticker": "SW",
+    "name": "Sodexo",
+    "sector": "Industrials",
+    "industry": "Specialty Business Services"
+  },
+  {
+    "ticker": "JMT.LS",
+    "name": "Jerónimo Martins",
+    "sector": "Consumer Defensive",
+    "industry": "Food Distribution"
+  },
+  {
+    "ticker": "SHELL.AS",
+    "name": "Shell",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "GALP.LS",
+    "name": "GALP",
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated"
+  },
+  {
+    "ticker": "SGO",
+    "name": "Saint-Gobain",
+    "sector": "Industrials",
+    "industry": "Building Products & Equipment"
+  },
+  {
+    "ticker": "AIR",
+    "name": "Airbus",
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense"
+  },
+  {
+    "ticker": "CA",
+    "name": "Carrefour",
+    "sector": "Consumer Defensive",
+    "industry": "Grocery Stores"
+  },
+  {
+    "ticker": "ORA",
+    "name": "Orange",
+    "sector": "Communication Services",
+    "industry": "Telecom Services"
+  }
 ]
