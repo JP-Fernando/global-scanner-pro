@@ -40,13 +40,17 @@ async function loadYahooData(ticker, suffix) {
     const q = r.indicators.quote[0];
     const adj = r.indicators.adjclose?.[0]?.adjclose || q.close;
 
-    return r.timestamp.map((t, i) => ({
-      timestamp: t,
-      close: adj[i],
-      volume: q.volume[i],
-      high: q.high?.[i] || adj[i],
-      low: q.low?.[i] || adj[i]
-    })).filter(d => d.close !== null && !isNaN(d.close));
+    return r.timestamp.map((t, i) => {
+      if (adj[i] == null || isNaN(adj[i])) return null;
+
+      return {
+        date: new Date(t * 1000).toISOString().split('T')[0], // YYYY-MM-DD
+        close: adj[i],
+        volume: q.volume[i],
+        high: q.high?.[i] ?? adj[i],
+        low: q.low?.[i] ?? adj[i]
+      };
+    }).filter(Boolean);
   } catch (e) {
     console.warn(`Error cargando ${fullSymbol}:`, e.message);
     return [];
@@ -65,7 +69,11 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
       return { passed: false, reason: 'Historia insuficiente' };
     }
 
-    const prices = data.map(d => d.close);
+    const prices = data.map(d => d.close); // indicadores
+    const pricesWithDates = data.map(d => ({
+      date: d.date,
+      close: d.close
+    }));
     const volumes = data.map(d => d.volume);
     const candleData = data.map(d => ({ c: d.close, h: d.high, l: d.low }));
 
@@ -116,7 +124,9 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
       passed: true,
       ticker: stock.ticker,
       name: stock.name,
-      prices: prices, // ⬅️ CRÍTICO: Guardar precios completos
+      prices,
+      pricesWithDates,
+      prices: prices[prices.length - 1],
       warnings: filterResult.reasons,
       price: prices[prices.length - 1],
       scoreTotal: finalScore,
@@ -266,7 +276,10 @@ export async function runScan() {
         console.warn('No se pudieron cargar datos completos del benchmark para régimen');
         status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
       } else {
-        const benchmarkPrices = benchmarkFullData.map(d => d.close).filter(p => p !== null && !isNaN(p));
+        const benchmarkPrices = benchmarkFullData.map(d => ({
+          date: d.date,
+          close: d.close
+        }));
 
         if (benchmarkPrices.length < 200) {
           console.warn('Datos insuficientes para detectar régimen');
@@ -379,11 +392,26 @@ window.buildPortfolio = function () {
       const original = appState.scanResults.find(r => r.ticker === asset.ticker);
       return {
         ...asset,
-        prices: original?.prices || [],
+        prices: original?.pricesWithDates || [],
         volatility: asset.volatility || original?.details?.risk?.volatility || '20',
         details: original?.details
       };
     });
+
+
+    // 4.1 Validación defensiva de datos históricos (CRÍTICO)
+    const invalidAssets = enrichedAllocation.filter(
+      a => !Array.isArray(a.prices) || a.prices.length < 30
+    );
+
+    if (invalidAssets.length > 0) {
+      console.warn('⚠️ Algunos activos excluidos del análisis de riesgo:', invalidAssets.map(a => a.ticker));
+
+      enrichedAllocation = enrichedAllocation.filter(
+        a => Array.isArray(a.prices) && a.prices.length >= 30
+      );
+    }
+
 
     // 5. Generar reporte de riesgo completo
     const riskReport = risk.generateRiskReport(enrichedAllocation, totalCapital);
@@ -478,7 +506,7 @@ function renderAdvancedRiskDashboard(riskReport) {
         <div class="risk-panel-dark">
           <h4>⚠️ Activo Más Arriesgado</h4>
           <div style="font-size: 1.5em; color: #fbbf24; font-weight: bold; margin: 15px 0;">
-            ${riskReport.riskMetrics.riskiestAsset.ticker}
+            ${riskReport.riskMetrics?.riskiestAsset?.ticker || 'N/A'}
           </div>
           <div class="small-text">
             <strong>Volatilidad:</strong> ${riskReport.riskMetrics.riskiestAsset.volatility}%<br>
