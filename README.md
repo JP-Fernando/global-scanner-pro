@@ -1,6 +1,10 @@
 # 🎯 Global Quant Scanner Pro
 
-**Global Quant Scanner Pro** es una herramienta profesional que analiza miles de datos por segundo para encontrar las mejores oportunidades de inversión basándose en algoritmos matemáticos, eliminando el sesgo emocional del trading.
+**Global Quant Scanner Pro** es una plataforma profesional de *market scanning*, *portfolio construction* y *risk analytics*
+que analiza miles de datos por segundo para identificar oportunidades de
+inversión basadas en modelos cuantitativos robustos, eliminando el sesgo emocional del trading.
+
+Diseñado con principios de arquitectura defensiva, gobernanza de inversión y análisis de riesgo institucional.
 
 ---
 
@@ -22,53 +26,206 @@ node server.js
 2. Selecciona un mercado (España, USA, Alemania, etc.)
 3. Elige una estrategia según tu perfil de riesgo
 4. Haz clic en "Ejecutar Análisis"
-5. Explora los resultados ordenando por diferentes scores
+5. Explora los resultados ordenando por *scores* y factores
 6. **Opcional**: Construye una cartera profesional con los mejores activos
-7. Revisa el régimen de mercado detectado automáticamente
+7. Revisa el **régimen de mercado** detectado automáticamente
 
 ---
 
 ## 📘 Guía para Principiantes
 
-### ¿Qué es el Score?
+### ¿Qué es el *Score*?
 
-El sistema funciona como un **filtro inteligente** que analiza múltiples indicadores técnicos y te da un **Score (0-100)**. Cuanto más alto es el score, mejores son las métricas técnicas de ese activo.
+El ***Quant Score*** **(0–100)** es un indicador sintético que combina múltiples factores técnicos y de riesgo.
+Cuanto mayor es el *score*, mejor es la calidad cuantitativa del activo dentro de su universo.
 
 ### Conceptos Clave
 
-**Estrategia**: Define cómo se ponderan los diferentes factores (tendencia, momentum, riesgo, liquidez). Es como elegir tu perfil de inversor.
+**Estrategia**: Define cómo se ponderan los diferentes factores (tendencia, momentum, riesgo, liquidez).
+Es tu "perfil" de inversor.
 
-**Vista de Score**: Una vez ejecutado el análisis, puedes ordenar los resultados según tu horizonte temporal:
-- **⚡ Corto Plazo (6m)**: Trading de días o semanas
-- **📈 Medio Plazo (18m)**: Inversión de varios meses
-- **🎯 Largo Plazo (4a)**: Construir cartera a largo plazo
-- **📉 Tendencia**: Confirmar que el precio está por encima de su media histórica
-- **🚀 Momentum**: Encontrar los "líderes" del mercado (Alpha positivo)
+**Vistas de horizonte**: Una vez ejecutado el análisis, puedes ordenar los resultados según tu objetivo:
+- **⚡ Corto Plazo (6m)**: Trading de días o semanas.
+- **📈 Medio Plazo (18m)**: Inversión de varios meses.
+- **🎯 Largo Plazo (4a)**: Construcción de patrimonio.
+- **Scores Factoriales**: Trend, Momentum, Riesgo y Liquidez.
 
 ### Métricas Principales
 
-- **Alpha**: Ventaja del activo frente a su mercado. Si el IBEX sube 5% y tu acción 8%, tu Alpha es +3%
-- **Max Drawdown**: La caída máxima que ha sufrido el valor en el último año. Valores > 50% indican alto riesgo
-- **ATR% (Riesgo)**: Cuánto "salta" el precio cada día. Bajo = estabilidad, Alto = volatilidad
-- **Volumen Ratio**: Si es > 1, se está negociando más de lo habitual (dinero institucional entrando)
+- **Alpha**: Ventaja del activo frente a su índice (si el IBEX sube 5% y tu acción 8%, tu Alpha es +3%).
+- **Max Drawdown**: La caída máxima que ha sufrido el valor en el último año.
+Indica el "susto" potencial.
+- **ATR% (Riesgo)**: Volatilidad diaria. Bajo = estabilidad, Alto = movimientos bruscos.
+- **Volumen Ratio**: Si es > 1, se está negociando más de lo habitual (dinero "fuerte" entrando).
 
-### Construcción de Cartera y Análisis de Riesgo
+---
 
-Una vez ejecutado el análisis, el sistema te permite **construir carteras profesionales** automáticamente:
+## 🚦 Interpretación de Señales
 
-- **Asignación de Capital**: 5 métodos diferentes (Equal Weight, Score-Weighted, ERC, Volatility Targeting, Hybrid)
-- **Análisis de Riesgo**: Value at Risk (VaR), matriz de correlaciones, stress testing
-- **Recomendaciones de Capital**: Calcula automáticamente cuánto invertir en cada activo según tu capital total
+El sistema genera una recomendación automática basada en el *score* total:
 
-### Régimen de Mercado
+| Señal | Score | Confianza | Descripción |
+|-------|-------|-----------|-------------|
+| 🟢 **COMPRA FUERTE** | > 80 | 95% | Alineación total de tendencia, momentum y volumen. Confianza estadística muy alta. |
+| 🟢 **COMPRA** | 65-80 | 75% | Buen momento de entrada, aunque con algo más de volatilidad. |
+| 🟡 **MANTENER+** | 50-65 | 55% | Tendencia neutral-positiva, momentum moderado. Si ya lo tienes, consérvalo. |
+| 🟡 **MANTENER** | 40-50 | 40% | Sin tendencia clara. Espera a mejores métricas antes de entrar. |
+| 🔴 **VENTA** | < 40 | 25% | El sistema detecta debilidad estructural o riesgo excesivo. Evitar. |
 
-El sistema detecta automáticamente el **régimen de mercado actual** (Risk-On, Neutral, Risk-Off) analizando:
+---
+
+## 💼 Construcción de Cartera y Análisis de Riesgo
+
+Una vez ejecutado el análisis de mercado y filtrados los activos según la estrategia seleccionada,
+el sistema permite **construir carteras profesionales** de forma automática,
+aplicando principios de diversificación, control de riesgo y gobernanza.
+
+### 📊 Métodos de Asignación de Capital
+
+El sistema ofrece **5 métodos profesionales** para distribuir el capital entre los activos seleccionados:
+
+#### 1️⃣ Equal Weight (Peso Igual)
+- Cada activo recibe el mismo porcentaje de capital.
+- **Ejemplo**: 5 activos → 20% cada uno.
+- ✔ Fácil de entender  
+- ✔ Alta diversificación  
+- ❌ No distingue calidad entre activos  
+- **Ideal para**: Principiantes.
+
+#### 2️⃣ Score-Weighted (Ponderado por Score)
+- Los activos con mayor Quant Score reciben más capital.
+- Se basa en la “calidad cuantitativa” detectada por el sistema.
+- ✔ Premia mejores métricas técnicas  
+- ❌ Puede concentrar más riesgo  
+- **Ideal para**: Confiar en las señales del scanner.
+
+#### 3️⃣ Equal Risk Contribution (ERC)
+- Cada activo contribuye **la misma cantidad de riesgo**, no de capital.
+- Activos más volátiles reciben menos peso.
+- ✔ Balancea el riesgo total  
+- ✔ Reduce impacto de activos muy volátiles  
+- **Ideal para**: Control de riesgo estructural.
+
+#### 4️⃣ Volatility Targeting
+- Ajusta los pesos para que la cartera tenga una volatilidad objetivo (ej. 15% anual).
+- Si el mercado es más volátil → reduce exposición.
+- ✔ Muy usado en gestión profesional  
+- ✔ Se adapta al entorno de mercado  
+- **Ideal para**: Control dinámico del riesgo.
+
+#### 5️⃣ Hybrid (ERC + Score) ⭐ Recomendado
+- Combina:
+  - 50% diversificación por riesgo (ERC)
+  - 50% calidad de señales (Score)
+- ✔ Equilibrio óptimo entre rendimiento y control de riesgo  
+- **Ideal para**: Uso general.
+
+
+### 📊 Dashboard Avanzado de Riesgo
+
+El **Dashboard Avanzado de Riesgo** traduce métricas cuantitativas complejas en una
+visualización clara y comprensible, incluso para inversores sin formación técnica.
+
+#### 📉 Value at Risk (VaR)
+
+El **VaR al 95%** responde a la pregunta:
+
+> *¿Cuál es la pérdida máxima esperada en un día “normal” en el 95% de los casos?*
+
+Ejemplo:
+- VaR = −€2,500  
+➡ En 95 de cada 100 días, la pérdida no debería superar esa cantidad.
+
+El dashboard muestra:
+- **VaR diversificado** (cartera real)
+- **VaR no diversificado** (suma de riesgos individuales)
+- **Beneficio de diversificación** (% de riesgo reducido)
+
+#### ⚠️ Activo Más Arriesgado
+
+Identifica el activo que más contribuye al riesgo total de la cartera, considerando:
+- Volatilidad
+- Peso en cartera
+
+Esto ayuda a responder:
+> *¿Qué activo debería vigilar o reducir primero si quiero bajar el riesgo?*
+
+#### 🔥 Matriz de Correlaciones
+
+Muestra cómo se mueven los activos entre sí:
+
+- **Correlación alta (>0.7)**: se mueven juntos → menos diversificación
+- **Correlación baja o negativa**: mejor diversificación
+
+El dashboard incluye:
+- Heatmap visual
+- Correlación media
+- Correlación máxima
+- **Score de diversificación (0–100)**  
+  (más alto = mejor diversificación)
+
+
+#### 🌪️ Stress Testing (Escenarios de Crisis)
+
+Simula cómo se comportaría tu cartera en situaciones extremas:
+
+| Escenario | Qué representa |
+|---------|----------------|
+| −5% | Corrección menor |
+| −10% | Corrección fuerte |
+| −20% | Crash tipo COVID |
+| −40% | Crisis sistémica (2008) |
+
+Para cada escenario se muestra:
+- Pérdida estimada (€)
+- % de la cartera
+- Capital restante
+
+Esto ayuda a responder:
+> *¿Podría soportar emocional y financieramente una crisis así?*
+
+#### ⚠️ Análisis de Riesgo Degradado (Transparencia Total)
+
+Si algunos activos no tienen suficiente histórico:
+
+- Se **excluyen automáticamente** del análisis de riesgo
+- El dashboard muestra una advertencia clara
+- Se indica **qué activos fueron excluidos**
+
+> El sistema prioriza **no engañar al usuario** frente a mostrar métricas incompletas.
+
+---
+
+## Régimen de Mercado
+
+El sistema detecta automáticamente el **régimen de mercado actual** analizando:
 - Tendencia del índice de referencia (vs EMA200)
 - Volatilidad reciente vs histórica
 - Momentum del mercado
 - Amplitud de mercado (% de activos alcistas)
 
-Esto permite **ajustar automáticamente** tu estrategia según las condiciones del mercado.
+Esto permite **ajustar automáticamente** tu estrategia según las condiciones del mercado:
+- Se **ajustan pesos** de factores
+- Se **endurecen o relajan filtros** de riesgo
+- Se **reordenan activos** para cartera
+
+### Regímenes Detectados
+
+**🟢 Risk-On (Mercado Alcista)**
+- Mercado en tendencia alcista, baja volatilidad
+- **Ajuste automático**: Aumenta peso de momentum, reduce restricciones por riesgo
+- **Ideal para**: Estrategias agresivas, crecimiento
+
+**🟡 Neutral (Mercado Lateral)**
+- Sin tendencia clara, volatilidad normal
+- **Ajuste automático**: Pesos equilibrados, estrategia estándar
+- **Ideal para**: Estrategias balanceadas
+
+**🔴 Risk-Off (Mercado Defensivo)**
+- Mercado bajista o alta volatilidad
+- **Ajuste automático**: Reduce momentum, aumenta restricciones por riesgo
+- **Ideal para**: Protección de capital, activos defensivos
+
 
 ---
 
@@ -79,25 +236,25 @@ Cada estrategia pondera los indicadores de forma distinta según tu objetivo:
 ### 1. Momentum Agresivo
 - **Pesos**: Momentum 45%, Trend 25%, Risk 15%, Liquidity 15%
 - **Filtros**: ATR < 8%, Volumen > 50k
-- **Ideal para**: Trading activo, rotación rápida, periodos cortos (días o semanas)
+- **Ideal para**: Trading activo, rotación rápida, periodos cortos (días o semanas).
 - **Riesgo**: Alto (mayor volatilidad)
 
 ### 2. Trend-Following Conservador
 - **Pesos**: Trend 45%, Momentum 20%, Risk 25%, Liquidity 10%
 - **Filtros**: ATR < 5%, Volumen > 30k, Drawdown < 35%
-- **Ideal para**: Inversión a largo plazo, menor volatilidad, dormir tranquilo
+- **Ideal para**: Inversión a largo plazo, menor volatilidad, dormir tranquilo.
 - **Riesgo**: Bajo
 
 ### 3. Equilibrado
 - **Pesos**: Trend 30%, Momentum 30%, Risk 25%, Liquidity 15%
 - **Filtros**: ATR < 6.5%, Volumen > 40k
-- **Ideal para**: Balance entre crecimiento y estabilidad
+- **Ideal para**: Balance entre crecimiento y estabilidad.
 - **Riesgo**: Moderado
 
 ### 4. Rotación Sectorial
 - **Pesos**: Momentum 40%, Trend 20%, Risk 20%, Liquidity 20%
 - **Filtros**: ATR < 7%, Volumen > 100k
-- **Ideal para**: Rotación entre sectores, alta liquidez
+- **Ideal para**: Rotación entre sectores, alta liquidez. Seguir el dinero "caliente".
 - **Riesgo**: Moderado-Alto
 
 ---
@@ -125,106 +282,30 @@ El secreto de los profesionales es la **convergencia**: busca activos que puntú
 
 ---
 
-## 🚦 Interpretación de Señales
+## 📊 Mercados Disponibles
 
-El sistema genera una señal automática basada en el score total:
+### Europa
+- España (IBEX 35)
+- Francia (CAC 40)
+- Alemania (DAX)
+- Reino Unido (FTSE 100)
+- Italia (FTSEMIB)
 
-| Señal | Score | Confianza | Descripción |
-|-------|-------|-----------|-------------|
-| 🟢 **COMPRA FUERTE** | > 80 | 95% | Alineación total de tendencia, momentum y volumen. Confianza estadística muy alta. |
-| 🟢 **COMPRA** | 65-80 | 75% | Buen momento de entrada, aunque con algo más de volatilidad. |
-| 🟡 **MANTENER+** | 50-65 | 55% | Tendencia neutral-positiva, momentum moderado. Si ya lo tienes, consérvalo. |
-| 🟡 **MANTENER** | 40-50 | 40% | Sin tendencia clara. Espera a mejores métricas antes de entrar. |
-| 🔴 **VENTA** | < 40 | 25% | El sistema detecta debilidad estructural o riesgo excesivo. Evitar. |
+### América
+- USA (S&P 500)
+- Brasil (Bovespa)
+- México (IPC)
+- Canadá (TSX)
 
----
-
-## 💼 Construcción de Cartera
-
-Después de ejecutar el análisis, puedes construir una cartera profesional con los mejores activos encontrados.
-
-### Métodos de Asignación
-
-El sistema ofrece 5 métodos diferentes para distribuir tu capital:
-
-**1. Equal Weight (Peso Igual)**
-- Cada activo recibe el mismo porcentaje de capital
-- **Ideal para**: Principiantes, máxima diversificación simple
-- **Riesgo**: Bajo
-
-**2. Score-Weighted (Ponderado por Score)**
-- Los activos con mejor Quant Score reciben más capital
-- **Ideal para**: Confiar en la calidad de las señales del sistema
-- **Riesgo**: Medio
-
-**3. Equal Risk Contribution (ERC)**
-- Cada activo contribuye igual al riesgo total de la cartera
-- **Ideal para**: Controlar el riesgo de manera equilibrada
-- **Riesgo**: Medio-Bajo
-
-**4. Volatility Targeting**
-- Ajusta los pesos para alcanzar una volatilidad objetivo (15% por defecto)
-- **Ideal para**: Controlar la volatilidad de la cartera
-- **Riesgo**: Configurable
-
-**5. Hybrid (ERC + Score)** ⭐ **Recomendado**
-- Combina diversificación por riesgo con calidad de señales
-- **Ideal para**: Balance óptimo entre diversificación y rendimiento
-- **Riesgo**: Medio
-
-### Cómo Usar
-
-1. Ejecuta el análisis de mercado
-2. En la sección "💼 Construcción de Cartera":
-   - Selecciona el método de asignación
-   - Indica cuántos activos quieres (Top N)
-   - Introduce tu capital total
-3. Haz clic en "Construir Cartera"
-4. El sistema generará:
-   - Asignación de capital por activo (€ y %)
-   - Análisis completo de riesgo
-   - Matriz de correlaciones
-   - Stress tests con diferentes escenarios
-   - Validación de cumplimiento de reglas de gobernanza
+### Asia
+- Japón (Nikkei)
+- Hong Kong (Hang Seng)
+- Shanghai (SSE)
+- Shenzhen (SZSE)
+- Corea (KOSPI)
 
 ---
 
-## 🌍 Detector de Régimen de Mercado
-
-El sistema analiza automáticamente las condiciones del mercado y detecta el régimen actual para ajustar tu estrategia.
-
-### Regímenes Detectados
-
-**🟢 Risk-On (Mercado Alcista)**
-- Mercado en tendencia alcista, baja volatilidad
-- **Ajuste automático**: Aumenta peso de momentum, reduce restricciones por riesgo
-- **Ideal para**: Estrategias agresivas, crecimiento
-
-**🟡 Neutral (Mercado Lateral)**
-- Sin tendencia clara, volatilidad normal
-- **Ajuste automático**: Pesos equilibrados, estrategia estándar
-- **Ideal para**: Estrategias balanceadas
-
-**🔴 Risk-Off (Mercado Defensivo)**
-- Mercado bajista o alta volatilidad
-- **Ajuste automático**: Reduce momentum, aumenta restricciones por riesgo
-- **Ideal para**: Protección de capital, activos defensivos
-
-### Cómo Funciona
-
-El sistema analiza:
-1. **Benchmark (Índice de referencia)**: Tendencia, volatilidad, momentum
-2. **Amplitud de Mercado**: Porcentaje de activos con tendencia alcista
-3. **Confianza**: Nivel de certeza en la clasificación (0-100%)
-
-### Uso en Construcción de Cartera
-
-Cuando construyes una cartera, puedes activar el ajuste por régimen:
-- El sistema ajustará automáticamente los scores de los activos
-- Re-ordenará los activos según el régimen detectado
-- Priorizará activos más adecuados para las condiciones actuales
-
----
 
 ## ⚖️ Reglas y Gobernanza de Inversión
 
@@ -251,7 +332,7 @@ El sistema aplica automáticamente las siguientes reglas para proteger tu capita
 - **Exclusión de activos de alto riesgo**: Elimina automáticamente activos con volatilidad > 50%
 
 **Rebalanceo**
-- **Umbral de rebalanceo**: Si un activo se desvía más del 5% de su peso objetivo, se recomienda rebalancear
+- **Umbral de rebalanceo**: Si un activo se desvía más del 5% de su peso objetivo, se recomienda rebalancear.
 
 ### Perfiles de Riesgo
 
@@ -302,44 +383,6 @@ Cada estrategia incluye documentación detallada con:
 
 ---
 
-## 📊 Mercados Disponibles
-
-### Europa
-- España (IBEX 35)
-- Francia (CAC 40)
-- Alemania (DAX)
-- Reino Unido (FTSE 100)
-- Italia (FTSEMIB)
-
-### América
-- USA (S&P 500)
-- Brasil (Bovespa)
-- México (IPC)
-- Canadá (TSX)
-
-### Asia
-- Japón (Nikkei)
-- Hong Kong (Hang Seng)
-- Shanghai (SSE)
-- Shenzhen (SZSE)
-- Corea (KOSPI)
-
----
-
-## 🎨 Características de la Interfaz
-
-- **Design moderno**: Gradientes, sombras, animaciones suaves
-- **Responsive**: Adaptable a móvil, tablet y desktop
-- **Color coding**: Visual claro para señales y scores
-- **Modal detallado**: Breakdown completo de análisis al hacer clic en una fila
-- **Barras de confianza**: Indicador visual de certeza
-- **Tabla ordenable**: Por Total, Corto, Medio, Largo, Trend, Momentum, Risk, Liquidity
-- **Constructor de cartera**: Asignación automática con 5 métodos diferentes
-- **Dashboard de riesgo**: VaR, matriz de correlaciones, stress tests visuales
-- **Indicador de régimen**: Detección y visualización del régimen de mercado actual
-- **Validación de gobernanza**: Verificación automática de cumplimiento de reglas de inversión
-
----
 
 ## 💻 Sección Técnica
 
@@ -733,15 +776,75 @@ Combina validación de cumplimiento con documentación de estrategia para genera
 - **Performance**: ~2-3 segundos por activo analizado
 - **Precisión**: 2 decimales para porcentajes, 1 para scores
 
-### Próximas Mejoras
+---
 
-- [ ] Análisis sectorial automático
-- [ ] Backtesting de estrategias
-- [ ] Exportación a Excel/CSV
-- [ ] Alertas por email/webhook
-- [ ] Machine Learning para ponderación dinámica
-- [ ] Integración con más fuentes de datos
-- [ ] Dashboard de portfolio tracking
+## 📅 Roadmap de Mejoras y Futuras Funcionalidades
+
+
+### Fase 1: Datos y Preparación
+1. **Integración con más fuentes de datos**  
+   - Ampliar cobertura de mercados y activos  
+   - Datos históricos y en tiempo real de diferentes proveedores  
+   - Mejora precisión de análisis, backtesting y alertas
+
+2. **Análisis sectorial automático**  
+   - Clasificación de activos por sector y subsector  
+   - Cálculo de exposición máxima por sector  
+   - Mejora de diversificación y control de riesgo concentrado
+
+3. **Detección de Anomalías (Riesgo Atípico)**  
+   - Algoritmo que detecta movimientos extraños respecto al sector o mercado  
+   - Ejemplos: flash crash, pump & dump  
+   - Marca automáticamente activos con comportamiento atípico
+
+
+### Fase 2: Simulación y Evaluación
+4. **Backtesting de estrategias**  
+   - Evaluación histórica de estrategias existentes usando datos completos  
+   - Comparación de métricas: rendimiento, volatilidad, drawdown  
+   - Base para optimización futura y validación de métodos de asignación
+
+5. **Simulación de capital inicial variable** *(opcional)*  
+   - Permitir probar carteras con distintos montos antes de construir la real  
+   - Ayuda a planificar la gestión de riesgo
+
+
+### Fase 3: Visualización y Reporting
+6. **Dashboard de portfolio tracking**  
+   - Visualización en tiempo real de carteras construidas  
+   - Métricas de riesgo, VaR, CVaR, correlaciones y stress tests  
+   - Comparación con benchmark y seguimiento histórico  
+   - Permite tomar decisiones informadas de rebalanceo
+
+7. **Exportación a Excel/CSV**  
+   - Reportes de resultados de escaneo y carteras  
+   - Incluye métricas de riesgo, scores y asignación de capital  
+   - Facilita auditoría, presentación a clientes y análisis externo
+
+8. **Alertas por email/webhook**  
+   - Notificación de señales fuertes, rebalanceos y eventos de mercado  
+   - Automatización de seguimiento y gestión de cartera
+
+9. **Análisis de Atribución**  
+   - Explica por qué la cartera gana o pierde dinero  
+   - Desglosa el impacto de selección de activos (Stock Picking) vs. asignación sectorial (Sector Allocation)  
+
+
+### Fase 4: Optimización Avanzada
+10. **Machine Learning para ponderación dinámica**  
+    - Optimización de asignación de capital según patrones históricos  
+    - Predicción de riesgo y ajuste automático de scores  
+    - Mejora el rendimiento esperado ajustado a volatilidad real
+
+11. **Test de estrés multi-factor**  
+    - Escenarios sectoriales, geopolíticos o de divisa  
+    - Evaluación del impacto de crisis combinadas sobre la cartera  
+
+
+### Fase 5: Futuras Ideas Avanzadas
+- **Documentación interactiva de estrategia**: Explicación visual de cada score y métrica al pulsar sobre un activo.  
+- **Optimización de gobernanza dinámica**: Ajuste automático de límites según volatilidad y correlación del mercado.  
+- **Integración de alertas con IA**: Detectar patrones de riesgo emergente y recomendar ajustes proactivos.  
 
 ---
 
@@ -755,9 +858,11 @@ MIT License - Uso libre para fines educativos y comerciales.
 
 Este software ha sido desarrollado con fines **estrictamente educativos y de entretenimiento personal**.
 
-* **No es asesoramiento financiero:** Las señales, scores y carteras generadas son resultado de cálculos matemáticos basados en datos históricos y no constituyen una recomendación de inversión.
+* **No es asesoramiento financiero:** Las señales, scores y carteras generadas son resultado de
+cálculos matemáticos basados en datos históricos y no constituyen una recomendación de inversión.
 * **Riesgo de pérdida:** El trading y la inversión en mercados financieros conllevan un riesgo significativo de pérdida de capital.
-* **Sin Garantías:** El autor no se hace responsable de la exactitud de los datos proporcionados por terceros (como Yahoo Finance) ni de las decisiones financieras tomadas por los usuarios del software.
+* **Sin Garantías:** El autor no se hace responsable de la exactitud de los datos proporcionados
+por terceros (como Yahoo Finance) ni de las decisiones financieras tomadas por los usuarios del software.
 
 **Invierte solo el capital que estés dispuesto a perder.**
 
