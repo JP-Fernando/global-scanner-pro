@@ -264,6 +264,22 @@ export async function runScan() {
   appState.market = { file, suffix };
   appState.strategy = strategyKey;
 
+  // ✅ Validar si se puede construir cartera con análisis de riesgo
+  const canBuildPortfolio =
+    appState.scanResults.filter(
+      r => Array.isArray(r.pricesWithDates) && r.pricesWithDates.length >= 30
+    ).length >= 3;
+
+  const buildBtn = document.querySelector('button[onclick="buildPortfolio()"]');
+  if (buildBtn) {
+    buildBtn.disabled = !canBuildPortfolio;
+  }
+
+  if (!canBuildPortfolio) {
+    showInlineError('No hay suficientes activos con histórico para construir cartera');
+  }
+
+
   // Detección de régimen
   if (benchmarkData && benchmarkData.symbol) {
     try {
@@ -404,17 +420,20 @@ window.buildPortfolio = function () {
       a => !Array.isArray(a.prices) || a.prices.length < 30
     );
 
-    if (invalidAssets.length > 0) {
-      console.warn('⚠️ Algunos activos excluidos del análisis de riesgo:', invalidAssets.map(a => a.ticker));
+    const degradedRisk = invalidAssets.length > 0;
 
-      enrichedAllocation = enrichedAllocation.filter(
-        a => Array.isArray(a.prices) && a.prices.length >= 30
-      );
-    }
+    const finalAllocation = degradedRisk
+      ? enrichedAllocation.filter(a => !invalidAssets.includes(a))
+      : enrichedAllocation;
 
+      // 5. Generar reporte de riesgo completo
+    const riskReport = risk.generateRiskReport(finalAllocation, totalCapital);
 
-    // 5. Generar reporte de riesgo completo
-    const riskReport = risk.generateRiskReport(enrichedAllocation, totalCapital);
+    // Meta-información UI (NO cuant)
+    riskReport.meta = {
+      degraded: degradedRisk,
+      excludedAssets: invalidAssets.map(a => a.ticker)
+    };
 
     // 6. Generar reporte de gobernanza
     const governanceReport = governance.generateGovernanceReport(
@@ -489,6 +508,13 @@ function renderAdvancedRiskDashboard(riskReport) {
   return `
     <div class="risk-dashboard-container">
       <h3>🧩 Análisis Avanzado de Riesgo</h3>
+
+      ${riskReport.meta?.degraded ? `
+        <div class="small-text" style="margin-bottom: 15px; color: #fbbf24;">
+          ⚠️ Análisis de riesgo realizado con universo reducido.
+          Activos excluidos: ${riskReport.meta.excludedAssets.join(', ')}
+        </div>
+      ` : ''}
 
       <div class="risk-grid-layout">
         <div class="risk-panel-dark">
