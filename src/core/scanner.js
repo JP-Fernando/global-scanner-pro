@@ -3,14 +3,14 @@
 // =====================================================
 
 import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from './config.js';
-import * as ind from './indicators.js';
-import * as scoring from './scoring.js';
-import * as allocation from './allocation.js';
-import * as risk from './risk_engine.js';
-import * as regime from './market_regime.js';
-import * as governance from './governance.js';
-import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from './sectors.js';
-import { detectAnomalies } from './anomalies.js';
+import * as ind from '../indicators/indicators.js';
+import * as scoring from '../indicators/scoring.js';
+import * as allocation from '../allocation/allocation.js';
+import * as risk from '../analytics/risk_engine.js';
+import * as regime from '../analytics/market_regime.js';
+import * as governance from '../analytics/governance.js';
+import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from '../data/sectors.js';
+import { detectAnomalies } from '../data/anomalies.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];

@@ -2,7 +2,7 @@
 // MARKET REGIME DETECTOR
 // =====================================================
 
-import * as ind from './indicators.js';
+import * as ind from '../indicators/indicators.js';
 
 // =====================================================
 // CONFIGURACIÓN

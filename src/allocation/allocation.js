@@ -2,7 +2,7 @@
 // SISTEMA DE ASIGNACIÓN DE CAPITAL
 // =====================================================
 
-import * as ind from './indicators.js';
+import * as ind from '../indicators/indicators.js';
 
 // =====================================================
 // CONFIGURACIÓN

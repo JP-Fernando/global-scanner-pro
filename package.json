@@ -8,7 +8,7 @@
     "start": "node server.js",
     "data:enrich": "node scripts/enrich_universes.js",
     "dev": "node --watch server.js",
-    "test": "node -e \"import('./tests.js').then(m => m.runAllTests())\"",
+    "test": "node -e \"import('./src/tests/tests.js').then(m => m.runAllTests())\"",
     "test:api": "curl http://localhost:3000/api/run-tests"
   },
   "keywords": [

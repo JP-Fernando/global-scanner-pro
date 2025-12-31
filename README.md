@@ -407,21 +407,24 @@ hasta -15 puntos en su Score Total para evitar entradas falsas en activos manipu
 
 ```
 global-scanner-pro/
-├── config.js              # Estrategias y benchmarks
-├── indicators.js          # Librería de indicadores con validación
-├── scoring.js            # Motor de scoring avanzado
-├── allocation.js         # Sistema de asignación de capital
-├── risk_engine.js        # Motor de análisis de riesgo profesional
-├── market_regime.js      # Detector de regímenes de mercado
-├── governance.js         # Reglas y gobernanza de inversión
-├── tests.js              # Suite de testing
-├── scanner.js            # Scanner principal
-├── index.html            # Interfaz profesional
-├── server.js             # Servidor Express
-└── universes/            # Archivos JSON de universos
-    ├── bme_universe.json
-    ├── us_universe.json
-    └── ...
+├── src/
+│   ├── core/
+│   │   ├── config.js       # Estrategias y benchmarks
+│   │   └── scanner.js      # Scanner principal
+│   ├── indicators/
+│   │   ├── indicators.js   # Librería de indicadores con validación
+│   │   └── scoring.js      # Motor de scoring avanzado
+│   ├── allocation/
+│   │   └── allocation.js   # Sistema de asignación de capital
+│   ├── analytics/
+│   │   ├── risk_engine.js  # Motor de análisis de riesgo profesional
+│   │   ├── market_regime.js # Detector de regímenes de mercado
+│   │   └── governance.js   # Reglas y gobernanza de inversión
+│   ├── data/
+│   │   ├── anomalies.js    # Detección de anomalías
+│   │   └── sectors.js      # Taxonomía sectorial
+│   └── tests/
+│       └── tests.js        # Suite de testing
 ```
 
 ### Sistema de Scoring
@@ -540,7 +543,7 @@ runAllTests();
 
 ### Personalización de Estrategias
 
-Para crear tu propia estrategia, edita `config.js` añadiendo un nuevo perfil en `STRATEGY_PROFILES`:
+Para crear tu propia estrategia, edita `src/core/config.js` añadiendo un nuevo perfil en `STRATEGY_PROFILES`:
 
 ```javascript
 export const STRATEGY_PROFILES = {
@@ -560,7 +563,7 @@ export const STRATEGY_PROFILES = {
 
 ### Sistema de Asignación de Capital
 
-El módulo `allocation.js` implementa 5 métodos profesionales de asignación:
+El módulo `src/allocation/allocation.js` implementa 5 métodos profesionales de asignación:
 
 #### Métodos Disponibles
 
@@ -660,7 +663,7 @@ También conocido como Expected Shortfall:
 
 ### Detector de Regímenes de Mercado
 
-El módulo `market_regime.js` clasifica automáticamente las condiciones del mercado:
+El módulo `src/analytics/market_regime.js` clasifica automáticamente las condiciones del mercado:
 
 #### Análisis de Benchmark
 
@@ -723,7 +726,7 @@ El sistema ajusta automáticamente:
 
 ### Sistema de Gobernanza y Cumplimiento
 
-El módulo `governance.js` implementa reglas profesionales de inversión y validación de cumplimiento:
+El módulo `src/analytics/governance.js` implementa reglas profesionales de inversión y validación de cumplimiento:
 
 #### Reglas de Inversión (INVESTMENT_RULES)
 
