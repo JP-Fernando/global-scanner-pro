@@ -3,14 +3,17 @@
 // =====================================================
 
 // Validación de entrada
-const validateArray = (arr, minLength, name = 'array') => { 
+const validateArray = (arr, minLength, name = 'array') => {
   if (!Array.isArray(arr) || arr.length === 0) {
     throw new Error(`${name} debe ser un array no vacío`);
   }
   if (arr.length < minLength) {
     throw new Error(`${name} requiere al menos ${minLength} elementos, tiene ${arr.length}`);
   }
-  if (arr.some(v => v === null || v === undefined || isNaN(v))) {
+  if (arr.some(v => v === null || v === undefined)) {
+    throw new Error(`${name} contiene valores nulos o NaN`);
+  }
+  if (arr.some(v => typeof v === 'number' && Number.isNaN(v))) {
     throw new Error(`${name} contiene valores nulos o NaN`);
   }
   return true;
@@ -25,8 +28,10 @@ export const SMA = (arr, period) => {
 // Exponential Moving Average
 export const EMA = (prices, period, warmupMultiplier = 5) => {
   const warmup = period * warmupMultiplier;
-  validateArray(prices, warmup + 1, 'EMA input');
-
+  validateArray(prices, 1, 'EMA input');
+  if (prices.length < warmup + 1) {
+    return null;
+  }
   const sliced = prices.slice(prices.length - warmup);
   let ema = SMA(sliced.slice(0, period), period);
   const k = 2 / (period + 1);
@@ -62,9 +67,13 @@ export const RSI = (prices, period = 14) => {
   }
 
   const avgGain = gains / period;
-  const avgLoss = losses / period || 1e-10;
-  const rs = avgGain / avgLoss;
-
+  const avgLoss = losses / period;
+  if (avgGain === 0 && avgLoss === 0) {
+    return 50;
+  }
+  const safeAvgLoss = avgLoss || 1e-10;
+  const rs = avgGain / safeAvgLoss;
+  
   return 100 - (100 / (1 + rs));
 };
 
