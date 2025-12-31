@@ -118,6 +118,58 @@ const calculateBenchmarkMetrics = (portfolioReturns, benchmarkReturns) => {
   return { alpha, beta, informationRatio, trackingError };
 };
 
+
+const calculateCalmarRatio = (cagr, maxDrawdown) => {
+  if (maxDrawdown === 0) return 0;
+  return cagr / maxDrawdown;
+};
+
+const analyzeDrawdownRecovery = (equityCurve, rebalanceEvery) => {
+  if (equityCurve.length === 0) {
+    return { drawdowns: [], avgRecoveryDays: 0, numDrawdowns: 0, longestDrawdown: 0 };
+  }
+
+  let peak = equityCurve[0];
+  let inDrawdown = false;
+  let drawdownStart = 0;
+  let trough = equityCurve[0];
+  let longestDrawdown = 0;
+  const drawdowns = [];
+
+  equityCurve.forEach((value, i) => {
+    if (value >= peak) {
+      if (inDrawdown) {
+        const recoveryDays = (i - drawdownStart) * rebalanceEvery;
+        const depth = ((peak - trough) / peak) * 100;
+        drawdowns.push({ depth, recoveryDays });
+        longestDrawdown = Math.max(longestDrawdown, recoveryDays);
+        inDrawdown = false;
+        trough = value;
+      }
+      peak = value;
+    } else {
+      if (!inDrawdown) {
+        inDrawdown = true;
+        drawdownStart = i;
+        trough = value;
+      } else if (value < trough) {
+        trough = value;
+      }
+    }
+  });
+
+  if (inDrawdown) {
+    const recoveryDays = (equityCurve.length - 1 - drawdownStart) * rebalanceEvery;
+    longestDrawdown = Math.max(longestDrawdown, recoveryDays);
+  }
+
+  const avgRecoveryDays = drawdowns.length > 0
+    ? drawdowns.reduce((sum, d) => sum + d.recoveryDays, 0) / drawdowns.length
+    : 0;
+
+  return { drawdowns, avgRecoveryDays, numDrawdowns: drawdowns.length, longestDrawdown };
+};
+
 const calculateMetrics = ({
   returns,
   equityCurve,
@@ -133,6 +185,7 @@ const calculateMetrics = ({
       volatility: 0,
       maxDrawdown: 0,
       sharpeRatio: 0,
+      calmarRatio: 0,
       winRate: 0,
       profitFactor: 0,
       avgWin: 0,
@@ -142,7 +195,10 @@ const calculateMetrics = ({
       informationRatio: 0,
       trackingError: 0,
       avgTurnover: 0,
-      totalTransactionCosts: 0
+      totalTransactionCosts: 0,
+      avgRecoveryDays: 0,
+      numDrawdowns: 0,
+      longestDrawdown: 0
     };
   }
 
@@ -155,8 +211,10 @@ const calculateMetrics = ({
   const volatility = calculateStdDev(returns) * Math.sqrt(periodsPerYear) * 100;
   const maxDrawdown = calculateMaxDrawdown(equityCurve);
   const sharpeRatio = calculateSharpeRatio(returns, rebalanceEvery);
+  const calmarRatio = calculateCalmarRatio(cagr, maxDrawdown);
   const winMetrics = calculateWinMetrics(returns);
   const benchmarkMetrics = calculateBenchmarkMetrics(returns, benchmarkReturns);
+  const drawdownRecovery = analyzeDrawdownRecovery(equityCurve, rebalanceEvery);
 
   return {
     totalReturn,
@@ -164,6 +222,7 @@ const calculateMetrics = ({
     volatility,
     maxDrawdown,
     sharpeRatio,
+    calmarRatio,
     winRate: winMetrics.winRate,
     profitFactor: winMetrics.profitFactor,
     avgWin: winMetrics.avgWin,
@@ -173,7 +232,10 @@ const calculateMetrics = ({
     informationRatio: benchmarkMetrics.informationRatio,
     trackingError: benchmarkMetrics.trackingError,
     avgTurnover: avgTurnover ?? 0,
-    totalTransactionCosts: totalTransactionCosts ?? 0
+    totalTransactionCosts: totalTransactionCosts ?? 0,
+    avgRecoveryDays: drawdownRecovery.avgRecoveryDays,
+    numDrawdowns: drawdownRecovery.numDrawdowns,
+    longestDrawdown: drawdownRecovery.longestDrawdown
   };
 };
 
