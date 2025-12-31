@@ -227,7 +227,8 @@ async function loadBenchmark(suffix) {
     return {
       symbol: benchmarkSymbol,
       rocs: { roc6m, roc12m },
-      volatility
+      volatility,
+      prices
     };
   } catch (e) {
     console.warn('Error calculando métricas de benchmark:', e.message);
@@ -398,6 +399,8 @@ window.runBacktest = async function () {
 
   try {
     const universeData = await loadUniverseData(file, suffix, status);
+    const benchmark = await loadBenchmark(suffix);
+    const benchmarkPrices = benchmark?.prices ?? null;
 
     if (!universeData.length) {
       status.innerText = '⚠️ No se pudieron cargar datos históricos para el universo';
@@ -415,7 +418,8 @@ window.runBacktest = async function () {
         universeData,
         topN,
         rebalanceEvery,
-        allocationMethod
+        allocationMethod,
+        benchmarkPrices
       });
       results.push(result);
       await sleep(20);
