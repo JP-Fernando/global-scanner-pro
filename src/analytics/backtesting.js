@@ -410,6 +410,7 @@ export const runStrategyBacktest = ({
     }),
     returns,
     equityCurve,
+    benchmarkReturns: benchmarkReturns.length ? benchmarkReturns : null,
     rebalanceDates,
     sample: rebalances
   };

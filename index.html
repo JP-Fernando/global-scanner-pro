@@ -828,6 +828,68 @@
     color: #e2e8f0;
   }
 
+  .backtest-action {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #cbd5e1;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .backtest-action:hover {
+    border-color: #818cf8;
+    color: #f8fafc;
+    transform: translateY(-1px);
+  }
+
+  .equity-chart {
+    transition: transform 0.3s ease;
+  }
+
+  .equity-chart:hover {
+    transform: scale(1.02);
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .backtest-summary,
+  .backtest-table-container {
+    animation: slideIn 0.5s ease-out;
+  }
+
+  [data-tooltip] {
+    position: relative;
+    cursor: help;
+  }
+
+  [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-size: 0.85em;
+    z-index: 1000;
+    border: 1px solid #334155;
+  }
+
 </style>
   </div>
 </div>
