@@ -17,6 +17,7 @@ const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
 let benchmarkData = null;
 let currentRegime = null;
+let lastBacktestResults = [];
 const dataCache = new Map();
 
 const appState = {
@@ -321,67 +322,622 @@ async function loadUniverseData(file, suffix, statusNode) {
   return results;
 }
 
-function formatPct(value) {
+function formatPct(value, { showSign = true } = {}) {
   if (!Number.isFinite(value)) return 'N/A';
-  return `${value.toFixed(2)}%`;
+  const sign = showSign && value > 0 ? '+' : '';
+  return `${sign}${value.toFixed(2)}%`;
 }
 
-function renderBacktestResults(results, rebalanceEvery) {
+function formatNumber(value, decimals = 2) {
+  if (!Number.isFinite(value)) return 'N/A';
+  return value.toFixed(decimals);
+}
+
+function getMetricColor(value, thresholds) {
+  if (value >= thresholds.excellent) return '#10b981';
+  if (value >= thresholds.good) return '#4ade80';
+  if (value >= thresholds.poor) return '#fbbf24';
+  return '#f87171';
+}
+
+function toggleSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+  section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+function exportBacktestToCSV(results = lastBacktestResults) {
+  if (!results?.length) return;
+  const headers = ['Estrategia', 'CAGR', 'Sharpe', 'Max DD', 'Win Rate', 'Alpha', 'Beta'];
+  const rows = results.map(result => [
+    result.strategyName,
+    result.metrics?.cagr ?? '',
+    result.metrics?.sharpeRatio ?? '',
+    result.metrics?.maxDrawdown ?? '',
+    result.metrics?.winRate ?? '',
+    result.metrics?.alpha ?? '',
+    result.metrics?.beta ?? ''
+  ]);
+
+  const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'backtest_results.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderBacktestActions() {
+  return `
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; align-items: center;">
+      <button class="backtest-action" onclick="exportBacktestToCSV()">
+        ⬇️ Exportar CSV
+      </button>
+      <button class="backtest-action" onclick="toggleSection('backtest-performance')">🏆 Rendimiento</button>
+      <button class="backtest-action" onclick="toggleSection('backtest-detailed')">📊 Detalle</button>
+      <button class="backtest-action" onclick="toggleSection('backtest-risk')">⚠️ Riesgo</button>
+      <button class="backtest-action" onclick="toggleSection('backtest-trading')">💰 Trading</button>
+      <button class="backtest-action" onclick="toggleSection('backtest-equity')">📈 Equity</button>
+      <button class="backtest-action" onclick="toggleSection('backtest-drawdown')">📉 Drawdown</button>
+    </div>
+  `;
+}
+
+function renderBacktestResults(results, rebalanceEvery, benchmarkReturns = null) {
   const container = document.getElementById('backtestResults');
   if (!container) return;
 
   const validResults = results.filter(r => r.metrics);
-  validResults.sort((a, b) => b.metrics.totalReturn - a.metrics.totalReturn);
+  validResults.sort((a, b) => (b.metrics.sharpeRatio ?? 0) - (a.metrics.sharpeRatio ?? 0));
+
+  if (!validResults.length) {
+    container.innerHTML = `
+      <div style="background: #1e293b; padding: 20px; border-radius: 10px; color: #fbbf24;">
+        No hay resultados suficientes para mostrar el backtest.
+      </div>
+    `;
+    container.style.display = 'block';
+    return;
+  }
+
+  lastBacktestResults = validResults;
+
+  const bestStrategy = validResults[0];
+  const benchmarkData = bestStrategy?.benchmarkReturns || benchmarkReturns;
 
   container.innerHTML = `
-    <div class="backtest-summary">
-      <h3>📈 Comparativa de Estrategias (Backtest)</h3>
-      <p class="small-text">
-        Rebalanceo cada ${rebalanceEvery} días · ${validResults.length} estrategias evaluadas
-      </p>
+    ${renderBacktestActions()}
+    ${renderBacktestHeader(validResults, rebalanceEvery)}
+    <div id="backtest-performance">
+      ${renderPerformanceComparison(validResults)}
     </div>
-
-    <div class="backtest-table-container">
-      <table class="backtest-table">
-        <thead>
-          <tr>
-            <th>Estrategia</th>
-            <th>Retorno Total</th>
-            <th>CAGR</th>
-            <th>Volatilidad</th>
-            <th>Max Drawdown</th>
-            <th>Rebalances</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${results.map(result => {
-            if (!result.metrics) {
-              return `
-                <tr>
-                  <td>${result.strategyName}</td>
-                  <td colspan="5" style="color:#fbbf24;">Datos insuficientes para backtest</td>
-                </tr>
-              `;
-            }
-
-            return `
-              <tr>
-                <td><strong>${result.strategyName}</strong></td>
-                <td>${formatPct(result.metrics.totalReturn)}</td>
-                <td>${formatPct(result.metrics.cagr)}</td>
-                <td>${formatPct(result.metrics.volatility)}</td>
-                <td>${formatPct(result.metrics.maxDrawdown)}</td>
-                <td>${result.sample}</td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
+    <div id="backtest-detailed">
+      ${renderDetailedMetrics(validResults)}
+    </div>
+    <div id="backtest-risk">
+      ${renderRiskMetrics(validResults)}
+    </div>
+    <div id="backtest-trading">
+      ${renderTradingMetrics(validResults)}
+    </div>
+    <div id="backtest-equity">
+      ${renderEquityCurveChart(bestStrategy, benchmarkData)}
+    </div>
+    <div id="backtest-drawdown">
+      ${renderDrawdownAnalysis(validResults)}
     </div>
   `;
 
   container.style.display = 'block';
 }
+
+function renderBacktestHeader(results, rebalanceEvery) {
+  const avgSharpe = results.reduce((sum, r) => sum + (r.metrics?.sharpeRatio || 0), 0) / results.length;
+  const avgCAGR = results.reduce((sum, r) => sum + (r.metrics?.cagr || 0), 0) / results.length;
+
+  return `
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #6366f1;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <div>
+          <h3 style="color: #c7d2fe; font-size: 1.5em; margin-bottom: 10px;">📈 Resultados del Backtesting</h3>
+          <p style="color: #94a3b8; font-size: 0.9em;">
+            Rebalanceo cada ${rebalanceEvery} días · ${results.length} estrategias evaluadas
+          </p>
+        </div>
+        <div style="text-align: right;">
+          <div style="color: #94a3b8; font-size: 0.85em; margin-bottom: 5px;">Sharpe Ratio Promedio</div>
+          <div style="color: #10b981; font-size: 2em; font-weight: bold;">${formatNumber(avgSharpe)}</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+        <div style="background: #0f172a; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">CAGR Promedio</div>
+          <div style="color: #38bdf8; font-size: 1.3em; font-weight: bold;">${formatPct(avgCAGR, { showSign: true })}</div>
+        </div>
+        <div style="background: #0f172a; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Mejor Estrategia</div>
+          <div style="color: #10b981; font-size: 1.1em; font-weight: bold;">${results[0]?.strategyName || 'N/A'}</div>
+        </div>
+        <div style="background: #0f172a; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Rebalances Totales</div>
+          <div style="color: #818cf8; font-size: 1.3em; font-weight: bold;">${results[0]?.sample || 0}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPerformanceComparison(results) {
+  return `
+    <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+      <h4 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.2em;">🏆 Comparativa de Rendimiento</h4>
+
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 2px solid #334155;">
+              <th style="padding: 12px; text-align: left; color: #94a3b8; font-size: 0.85em; text-transform: uppercase;">Estrategia</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Ret. Total</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">CAGR</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Sharpe</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Calmar</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Max DD</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${results.map((result, idx) => {
+              const m = result.metrics;
+              const sharpeColor = getMetricColor(m.sharpeRatio, { excellent: 1.5, good: 1.0, poor: 0.5 });
+              const calmarColor = getMetricColor(m.calmarRatio, { excellent: 1.0, good: 0.5, poor: 0.2 });
+              const isTop = idx === 0;
+
+              return `
+                <tr style="border-bottom: 1px solid #334155; ${isTop ? 'background: rgba(16, 185, 129, 0.05);' : ''}">
+                  <td style="padding: 12px; color: #f8fafc; font-weight: ${isTop ? 'bold' : 'normal'};">
+                    ${isTop ? '👑 ' : ''}${result.strategyName}
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: ${m.totalReturn >= 0 ? '#10b981' : '#f87171'}; font-weight: bold;">
+                    ${formatPct(m.totalReturn, { showSign: true })}
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: ${m.cagr >= 0 ? '#10b981' : '#f87171'}; font-weight: bold;">
+                    ${formatPct(m.cagr, { showSign: true })}
+                  </td>
+                  <td style="padding: 12px; text-align: center;">
+                    <span style="background: ${sharpeColor}20; color: ${sharpeColor}; padding: 4px 12px; border-radius: 12px; font-weight: bold;">
+                      ${formatNumber(m.sharpeRatio)}
+                    </span>
+                  </td>
+                  <td style="padding: 12px; text-align: center;">
+                    <span style="background: ${calmarColor}20; color: ${calmarColor}; padding: 4px 12px; border-radius: 12px; font-weight: bold;">
+                      ${formatNumber(m.calmarRatio)}
+                    </span>
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: #f87171; font-weight: bold;">
+                    ${formatPct(m.maxDrawdown, { showSign: false })}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderDetailedMetrics(results) {
+  return `
+    <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+      <h4 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.2em;">📊 Métricas Detalladas</h4>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        ${results.map(result => {
+          const m = result.metrics;
+          return `
+            <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155;">
+              <h5 style="color: #38bdf8; margin-bottom: 15px; font-size: 1em; border-bottom: 2px solid #334155; padding-bottom: 10px;">
+                ${result.strategyName}
+              </h5>
+
+              <div style="display: grid; gap: 10px; font-size: 0.9em;">
+                <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                  <span style="color: #94a3b8;">Volatilidad:</span>
+                  <span style="color: #fbbf24; font-weight: bold;">${formatPct(m.volatility, { showSign: false })}</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                  <span style="color: #94a3b8;">Alpha:</span>
+                  <span style="color: ${m.alpha >= 0 ? '#10b981' : '#f87171'}; font-weight: bold;">${formatPct(m.alpha, { showSign: true })}</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                  <span style="color: #94a3b8;">Beta:</span>
+                  <span style="color: #818cf8; font-weight: bold;">${formatNumber(m.beta)}</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                  <span style="color: #94a3b8;">Info Ratio:</span>
+                  <span style="color: ${m.informationRatio >= 0.5 ? '#10b981' : '#94a3b8'}; font-weight: bold;">${formatNumber(m.informationRatio)}</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+                  <span style="color: #94a3b8;">Tracking Error:</span>
+                  <span style="color: #fbbf24; font-weight: bold;">${formatPct(m.trackingError, { showSign: false })}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderRiskMetrics(results) {
+  return `
+    <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #f43f5e;">
+      <h4 style="color: #f87171; margin-bottom: 20px; font-size: 1.2em;">⚠️ Análisis de Riesgo</h4>
+
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 2px solid #334155;">
+              <th style="padding: 12px; text-align: left; color: #94a3b8; font-size: 0.85em;">Estrategia</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Max DD</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Nº Drawdowns</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Recup. Promedio</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">DD Más Largo</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Vol. Anual</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${results.map(result => {
+              const m = result.metrics;
+              return `
+                <tr style="border-bottom: 1px solid #334155;">
+                  <td style="padding: 12px; color: #f8fafc;">${result.strategyName}</td>
+                  <td style="padding: 12px; text-align: center; color: #f87171; font-weight: bold;">
+                    ${formatPct(m.maxDrawdown, { showSign: false })}
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: #94a3b8;">
+                    ${m.numDrawdowns}
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: #fbbf24;">
+                    ${Math.round(m.avgRecoveryDays)} días
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: #f87171;">
+                    ${Math.round(m.longestDrawdown)} días
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: #818cf8;">
+                    ${formatPct(m.volatility, { showSign: false })}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 20px; padding: 15px; background: #0f172a; border-radius: 8px; border-left: 3px solid #fbbf24;">
+        <div style="font-size: 0.85em; color: #94a3b8;">
+          <strong style="color: #fbbf24;">💡 Interpretación:</strong><br>
+          • <strong>Max DD:</strong> Pérdida máxima desde el pico anterior<br>
+          • <strong>Recup. Promedio:</strong> Tiempo medio para recuperar drawdowns<br>
+          • <strong>DD Más Largo:</strong> Mayor periodo sin alcanzar nuevos máximos
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTradingMetrics(results) {
+  return `
+    <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #10b981;">
+      <h4 style="color: #10b981; margin-bottom: 20px; font-size: 1.2em;">💰 Métricas de Trading</h4>
+
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 2px solid #334155;">
+              <th style="padding: 12px; text-align: left; color: #94a3b8; font-size: 0.85em;">Estrategia</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Win Rate</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Profit Factor</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Avg Win</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Avg Loss</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Turnover</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Costos</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${results.map(result => {
+              const m = result.metrics;
+              const winRateColor = getMetricColor(m.winRate, { excellent: 60, good: 50, poor: 40 });
+              const pfColor = getMetricColor(m.profitFactor, { excellent: 2.0, good: 1.5, poor: 1.0 });
+
+              return `
+                <tr style="border-bottom: 1px solid #334155;">
+                  <td style="padding: 12px; color: #f8fafc;">${result.strategyName}</td>
+                  <td style="padding: 12px; text-align: center;">
+                    <span style="background: ${winRateColor}20; color: ${winRateColor}; padding: 4px 12px; border-radius: 12px; font-weight: bold;">
+                      ${formatPct(m.winRate, { showSign: false })}
+                    </span>
+                  </td>
+                  <td style="padding: 12px; text-align: center;">
+                    <span style="background: ${pfColor}20; color: ${pfColor}; padding: 4px 12px; border-radius: 12px; font-weight: bold;">
+                      ${formatNumber(m.profitFactor)}x
+                    </span>
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: #10b981; font-weight: bold;">
+                    ${formatPct(m.avgWin * 100, { showSign: false })}
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: #f87171; font-weight: bold;">
+                    ${formatPct(m.avgLoss * 100, { showSign: false })}
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: #fbbf24;">
+                    ${formatPct(m.avgTurnover * 100, { showSign: false })}
+                  </td>
+                  <td style="padding: 12px; text-align: center; color: #94a3b8;">
+                    €${formatNumber(m.totalTransactionCosts, 0)}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 20px; padding: 15px; background: #0f172a; border-radius: 8px; border-left: 3px solid #38bdf8;">
+        <div style="font-size: 0.85em; color: #94a3b8;">
+          <strong style="color: #38bdf8;">📌 Notas:</strong><br>
+          • <strong>Win Rate:</strong> % de periodos con retorno positivo<br>
+          • <strong>Profit Factor:</strong> Ratio ganancias/pérdidas (>1.5 es excelente)<br>
+          • <strong>Turnover:</strong> % de cartera rotado en cada rebalanceo<br>
+          • <strong>Costos:</strong> Comisiones + slippage estimados (0.15% por operación)
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderEquityCurveChart(bestStrategy, benchmarkReturns = null) {
+  if (!bestStrategy || !bestStrategy.equityCurve) return '';
+
+  const curve = bestStrategy.equityCurve;
+  if (curve.length < 2) return '';
+  let benchmarkCurve = null;
+
+  if (benchmarkReturns && benchmarkReturns.length > 0) {
+    benchmarkCurve = [1];
+    benchmarkReturns.forEach(ret => {
+      benchmarkCurve.push(benchmarkCurve[benchmarkCurve.length - 1] * (1 + ret));
+    });
+  }
+
+  const alignedLength = benchmarkCurve
+    ? Math.min(curve.length, benchmarkCurve.length)
+    : curve.length;
+  const alignedCurve = curve.slice(0, alignedLength);
+  const alignedBenchmark = benchmarkCurve ? benchmarkCurve.slice(0, alignedLength) : null;
+
+  const allValues = alignedBenchmark
+    ? [...alignedCurve, ...alignedBenchmark]
+    : alignedCurve;
+  const maxValue = Math.max(...allValues);
+  const minValue = Math.min(...allValues);
+  const range = maxValue - minValue || 1;
+
+  const chartHeight = 200;
+
+  const strategyPoints = alignedCurve.map((val, idx) => {
+    const x = (idx / (alignedCurve.length - 1)) * 100;
+    const y = chartHeight - ((val - minValue) / range) * chartHeight;
+    return `${x},${y}`;
+  }).join(' ');
+
+  let benchmarkPoints = '';
+  if (alignedBenchmark) {
+    benchmarkPoints = alignedBenchmark.map((val, idx) => {
+      const x = (idx / (alignedBenchmark.length - 1)) * 100;
+      const y = chartHeight - ((val - minValue) / range) * chartHeight;
+      return `${x},${y}`;
+    }).join(' ');
+  }
+
+  const strategyFinal = alignedCurve[alignedCurve.length - 1];
+  const benchmarkFinal = alignedBenchmark ? alignedBenchmark[alignedBenchmark.length - 1] : 1;
+  const outperformance = ((strategyFinal / benchmarkFinal) - 1) * 100;
+  const outperformanceColor = outperformance >= 0 ? '#10b981' : '#f87171';
+
+  let peak = alignedCurve[0];
+  const drawdownPoints = alignedCurve.map((val, idx) => {
+    if (val > peak) peak = val;
+    const dd = ((val - peak) / peak) * 100;
+    const x = (idx / (alignedCurve.length - 1)) * 100;
+    const y = Math.abs(dd) * 2;
+    return `${x},${y}`;
+  }).join(' ');
+
+  return `
+    <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <h4 style="color: #c7d2fe; font-size: 1.2em; margin: 0;">📈 Curva de Equity - ${bestStrategy.strategyName}</h4>
+        ${alignedBenchmark ? `
+          <div style="background: ${outperformanceColor}20; padding: 8px 16px; border-radius: 8px; border: 2px solid ${outperformanceColor};">
+            <span style="color: #94a3b8; font-size: 0.85em; margin-right: 8px;">vs Benchmark:</span>
+            <span style="color: ${outperformanceColor}; font-weight: bold; font-size: 1.1em;">
+              ${outperformance >= 0 ? '+' : ''}${formatNumber(outperformance)}%
+            </span>
+          </div>
+        ` : ''}
+      </div>
+
+      ${alignedBenchmark ? `
+        <div style="display: flex; gap: 20px; margin-bottom: 15px; font-size: 0.9em;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 20px; height: 3px; background: #10b981; border-radius: 2px;"></div>
+            <span style="color: #94a3b8;">Estrategia</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 20px; height: 3px; background: #818cf8; border-radius: 2px; opacity: 0.7;"></div>
+            <span style="color: #94a3b8;">Benchmark</span>
+          </div>
+        </div>
+      ` : ''}
+
+      <div style="background: #0f172a; padding: 20px; border-radius: 8px; position: relative;">
+        <svg class="equity-chart" viewBox="0 0 100 ${chartHeight}" style="width: 100%; height: ${chartHeight}px; overflow: visible;">
+          ${[0, 25, 50, 75, 100].map(y => `
+            <line x1="0" y1="${y * chartHeight / 100}" x2="100" y2="${y * chartHeight / 100}"
+                  stroke="#334155" stroke-width="0.2" stroke-dasharray="1,1"/>
+          `).join('')}
+
+          <polygon points="0,${chartHeight} ${strategyPoints} 100,${chartHeight}"
+                   fill="url(#strategyGradient)" opacity="0.3"/>
+
+          ${alignedBenchmark ? `
+            <polyline points="${benchmarkPoints}"
+                      fill="none"
+                      stroke="#818cf8"
+                      stroke-width="0.5"
+                      stroke-dasharray="2,2"
+                      opacity="0.7"
+                      vector-effect="non-scaling-stroke"/>
+          ` : ''}
+
+          <polyline points="${strategyPoints}"
+                    fill="none"
+                    stroke="#10b981"
+                    stroke-width="0.7"
+                    vector-effect="non-scaling-stroke"/>
+
+          <defs>
+            <linearGradient id="strategyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8" />
+              <stop offset="100%" style="stop-color:#10b981;stop-opacity:0" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        <div style="display: grid; grid-template-columns: ${alignedBenchmark ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 15px; margin-top: 15px; font-size: 0.85em;">
+          <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
+            <div style="color: #94a3b8; margin-bottom: 5px;">Estrategia</div>
+            <div style="color: #10b981; font-weight: bold; font-size: 1.2em;">
+              ${formatPct((strategyFinal - 1) * 100, { showSign: true })}
+            </div>
+          </div>
+
+          ${alignedBenchmark ? `
+            <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
+              <div style="color: #94a3b8; margin-bottom: 5px;">Benchmark</div>
+              <div style="color: #818cf8; font-weight: bold; font-size: 1.2em;">
+                ${formatPct((benchmarkFinal - 1) * 100, { showSign: true })}
+              </div>
+            </div>
+
+            <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
+              <div style="color: #94a3b8; margin-bottom: 5px;">Diferencia</div>
+              <div style="color: ${outperformanceColor}; font-weight: bold; font-size: 1.2em;">
+                ${outperformance >= 0 ? '+' : ''}${formatNumber(outperformance)}%
+              </div>
+            </div>
+          ` : `
+            <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
+              <div style="color: #94a3b8; margin-bottom: 5px;">Retorno Total</div>
+              <div style="color: #10b981; font-weight: bold; font-size: 1.2em;">
+                ${formatPct((strategyFinal - 1) * 100, { showSign: true })}
+              </div>
+            </div>
+          `}
+        </div>
+      </div>
+
+      <div style="background: #0f172a; padding: 20px; border-radius: 8px; margin-top: 15px;">
+        <h5 style="color: #f87171; margin-bottom: 10px; font-size: 0.9em;">📉 Drawdown de la Estrategia (%)</h5>
+        <svg viewBox="0 0 100 60" style="width: 100%; height: 60px;">
+          <polyline points="${drawdownPoints}"
+                    fill="rgba(248, 113, 113, 0.2)"
+                    stroke="#f87171"
+                    stroke-width="0.5"/>
+        </svg>
+      </div>
+
+      ${alignedBenchmark ? `
+        <div style="margin-top: 15px; padding: 15px; background: #0f172a; border-radius: 8px; border-left: 3px solid #38bdf8;">
+          <div style="font-size: 0.85em; color: #94a3b8;">
+            <strong style="color: #38bdf8;">💡 Interpretación:</strong><br>
+            ${outperformance > 0
+              ? `La estrategia <strong style="color: #10b981;">superó al benchmark</strong> en ${formatNumber(outperformance)}%. Esto indica que la selección activa de activos añadió valor respecto a mantener el índice.`
+              : `La estrategia <strong style="color: #f87171;">quedó por debajo del benchmark</strong> en ${formatNumber(Math.abs(outperformance))}%. Considera revisar los parámetros o usar gestión pasiva.`
+            }
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderDrawdownAnalysis(results) {
+  return `
+    <div style="background: #1e293b; padding: 25px; border-radius: 12px; border-left: 4px solid #fbbf24;">
+      <h4 style="color: #fbbf24; margin-bottom: 20px; font-size: 1.2em;">📉 Análisis de Drawdowns Profundo</h4>
+
+      ${results.map(result => {
+        const m = result.metrics;
+        const avgDD = m.maxDrawdown / (m.numDrawdowns || 1);
+
+        return `
+          <div style="background: #0f172a; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #334155;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h5 style="color: #f8fafc; font-size: 1em;">${result.strategyName}</h5>
+              <span style="background: #f8717120; color: #f87171; padding: 4px 12px; border-radius: 12px; font-weight: bold;">
+                Max: ${formatPct(m.maxDrawdown, { showSign: false })}
+              </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+              <div style="text-align: center;">
+                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">DD Promedio</div>
+                <div style="color: #fbbf24; font-size: 1.2em; font-weight: bold;">${formatPct(avgDD, { showSign: false })}</div>
+              </div>
+
+              <div style="text-align: center;">
+                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Total DDs</div>
+                <div style="color: #818cf8; font-size: 1.2em; font-weight: bold;">${m.numDrawdowns}</div>
+              </div>
+
+              <div style="text-align: center;">
+                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Recup. Promedio</div>
+                <div style="color: #10b981; font-size: 1.2em; font-weight: bold;">${Math.round(m.avgRecoveryDays)}d</div>
+              </div>
+
+              <div style="text-align: center;">
+                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Peor Recup.</div>
+                <div style="color: #f87171; font-size: 1.2em; font-weight: bold;">${Math.round(m.longestDrawdown)}d</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.8em; color: #94a3b8;">
+                <span>Tiempo en drawdown</span>
+                <span>${formatNumber((m.longestDrawdown / 252) * 100)}% del tiempo</span>
+              </div>
+              <div style="height: 8px; background: #334155; border-radius: 4px; overflow: hidden;">
+                <div style="height: 100%; width: ${Math.min(100, (m.longestDrawdown / 252) * 100)}%; background: linear-gradient(90deg, #f87171, #fbbf24); border-radius: 4px;"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+window.renderBacktestResults = renderBacktestResults;
+window.toggleSection = toggleSection;
+window.exportBacktestToCSV = exportBacktestToCSV;
 
 window.runBacktest = async function () {
   const [file, suffix] = document.getElementById('marketSelect').value.split('|');
