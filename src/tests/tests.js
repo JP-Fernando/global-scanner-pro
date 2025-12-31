@@ -2,7 +2,7 @@
 // SUITE DE TESTS UNITARIOS
 // =====================================================
 
-import * as ind from './indicators.js';
+import * as ind from '../indicators/indicators.js';
 
 const assert = (condition, message) => {
   if (!condition) {

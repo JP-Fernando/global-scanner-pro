@@ -3,19 +3,21 @@
 // =====================================================
 
 import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from './config.js';
-import * as ind from './indicators.js';
-import * as scoring from './scoring.js';
-import * as allocation from './allocation.js';
-import * as risk from './risk_engine.js';
-import * as regime from './market_regime.js';
-import * as governance from './governance.js';
-import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from './sectors.js';
-import { detectAnomalies } from './anomalies.js';
+import * as ind from '../indicators/indicators.js';
+import * as scoring from '../indicators/scoring.js';
+import * as allocation from '../allocation/allocation.js';
+import * as risk from '../analytics/risk_engine.js';
+import * as regime from '../analytics/market_regime.js';
+import * as governance from '../analytics/governance.js';
+import * as backtesting from '../analytics/backtesting.js';
+import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from '../data/sectors.js';
+import { detectAnomalies } from '../data/anomalies.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
 let benchmarkData = null;
 let currentRegime = null;
+const dataCache = new Map();
 
 const appState = {
   scanResults: [],
@@ -61,6 +63,10 @@ async function loadYahooData(ticker, suffix) {
   const from = Math.floor((Date.now() / 1000) - (4 * 365.25 * 86400));
   const to = Math.floor(Date.now() / 1000);
 
+  if (dataCache.has(fullSymbol)) {
+    return dataCache.get(fullSymbol);
+  }
+
   try {
     const res = await fetch(`/api/yahoo?symbol=${fullSymbol}&from=${from}&to=${to}`);
     const json = await res.json();
@@ -70,17 +76,19 @@ async function loadYahooData(ticker, suffix) {
     const q = r.indicators.quote[0];
     const adj = r.indicators.adjclose?.[0]?.adjclose || q.close;
 
-    return r.timestamp.map((t, i) => {
+    const series = r.timestamp.map((t, i) => {
       if (adj[i] == null || isNaN(adj[i])) return null;
 
       return {
         date: new Date(t * 1000).toISOString().split('T')[0], // YYYY-MM-DD
         close: adj[i],
-        volume: q.volume[i],
+        volume: q.volume?.[i] ?? 0,
         high: q.high?.[i] ?? adj[i],
         low: q.low?.[i] ?? adj[i]
       };
     }).filter(Boolean);
+    dataCache.set(fullSymbol, series);
+    return series;
   } catch (e) {
     console.warn(`Error cargando ${fullSymbol}:`, e.message);
     return [];
@@ -269,6 +277,155 @@ function updateSectorUI(sectorStats) {
     `;
   }).join('');
 }
+
+// =====================================================
+// BACKTESTING DE ESTRATEGIAS
+// =====================================================
+
+async function loadUniverseData(file, suffix, statusNode) {
+  if (statusNode) {
+    statusNode.innerText = '📦 Cargando universo para backtesting...';
+  }
+
+  const universe = await (await fetch(file)).json();
+  const results = [];
+  const BATCH_SIZE = 5;
+
+  for (let i = 0; i < universe.length; i += BATCH_SIZE) {
+    const batch = universe.slice(i, i + BATCH_SIZE);
+
+    if (statusNode) {
+      statusNode.innerText = `🔎 Descargando históricos ${i + 1}–${Math.min(i + BATCH_SIZE, universe.length)} de ${universe.length}`;
+    }
+
+    const batchResults = await Promise.all(
+      batch.map(async stock => ({
+        ticker: stock.ticker,
+        name: stock.name,
+        data: await loadYahooData(stock.ticker, suffix)
+      }))
+    );
+
+    batchResults.forEach(item => {
+      if (item.data && item.data.length > 0) {
+        results.push(item);
+      }
+    });
+
+    await sleep(40);
+  }
+
+  return results;
+}
+
+function formatPct(value) {
+  if (!Number.isFinite(value)) return 'N/A';
+  return `${value.toFixed(2)}%`;
+}
+
+function renderBacktestResults(results, rebalanceEvery) {
+  const container = document.getElementById('backtestResults');
+  if (!container) return;
+
+  const validResults = results.filter(r => r.metrics);
+  validResults.sort((a, b) => b.metrics.totalReturn - a.metrics.totalReturn);
+
+  container.innerHTML = `
+    <div class="backtest-summary">
+      <h3>📈 Comparativa de Estrategias (Backtest)</h3>
+      <p class="small-text">
+        Rebalanceo cada ${rebalanceEvery} días · ${validResults.length} estrategias evaluadas
+      </p>
+    </div>
+
+    <div class="backtest-table-container">
+      <table class="backtest-table">
+        <thead>
+          <tr>
+            <th>Estrategia</th>
+            <th>Retorno Total</th>
+            <th>CAGR</th>
+            <th>Volatilidad</th>
+            <th>Max Drawdown</th>
+            <th>Rebalances</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${results.map(result => {
+            if (!result.metrics) {
+              return `
+                <tr>
+                  <td>${result.strategyName}</td>
+                  <td colspan="5" style="color:#fbbf24;">Datos insuficientes para backtest</td>
+                </tr>
+              `;
+            }
+
+            return `
+              <tr>
+                <td><strong>${result.strategyName}</strong></td>
+                <td>${formatPct(result.metrics.totalReturn)}</td>
+                <td>${formatPct(result.metrics.cagr)}</td>
+                <td>${formatPct(result.metrics.volatility)}</td>
+                <td>${formatPct(result.metrics.maxDrawdown)}</td>
+                <td>${result.sample}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  container.style.display = 'block';
+}
+
+window.runBacktest = async function () {
+  const [file, suffix] = document.getElementById('marketSelect').value.split('|');
+  const topN = parseInt(document.getElementById('backtestTopN').value, 10);
+  const rebalanceEvery = parseInt(document.getElementById('backtestRebalance').value, 10);
+  const allocationMethod = document.getElementById('backtestAllocationMethod').value;
+  const status = document.getElementById('backtestStatus');
+
+  if (!file) {
+    showInlineError('Selecciona un mercado antes de ejecutar el backtest');
+    return;
+  }
+
+  status.innerText = '⏳ Preparando backtest...';
+
+  try {
+    const universeData = await loadUniverseData(file, suffix, status);
+
+    if (!universeData.length) {
+      status.innerText = '⚠️ No se pudieron cargar datos históricos para el universo';
+      return;
+    }
+
+    const results = [];
+    const strategies = Object.entries(STRATEGY_PROFILES);
+
+    for (const [strategyKey, strategyConfig] of strategies) {
+      status.innerText = `🧪 Backtest ${strategyConfig.name}...`;
+      const result = backtesting.runStrategyBacktest({
+        strategyKey,
+        strategyConfig,
+        universeData,
+        topN,
+        rebalanceEvery,
+        allocationMethod
+      });
+      results.push(result);
+      await sleep(20);
+    }
+
+    status.innerText = '✅ Backtest completado';
+    renderBacktestResults(results, rebalanceEvery);
+  } catch (err) {
+    console.error('Error en backtest:', err);
+    status.innerText = `❌ Error en backtest: ${err.message}`;
+  }
+};
 
 
 // =====================================================

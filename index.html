@@ -583,6 +583,41 @@
   <!-- Resultados de Cartera -->
   <div id="portfolioResults" style="display: none;"></div>
 
+  <!-- Backtesting de Estrategias -->
+  <div id="backtestSection" style="background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #6366f1;">
+    <h3 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.3em;">🧪 Backtesting de Estrategias</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Top N Activos</label>
+        <input type="number" id="backtestTopN" value="10" min="3" max="30" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Rebalanceo (días)</label>
+        <input type="number" id="backtestRebalance" value="21" min="5" max="126" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Método de Asignación</label>
+        <select id="backtestAllocationMethod" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
+          <option value="hybrid">Hybrid (ERC + Score)</option>
+          <option value="erc">Equal Risk Contribution</option>
+          <option value="score_weighted">Score-Weighted</option>
+          <option value="volatility_target">Volatility Targeting</option>
+          <option value="equal_weight">Equal Weight</option>
+        </select>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.85em; color: #94a3b8;">&nbsp;</label>
+        <button onclick="runBacktest()" style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">📈 Ejecutar Backtest</button>
+      </div>
+    </div>
+
+    <div id="backtestStatus" class="small-text" style="color:#94a3b8; margin-bottom: 15px;">Selecciona un mercado y ejecuta el backtest para comparar estrategias.</div>
+    <div id="backtestResults" style="display: none;"></div>
+  </div>
+
 <style>
   /* Estilos adicionales para la sección de cartera */
   .portfolio-summary {
@@ -751,6 +786,46 @@
     font-weight: bold;
     min-width: 50px;
   }
+
+  .backtest-summary {
+    margin-bottom: 15px;
+  }
+
+  .backtest-summary h3 {
+    color: #c7d2fe;
+    margin-bottom: 5px;
+  }
+
+  .backtest-table-container {
+    background: #0f172a;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+  }
+
+  .backtest-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+  }
+
+  .backtest-table th,
+  .backtest-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #334155;
+    text-align: left;
+  }
+
+  .backtest-table th {
+    color: #cbd5f5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.75em;
+  }
+
+  .backtest-table td {
+    color: #e2e8f0;
+  }
 </style>
   </div>
 </div>
@@ -763,6 +838,6 @@
   </div>
 </div>
 
-<script type="module" src="scanner.js"></script>
+<script type="module" src="src/core/scanner.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
   "name": "global-scanner-pro",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Sistema cuantitativo profesional para análisis multi-factor de mercados globales",
   "type": "module",
   "main": "server.js",
@@ -8,7 +8,7 @@
     "start": "node server.js",
     "data:enrich": "node scripts/enrich_universes.js",
     "dev": "node --watch server.js",
-    "test": "node -e \"import('./tests.js').then(m => m.runAllTests())\"",
+    "test": "node -e \"import('./src/tests/tests.js').then(m => m.runAllTests())\"",
     "test:api": "curl http://localhost:3000/api/run-tests"
   },
   "keywords": [

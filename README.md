@@ -407,15 +407,25 @@ hasta -15 puntos en su Score Total para evitar entradas falsas en activos manipu
 
 ```
 global-scanner-pro/
-├── config.js              # Estrategias y benchmarks
-├── indicators.js          # Librería de indicadores con validación
-├── scoring.js            # Motor de scoring avanzado
-├── allocation.js         # Sistema de asignación de capital
-├── risk_engine.js        # Motor de análisis de riesgo profesional
-├── market_regime.js      # Detector de regímenes de mercado
-├── governance.js         # Reglas y gobernanza de inversión
-├── tests.js              # Suite de testing
-├── scanner.js            # Scanner principal
+├── src/
+│   ├── core/
+│   │   ├── config.js       # Estrategias y benchmarks
+│   │   └── scanner.js      # Scanner principal
+│   ├── indicators/
+│   │   ├── indicators.js   # Librería de indicadores con validación
+│   │   └── scoring.js      # Motor de scoring avanzado
+│   ├── allocation/
+│   │   └── allocation.js   # Sistema de asignación de capital
+│   ├── analytics/
+│   │   ├── backtesting.js  # Motor de backtesting
+│   │   ├── risk_engine.js  # Motor de análisis de riesgo profesional
+│   │   ├── market_regime.js # Detector de regímenes de mercado
+│   │   └── governance.js   # Reglas y gobernanza de inversión
+│   ├── data/
+│   │   ├── anomalies.js    # Detección de anomalías
+│   │   └── sectors.js      # Taxonomía sectorial
+│   └── tests/
+│       └── tests.js        # Suite de testing
 ├── index.html            # Interfaz profesional
 ├── server.js             # Servidor Express
 └── universes/            # Archivos JSON de universos
@@ -534,13 +544,13 @@ fetch('/api/run-tests')
   .then(console.log);
 
 // Desde Node.js
-import { runAllTests } from './tests.js';
+import { runAllTests } from './src/tests/tests.js';
 runAllTests();
 ```
 
 ### Personalización de Estrategias
 
-Para crear tu propia estrategia, edita `config.js` añadiendo un nuevo perfil en `STRATEGY_PROFILES`:
+Para crear tu propia estrategia, edita `src/core/config.js` añadiendo un nuevo perfil en `STRATEGY_PROFILES`:
 
 ```javascript
 export const STRATEGY_PROFILES = {
@@ -560,7 +570,7 @@ export const STRATEGY_PROFILES = {
 
 ### Sistema de Asignación de Capital
 
-El módulo `allocation.js` implementa 5 métodos profesionales de asignación:
+El módulo `src/allocation/allocation.js` implementa 5 métodos profesionales de asignación:
 
 #### Métodos Disponibles
 
@@ -595,7 +605,7 @@ El módulo `allocation.js` implementa 5 métodos profesionales de asignación:
 
 ### Motor de Análisis de Riesgo Profesional
 
-El módulo `risk_engine.js` proporciona análisis cuantitativo avanzado:
+El módulo `src/analytics/risk_engine.js` proporciona análisis cuantitativo avanzado:
 
 #### Value at Risk (VaR)
 
@@ -658,9 +668,22 @@ También conocido como Expected Shortfall:
 - Fórmula: `Annual_Return / Max_Drawdown`
 - Interpretación: Retorno por unidad de drawdown máximo
 
+### Motor de Backtesting
+
+El módulo `src/analytics/backtesting.js` permite evaluar estrategias con rebalanceo periódico:
+
+- **Selección dinámica de activos** según el score de cada estrategia.
+- **Método de asignación configurable** (Equal Weight, ERC, Score-Weighted, etc.).
+- **Métricas comparativas**: retorno total, CAGR, volatilidad y max drawdown.
+
+En la interfaz, la sección *Backtesting de Estrategias* permite seleccionar:
+1. Número de activos (Top N)
+2. Frecuencia de rebalanceo (en días)
+3. Método de asignación
+
 ### Detector de Regímenes de Mercado
 
-El módulo `market_regime.js` clasifica automáticamente las condiciones del mercado:
+El módulo `src/analytics/market_regime.js` clasifica automáticamente las condiciones del mercado:
 
 #### Análisis de Benchmark
 
@@ -723,7 +746,7 @@ El sistema ajusta automáticamente:
 
 ### Sistema de Gobernanza y Cumplimiento
 
-El módulo `governance.js` implementa reglas profesionales de inversión y validación de cumplimiento:
+El módulo `src/analytics/governance.js` implementa reglas profesionales de inversión y validación de cumplimiento:
 
 #### Reglas de Inversión (INVESTMENT_RULES)
 
@@ -812,7 +835,7 @@ Combina validación de cumplimiento con documentación de estrategia para genera
 
 
 ### Fase 2: Simulación y Evaluación
-4. **Backtesting de estrategias**  
+4. ✅ **Backtesting de estrategias**  
    - Evaluación histórica de estrategias existentes usando datos completos  
    - Comparación de métricas: rendimiento, volatilidad, drawdown  
    - Base para optimización futura y validación de métodos de asignación

@@ -52,7 +52,7 @@ app.get('/api/yahoo', async (req, res) => {
 // Endpoint para ejecutar tests
 app.get('/api/run-tests', async (req, res) => {
   try {
-    const { runAllTests } = await import('./tests.js');
+    const { runAllTests } = await import('./src/tests/tests.js');
     const results = runAllTests();
     res.json(results);
   } catch (error) {
