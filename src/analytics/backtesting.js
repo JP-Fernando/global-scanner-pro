@@ -1,4 +1,3 @@
-
 // =====================================================
 // MOTOR DE BACKTESTING DE ESTRATEGIAS
 // =====================================================
@@ -118,7 +117,6 @@ const calculateBenchmarkMetrics = (portfolioReturns, benchmarkReturns) => {
   return { alpha, beta, informationRatio, trackingError };
 };
 
-
 const calculateCalmarRatio = (cagr, maxDrawdown) => {
   if (maxDrawdown === 0) return 0;
   return cagr / maxDrawdown;
@@ -170,6 +168,11 @@ const analyzeDrawdownRecovery = (equityCurve, rebalanceEvery) => {
   return { drawdowns, avgRecoveryDays, numDrawdowns: drawdowns.length, longestDrawdown };
 };
 
+const estimateTaxDrag = (returns, turnover, taxRate = 0.19) => {
+  const realizedGains = returns.filter(r => r > 0).reduce((sum, r) => sum + r, 0);
+  return realizedGains * turnover * taxRate;
+};
+
 const calculateMetrics = ({
   returns,
   equityCurve,
@@ -198,7 +201,8 @@ const calculateMetrics = ({
       totalTransactionCosts: 0,
       avgRecoveryDays: 0,
       numDrawdowns: 0,
-      longestDrawdown: 0
+      longestDrawdown: 0,
+      estimatedTaxDrag: 0
     };
   }
 
@@ -215,6 +219,7 @@ const calculateMetrics = ({
   const winMetrics = calculateWinMetrics(returns);
   const benchmarkMetrics = calculateBenchmarkMetrics(returns, benchmarkReturns);
   const drawdownRecovery = analyzeDrawdownRecovery(equityCurve, rebalanceEvery);
+  const estimatedTaxDrag = estimateTaxDrag(returns, avgTurnover ?? 0);
 
   return {
     totalReturn,
@@ -235,7 +240,8 @@ const calculateMetrics = ({
     totalTransactionCosts: totalTransactionCosts ?? 0,
     avgRecoveryDays: drawdownRecovery.avgRecoveryDays,
     numDrawdowns: drawdownRecovery.numDrawdowns,
-    longestDrawdown: drawdownRecovery.longestDrawdown
+    longestDrawdown: drawdownRecovery.longestDrawdown,
+    estimatedTaxDrag
   };
 };
 
@@ -312,6 +318,7 @@ export const runStrategyBacktest = ({
   const returns = [];
   const benchmarkReturns = [];
   const equityCurve = [1];
+  const rebalanceDates = [];
   let rebalances = 0;
   let totalTransactionCosts = 0;
   let totalTurnover = 0;
@@ -375,6 +382,10 @@ export const runStrategyBacktest = ({
     rebalances += 1;
     totalTransactionCosts += transactionCost;
     previousWeights = nextWeights;
+    const rebalanceDate = universeData
+      .map(asset => asset.data?.[i]?.date)
+      .find(date => date);
+    rebalanceDates.push(rebalanceDate ?? `t+${rebalances * rebalanceEvery}`);
 
     if (benchmarkPrices) {
       const benchmarkNow = benchmarkPrices[i];
@@ -399,10 +410,84 @@ export const runStrategyBacktest = ({
     }),
     returns,
     equityCurve,
+    rebalanceDates,
     sample: rebalances
   };
 };
 
+export const runWalkForwardTest = ({
+  universeData,
+  strategyConfig,
+  params = {},
+  topN = 10,
+  rebalanceEvery = 21,
+  allocationMethod = 'equal_weight',
+  benchmarkPrices = null,
+  transactionCosts = TRANSACTION_COSTS
+}) => {
+  const {
+    inSamplePeriod = 252,
+    outSamplePeriod = 63,
+    stepSize = 21
+  } = params;
+
+  const results = [];
+  const dataLength = Math.min(
+    ...universeData.map(asset => asset.data.length).filter(Boolean),
+    0
+  );
+
+  for (let i = inSamplePeriod; i <= dataLength - outSamplePeriod; i += stepSize) {
+    const inSampleData = universeData.map(asset => ({
+      ...asset,
+      data: asset.data.slice(i - inSamplePeriod, i)
+    }));
+
+    const outSampleData = universeData.map(asset => ({
+      ...asset,
+      data: asset.data.slice(i, i + outSamplePeriod)
+    }));
+
+    const inSampleBenchmark = benchmarkPrices
+      ? benchmarkPrices.slice(i - inSamplePeriod, i)
+      : null;
+    const outSampleBenchmark = benchmarkPrices
+      ? benchmarkPrices.slice(i, i + outSamplePeriod)
+      : null;
+
+    const inSampleResult = runStrategyBacktest({
+      strategyKey: strategyConfig.key ?? strategyConfig.name ?? 'walk_forward',
+      strategyConfig,
+      universeData: inSampleData,
+      topN,
+      rebalanceEvery,
+      allocationMethod,
+      benchmarkPrices: inSampleBenchmark,
+      transactionCosts
+    });
+
+    const outSampleResult = runStrategyBacktest({
+      strategyKey: strategyConfig.key ?? strategyConfig.name ?? 'walk_forward',
+      strategyConfig,
+      universeData: outSampleData,
+      topN,
+      rebalanceEvery,
+      allocationMethod,
+      benchmarkPrices: outSampleBenchmark,
+      transactionCosts
+    });
+
+    results.push({
+      startIndex: i - inSamplePeriod,
+      inSampleResult,
+      outSampleResult
+    });
+  }
+
+  return results;
+};
+
 export default {
-  runStrategyBacktest
+  runStrategyBacktest,
+  runWalkForwardTest
 };
