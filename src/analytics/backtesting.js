@@ -7,6 +7,23 @@ import * as scoring from '../indicators/scoring.js';
 import { allocateCapital } from '../allocation/allocation.js';
 
 const TRADING_DAYS_PER_YEAR = 252;
+const INITIAL_CAPITAL = 10000;
+
+const TRANSACTION_COSTS = {
+  commission_pct: 0.001,
+  slippage_pct: 0.0005,
+  min_commission: 1.0
+};
+
+const calculateTransactionCost = (capital, weight, costs = TRANSACTION_COSTS) => {
+  const tradedAmount = capital * weight;
+  const commission = Math.max(
+    tradedAmount * costs.commission_pct,
+    costs.min_commission
+  );
+  const slippage = tradedAmount * costs.slippage_pct;
+  return commission + slippage;
+};
 
 const calculateStdDev = (values) => {
   if (values.length === 0) return 0;
@@ -30,13 +47,102 @@ const calculateMaxDrawdown = (equityCurve) => {
   return Math.abs(maxDrawdown) * 100;
 };
 
-const calculateMetrics = (returns, equityCurve, rebalanceEvery) => {
+const calculateSharpeRatio = (returns, rebalanceEvery, riskFreeRate = 0.02) => {
+  if (returns.length === 0) return 0;
+
+  const periodsPerYear = TRADING_DAYS_PER_YEAR / rebalanceEvery;
+  const excessReturns = returns.map(r => r - (riskFreeRate / periodsPerYear));
+  const avgExcess = excessReturns.reduce((a, b) => a + b, 0) / excessReturns.length;
+  const stdDev = calculateStdDev(excessReturns);
+
+  if (stdDev === 0) return 0;
+
+  return (avgExcess / stdDev) * Math.sqrt(periodsPerYear);
+};
+
+const calculateWinMetrics = (returns) => {
+  const wins = returns.filter(r => r > 0);
+  const losses = returns.filter(r => r < 0);
+
+  const winRate = returns.length > 0 ? (wins.length / returns.length) * 100 : 0;
+  const totalGains = wins.reduce((sum, r) => sum + r, 0);
+  const totalLosses = Math.abs(losses.reduce((sum, r) => sum + r, 0));
+  const avgWin = wins.length > 0 ? totalGains / wins.length : 0;
+  const avgLoss = losses.length > 0 ? totalLosses / losses.length : 0;
+  const profitFactor = totalLosses > 0 ? totalGains / totalLosses : 0;
+
+  return { winRate, profitFactor, avgWin, avgLoss };
+};
+
+const calculateBenchmarkMetrics = (portfolioReturns, benchmarkReturns) => {
+  if (!benchmarkReturns || benchmarkReturns.length === 0) {
+    return {
+      alpha: 0,
+      beta: 1,
+      informationRatio: 0,
+      trackingError: 0
+    };
+  }
+
+  const length = Math.min(portfolioReturns.length, benchmarkReturns.length);
+  if (length === 0) {
+    return {
+      alpha: 0,
+      beta: 1,
+      informationRatio: 0,
+      trackingError: 0
+    };
+  }
+
+  const portfolioSlice = portfolioReturns.slice(0, length);
+  const benchmarkSlice = benchmarkReturns.slice(0, length);
+  const portfolioAvg = portfolioSlice.reduce((a, b) => a + b, 0) / length;
+  const benchmarkAvg = benchmarkSlice.reduce((a, b) => a + b, 0) / length;
+
+  let covariance = 0;
+  let benchmarkVariance = 0;
+
+  for (let i = 0; i < length; i++) {
+    covariance += (portfolioSlice[i] - portfolioAvg) * (benchmarkSlice[i] - benchmarkAvg);
+    benchmarkVariance += (benchmarkSlice[i] - benchmarkAvg) ** 2;
+  }
+
+  const beta = benchmarkVariance > 0 ? covariance / benchmarkVariance : 1;
+  const alpha = (portfolioAvg - (benchmarkAvg * beta)) * TRADING_DAYS_PER_YEAR;
+
+  const trackingError = calculateStdDev(
+    portfolioSlice.map((r, i) => r - benchmarkSlice[i])
+  ) * Math.sqrt(TRADING_DAYS_PER_YEAR);
+  const informationRatio = trackingError > 0 ? alpha / trackingError : 0;
+
+  return { alpha, beta, informationRatio, trackingError };
+};
+
+const calculateMetrics = ({
+  returns,
+  equityCurve,
+  rebalanceEvery,
+  benchmarkReturns,
+  totalTransactionCosts,
+  avgTurnover
+}) => {
   if (returns.length === 0) {
     return {
       totalReturn: 0,
       cagr: 0,
       volatility: 0,
-      maxDrawdown: 0
+      maxDrawdown: 0,
+      sharpeRatio: 0,
+      winRate: 0,
+      profitFactor: 0,
+      avgWin: 0,
+      avgLoss: 0,
+      alpha: 0,
+      beta: 1,
+      informationRatio: 0,
+      trackingError: 0,
+      avgTurnover: 0,
+      totalTransactionCosts: 0
     };
   }
 
@@ -48,12 +154,26 @@ const calculateMetrics = (returns, equityCurve, rebalanceEvery) => {
     : 0;
   const volatility = calculateStdDev(returns) * Math.sqrt(periodsPerYear) * 100;
   const maxDrawdown = calculateMaxDrawdown(equityCurve);
+  const sharpeRatio = calculateSharpeRatio(returns, rebalanceEvery);
+  const winMetrics = calculateWinMetrics(returns);
+  const benchmarkMetrics = calculateBenchmarkMetrics(returns, benchmarkReturns);
 
   return {
     totalReturn,
     cagr,
     volatility,
-    maxDrawdown
+    maxDrawdown,
+    sharpeRatio,
+    winRate: winMetrics.winRate,
+    profitFactor: winMetrics.profitFactor,
+    avgWin: winMetrics.avgWin,
+    avgLoss: winMetrics.avgLoss,
+    alpha: benchmarkMetrics.alpha,
+    beta: benchmarkMetrics.beta,
+    informationRatio: benchmarkMetrics.informationRatio,
+    trackingError: benchmarkMetrics.trackingError,
+    avgTurnover: avgTurnover ?? 0,
+    totalTransactionCosts: totalTransactionCosts ?? 0
   };
 };
 
@@ -104,7 +224,9 @@ export const runStrategyBacktest = ({
   universeData,
   topN = 10,
   rebalanceEvery = 21,
-  allocationMethod = 'equal_weight'
+  allocationMethod = 'equal_weight',
+  benchmarkPrices = null,
+  transactionCosts = TRANSACTION_COSTS
 }) => {
   const maxHistory = Math.max(
     ...universeData.map(asset => asset.data.length).filter(Boolean),
@@ -126,8 +248,12 @@ export const runStrategyBacktest = ({
   }
 
   const returns = [];
+  const benchmarkReturns = [];
   const equityCurve = [1];
   let rebalances = 0;
+  let totalTransactionCosts = 0;
+  let totalTurnover = 0;
+  let previousWeights = new Map();
 
   for (let i = startIndex; i <= endIndex; i += rebalanceEvery) {
     const snapshots = universeData
@@ -143,6 +269,24 @@ export const runStrategyBacktest = ({
 
     const allocationResult = allocateCapital(selected, allocationMethod);
     const weights = allocationResult.allocation.map(a => a.weight);
+    const nextWeights = new Map(
+      allocationResult.allocation.map((asset, idx) => [asset.ticker, weights[idx] ?? 0])
+    );
+    let turnover = 0;
+
+    nextWeights.forEach((weight, ticker) => {
+      const prevWeight = previousWeights.get(ticker) ?? 0;
+      turnover += Math.abs(weight - prevWeight);
+    });
+
+    previousWeights.forEach((weight, ticker) => {
+      if (!nextWeights.has(ticker)) {
+        turnover += Math.abs(weight);
+      }
+    });
+
+    turnover /= 2;
+    totalTurnover += turnover;
 
     const periodReturns = selected.map((asset, idx) => {
       const original = universeData.find(item => item.ticker === asset.ticker);
@@ -158,16 +302,39 @@ export const runStrategyBacktest = ({
       (sum, value, idx) => sum + value * (weights[idx] ?? 0),
       0
     );
+    const currentCapital = (equityCurve[equityCurve.length - 1] ?? 1) * INITIAL_CAPITAL;
+    const transactionCost = calculateTransactionCost(currentCapital, turnover, transactionCosts);
+    const netReturn = currentCapital > 0
+      ? portfolioReturn - (transactionCost / currentCapital)
+      : portfolioReturn;
 
-    returns.push(portfolioReturn);
-    equityCurve.push(equityCurve[equityCurve.length - 1] * (1 + portfolioReturn));
+    returns.push(netReturn);
+    equityCurve.push(equityCurve[equityCurve.length - 1] * (1 + netReturn));
     rebalances += 1;
+    totalTransactionCosts += transactionCost;
+    previousWeights = nextWeights;
+
+    if (benchmarkPrices) {
+      const benchmarkNow = benchmarkPrices[i];
+      const benchmarkNext = benchmarkPrices[i + rebalanceEvery];
+      const benchmarkReturn = Number.isFinite(benchmarkNow) && Number.isFinite(benchmarkNext)
+        ? (benchmarkNext / benchmarkNow) - 1
+        : 0;
+      benchmarkReturns.push(benchmarkReturn);
+    }
   }
 
   return {
     strategyKey,
     strategyName: strategyConfig.name,
-    metrics: calculateMetrics(returns, equityCurve, rebalanceEvery),
+    metrics: calculateMetrics({
+      returns,
+      equityCurve,
+      rebalanceEvery,
+      benchmarkReturns: benchmarkReturns.length ? benchmarkReturns : null,
+      totalTransactionCosts,
+      avgTurnover: rebalances > 0 ? totalTurnover / rebalances : 0
+    }),
     returns,
     equityCurve,
     sample: rebalances
