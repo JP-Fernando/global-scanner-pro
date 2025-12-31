@@ -661,6 +661,19 @@ También conocido como Expected Shortfall:
 - Fórmula: `Annual_Return / Max_Drawdown`
 - Interpretación: Retorno por unidad de drawdown máximo
 
+### Motor de Backtesting
+
+El módulo `src/analytics/backtesting.js` permite evaluar estrategias con rebalanceo periódico:
+
+- **Selección dinámica de activos** según el score de cada estrategia.
+- **Método de asignación configurable** (Equal Weight, ERC, Score-Weighted, etc.).
+- **Métricas comparativas**: retorno total, CAGR, volatilidad y max drawdown.
+
+En la interfaz, la sección *Backtesting de Estrategias* permite seleccionar:
+1. Número de activos (Top N)
+2. Frecuencia de rebalanceo (en días)
+3. Método de asignación
+
 ### Detector de Regímenes de Mercado
 
 El módulo `src/analytics/market_regime.js` clasifica automáticamente las condiciones del mercado:
@@ -815,7 +828,7 @@ Combina validación de cumplimiento con documentación de estrategia para genera
 
 
 ### Fase 2: Simulación y Evaluación
-4. **Backtesting de estrategias**  
+4. **Backtesting de estrategias (Completado)** ✅
    - Evaluación histórica de estrategias existentes usando datos completos  
    - Comparación de métricas: rendimiento, volatilidad, drawdown  
    - Base para optimización futura y validación de métodos de asignación
