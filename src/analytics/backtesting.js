@@ -294,7 +294,8 @@ export const runStrategyBacktest = ({
   rebalanceEvery = 21,
   allocationMethod = 'equal_weight',
   benchmarkPrices = null,
-  transactionCosts = TRANSACTION_COSTS
+  transactionCosts = TRANSACTION_COSTS,
+  initialCapital = INITIAL_CAPITAL
 }) => {
   const maxHistory = Math.max(
     ...universeData.map(asset => asset.data.length).filter(Boolean),
@@ -308,6 +309,7 @@ export const runStrategyBacktest = ({
     return {
       strategyKey,
       strategyName: strategyConfig.name,
+      initialCapital,
       metrics: null,
       returns: [],
       equityCurve: [],
@@ -371,7 +373,7 @@ export const runStrategyBacktest = ({
       (sum, value, idx) => sum + value * (weights[idx] ?? 0),
       0
     );
-    const currentCapital = (equityCurve[equityCurve.length - 1] ?? 1) * INITIAL_CAPITAL;
+    const currentCapital = (equityCurve[equityCurve.length - 1] ?? 1) * initialCapital;
     const transactionCost = calculateTransactionCost(currentCapital, turnover, transactionCosts);
     const netReturn = currentCapital > 0
       ? portfolioReturn - (transactionCost / currentCapital)
@@ -400,6 +402,7 @@ export const runStrategyBacktest = ({
   return {
     strategyKey,
     strategyName: strategyConfig.name,
+    initialCapital,
     metrics: calculateMetrics({
       returns,
       equityCurve,

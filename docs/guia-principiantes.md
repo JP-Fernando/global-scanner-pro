@@ -5,6 +5,8 @@
 El ***Quant Score*** **(0–100)** es un indicador sintético que combina múltiples factores técnicos y de riesgo.
 Cuanto mayor es el *score*, mejor es la calidad cuantitativa del activo dentro de su universo.
 
+---
+
 ## Conceptos Clave
 
 **Estrategia**: Define cómo se ponderan los diferentes factores (tendencia, momentum, riesgo, liquidez).
@@ -16,6 +18,8 @@ Es tu "perfil" de inversor.
 - **🎯 Largo Plazo (4a)**: Construcción de patrimonio.
 - **Scores Factoriales**: Trend, Momentum, Riesgo y Liquidez.
 
+---
+
 ## Métricas Principales
 
 - **Alpha**: Ventaja del activo frente a su índice (si el IBEX sube 5% y tu acción 8%, tu Alpha es +3%).
@@ -23,3 +27,14 @@ Es tu "perfil" de inversor.
   Indica el "susto" potencial.
 - **ATR% (Riesgo)**: Volatilidad diaria. Bajo = estabilidad, Alto = movimientos bruscos.
 - **Volumen Ratio**: Si es > 1, se está negociando más de lo habitual (dinero "fuerte" entrando).
+
+---
+
+## Backtest rápido (capital inicial)
+
+En la sección de **Backtest** puedes simular cómo habría evolucionado una cartera si hubieras seguido una estrategia.
+
+1. Ajusta el **Capital inicial** para definir el balance de partida (por defecto 10.000).
+2. Elige **Top N**, **Rebalanceo** y **Método de asignación**.
+3. Ejecuta el backtest para ver métricas y evolución.
+4. Si exportas el CSV, el capital inicial se incluye para trazabilidad.

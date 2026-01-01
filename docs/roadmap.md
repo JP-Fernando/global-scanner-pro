@@ -1,62 +1,37 @@
-# 📅 Roadmap de Mejoras y Futuras Funcionalidades
+# 📅 Roadmap de Futuras Mejoras
 
-**Fase 1 completada**:
+1. **Dashboard de portfolio tracking**
+   - Visualización en tiempo real de carteras construidas, valor y P&L.
+   - Curva de equity, drawdowns y métricas de riesgo (VaR, CVaR, beta, volatilidad).
+   - Comparación con benchmark y alertas de desviación de objetivo.
+   - Histórico de rebalanceos con justificación y trazabilidad de cambios.
 
-[x] Motor de Scoring Multi-factor (Trend, Momentum, Risk, Liquidity).
+2. **Exportación avanzada de reportes**
+   - Exportación a Excel/CSV con métricas de riesgo, scores, asignación y pesos.
+   - Plantillas listas para auditoría, comité de inversión y clientes.
+   - Reportes comparativos entre estrategias y periodos.
+   - Resúmenes ejecutivos con principales señales y riesgos.
 
-[x] Detector de Régimen de Mercado (Risk-On / Risk-Off).
+3. **Alertas por email/webhook**
+   - Notificación de señales fuertes, rebalanceos y eventos relevantes.
+   - Configuración de umbrales por usuario/estrategia (volatilidad, drawdown, score).
+   - Integración con Slack/Teams/Zapier para flujos automatizados.
+   - Logs de alertas y confirmación de entrega.
 
-[x] Análisis Sectorial y Taxonomía GICS.
+4. **Análisis de atribución**
+   - Desglose de rendimiento: selección de activos vs. asignación sectorial.
+   - Identificación de contribución por factor (trend, momentum, risk, liquidity).
+   - Atribución por periodos y por eventos de mercado.
+   - Visualizaciones para explicar qué impulsó los resultados.
 
-[x] Detección de Anomalías de Volumen (Z-Score).
+5. **Optimización avanzada**
+   - Machine learning para ponderación dinámica y ajuste de scores.
+   - Tests de estrés multi-factor (sectorial, divisa, geopolítico, liquidez).
+   - Optimización con restricciones de gobernanza y control de concentración.
+   - Simulación de escenarios para robustez ante shocks.
 
-[x] Gobernanza y reglas de concentración (Max 15% por activo).
-
-## Fase 2: Simulación y Evaluación
-4. **Backtesting de estrategias (Completado)** ✅
-   - Evaluación histórica de estrategias existentes usando datos completos  
-   - Comparación de métricas: rendimiento, volatilidad, drawdown  
-   - Paneles de riesgo, trading, equity curve y análisis profundo de drawdowns  
-   - Comparativa con benchmark (alpha/beta e information ratio)  
-   - Costos de transacción y rotación de cartera incluidos en el análisis  
-   - Exportación a CSV para reporting rápido  
-   - Base para optimización futura y validación de métodos de asignación
-
-5. **Simulación de capital inicial variable** *(opcional)*  
-   - Permitir probar carteras con distintos montos antes de construir la real  
-   - Ayuda a planificar la gestión de riesgo
-
-## Fase 3: Visualización y Reporting
-6. **Dashboard de portfolio tracking**  
-   - Visualización en tiempo real de carteras construidas  
-   - Métricas de riesgo, VaR, CVaR, correlaciones y stress tests  
-   - Comparación con benchmark y seguimiento histórico  
-   - Permite tomar decisiones informadas de rebalanceo
-
-7. **Exportación a Excel/CSV**  
-   - Reportes de resultados de escaneo y carteras  
-   - Incluye métricas de riesgo, scores y asignación de capital  
-   - Facilita auditoría, presentación a clientes y análisis externo
-
-8. **Alertas por email/webhook**  
-   - Notificación de señales fuertes, rebalanceos y eventos de mercado  
-   - Automatización de seguimiento y gestión de cartera
-
-9. **Análisis de Atribución**  
-   - Explica por qué la cartera gana o pierde dinero  
-   - Desglosa el impacto de selección de activos (Stock Picking) vs. asignación sectorial (Sector Allocation)  
-
-## Fase 4: Optimización Avanzada
-10. **Machine Learning para ponderación dinámica**  
-    - Optimización de asignación de capital según patrones históricos  
-    - Predicción de riesgo y ajuste automático de scores  
-    - Mejora el rendimiento esperado ajustado a volatilidad real
-
-11. **Test de estrés multi-factor**  
-    - Escenarios sectoriales, geopolíticos o de divisa  
-    - Evaluación del impacto de crisis combinadas sobre la cartera  
-
-## Fase 5: Futuras Ideas Avanzadas
-- **Documentación interactiva de estrategia**: Explicación visual de cada score y métrica al pulsar sobre un activo.  
-- **Optimización de gobernanza dinámica**: Ajuste automático de límites según volatilidad y correlación del mercado.  
-- **Integración de alertas con IA**: Detectar patrones de riesgo emergente y recomendar ajustes proactivos.  
+6. **Mejoras de experiencia**
+   - Documentación interactiva de estrategia en la UI (tooltips y paneles).
+   - Gobernanza dinámica: límites ajustados por volatilidad/correlación.
+   - Integración de alertas con IA para recomendaciones proactivas.
+   - Accesibilidad, rendimiento y mejoras visuales de la interfaz.

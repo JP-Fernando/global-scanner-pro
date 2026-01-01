@@ -10,15 +10,48 @@ Diseñado con principios de arquitectura defensiva, gobernanza de inversión y a
 
 ## 🚀 Inicio Rápido
 
-### Instalación
+### Instalación en Linux (Terminal)
+
+1. Abre una terminal y clona el repositorio:
 
 ```bash
-# Instalar dependencias
-npm install express node-fetch
+git clone https://github.com/JP-Fernando/global-scanner-pro.git
+cd global-scanner-pro
+```
 
-# Iniciar servidor
+2. Instala dependencias e inicia el servidor:
+
+```bash
+npm install
 node server.js
 ```
+
+### Instalación en Windows (PowerShell)
+
+1. Instala **Git for Windows** y **Node.js LTS** (ejemplos con `winget`):
+
+```powershell
+winget install --id Git.Git -e
+winget install --id OpenJS.NodeJS.LTS -e
+```
+
+2. Abre PowerShell y clona el repositorio:
+
+```powershell
+git clone https://github.com/JP-Fernando/global-scanner-pro.git
+cd global-scanner-pro
+```
+
+3. Instala dependencias e inicia el servidor:
+
+```powershell
+npm install
+node server.js
+```
+
+4. Abre la interfaz en tu navegador: `http://localhost:3000/index.html`.
+
+---
 
 ### Uso Básico
 
@@ -29,6 +62,7 @@ node server.js
 5. Explora los resultados ordenando por *scores* y factores
 6. **Opcional**: Construye una cartera profesional con los mejores activos
 7. Revisa el **régimen de mercado** detectado automáticamente
+
 
 ---
 

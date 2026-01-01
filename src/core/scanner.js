@@ -18,6 +18,7 @@ let currentResults = [];
 let benchmarkData = null;
 let currentRegime = null;
 let lastBacktestResults = [];
+let lastBacktestInitialCapital = null;
 const dataCache = new Map();
 let isScanning = false; // Bandera de control
 
@@ -334,6 +335,14 @@ function formatNumber(value, decimals = 2) {
   return value.toFixed(decimals);
 }
 
+function formatCapital(value) {
+  if (!Number.isFinite(value)) return 'N/A';
+  return new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
 function getMetricColor(value, thresholds) {
   if (value >= thresholds.excellent) return '#10b981';
   if (value >= thresholds.good) return '#4ade80';
@@ -360,9 +369,10 @@ function toggleSection(sectionId, el) {
 
 function exportBacktestToCSV(results = lastBacktestResults) {
   if (!results?.length) return;
-  const headers = ['Estrategia', 'CAGR', 'Sharpe', 'Max DD', 'Win Rate', 'Alpha', 'Beta'];
+  const headers = ['Estrategia', 'Capital inicial', 'CAGR', 'Sharpe', 'Max DD', 'Win Rate', 'Alpha', 'Beta'];
   const rows = results.map(result => [
     result.strategyName,
+    result.initialCapital ?? '',
     result.metrics?.cagr ?? '',
     result.metrics?.sharpeRatio ?? '',
     result.metrics?.maxDrawdown ?? '',
@@ -391,7 +401,7 @@ function renderBacktestActions() {
       <button class="backtest-action active" onclick="toggleSection('backtest-trading', this)">💰 Trading</button>
       <button class="backtest-action active" onclick="toggleSection('backtest-equity', this)">📈 Equity</button>
       <button class="backtest-action active" onclick="toggleSection('backtest-drawdown', this)">📉 Drawdown</button>
-      <button class="backtest-action" onclick="exportBacktestToCSV()">
+      <button class="backtest-action active" onclick="exportBacktestToCSV()">
       ⬇️ Exportar CSV
       </button>
     </div>
@@ -416,13 +426,14 @@ function renderBacktestResults(results, rebalanceEvery, benchmarkReturns = null)
   }
 
   lastBacktestResults = validResults;
+  lastBacktestInitialCapital = validResults[0]?.initialCapital ?? null;
 
   const bestStrategy = validResults[0];
   const benchmarkData = bestStrategy?.benchmarkReturns || benchmarkReturns;
 
   container.innerHTML = `
     ${renderBacktestActions()}
-    ${renderBacktestHeader(validResults, rebalanceEvery)}
+    ${renderBacktestHeader(validResults, rebalanceEvery, lastBacktestInitialCapital)}
     <div id="backtest-performance">
       ${renderPerformanceComparison(validResults)}
     </div>
@@ -446,7 +457,7 @@ function renderBacktestResults(results, rebalanceEvery, benchmarkReturns = null)
   container.style.display = 'block';
 }
 
-function renderBacktestHeader(results, rebalanceEvery) {
+function renderBacktestHeader(results, rebalanceEvery, initialCapital = lastBacktestInitialCapital) {
   const avgSharpe = results.reduce((sum, r) => sum + (r.metrics?.sharpeRatio || 0), 0) / results.length;
   const avgCAGR = results.reduce((sum, r) => sum + (r.metrics?.cagr || 0), 0) / results.length;
 
@@ -456,7 +467,7 @@ function renderBacktestHeader(results, rebalanceEvery) {
         <div>
           <h3 style="color: #c7d2fe; font-size: 1.5em; margin-bottom: 10px;">📈 Resultados del Backtesting</h3>
           <p style="color: #94a3b8; font-size: 0.9em;">
-            Rebalanceo cada ${rebalanceEvery} días · ${results.length} estrategias evaluadas
+            Rebalanceo cada ${rebalanceEvery} días · ${results.length} estrategias evaluadas · Capital inicial: ${formatCapital(initialCapital)}
           </p>
         </div>
         <div style="text-align: right;">
@@ -957,6 +968,8 @@ window.runBacktest = async function () {
   const topN = parseInt(document.getElementById('backtestTopN').value, 10);
   const rebalanceEvery = parseInt(document.getElementById('backtestRebalance').value, 10);
   const allocationMethod = document.getElementById('backtestAllocationMethod').value;
+  const initialCapitalValue = parseFloat(document.getElementById('backtestInitialCapital').value);
+  const initialCapital = Number.isFinite(initialCapitalValue) ? initialCapitalValue : undefined;
   const status = document.getElementById('backtestStatus');
 
   if (!file) {
@@ -988,7 +1001,8 @@ window.runBacktest = async function () {
         topN,
         rebalanceEvery,
         allocationMethod,
-        benchmarkPrices
+        benchmarkPrices,
+        initialCapital
       });
       results.push(result);
       await sleep(20);
