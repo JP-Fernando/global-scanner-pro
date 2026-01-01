@@ -19,6 +19,7 @@ let benchmarkData = null;
 let currentRegime = null;
 let lastBacktestResults = [];
 const dataCache = new Map();
+let isScanning = false; // Bandera de control
 
 const appState = {
   scanResults: [],
@@ -340,10 +341,21 @@ function getMetricColor(value, thresholds) {
   return '#f87171';
 }
 
-function toggleSection(sectionId) {
+function toggleSection(sectionId, el) {
   const section = document.getElementById(sectionId);
   if (!section) return;
-  section.style.display = section.style.display === 'none' ? 'block' : 'none';
+
+  const isHidden = section.style.display === 'none';
+  section.style.display = isHidden ? 'block' : 'none';
+
+  // Si se pasa el elemento botón, alternamos la clase active
+  if (el) {
+    if (isHidden) {
+      el.classList.add('active');
+    } else {
+      el.classList.remove('active');
+    }
+  }
 }
 
 function exportBacktestToCSV(results = lastBacktestResults) {
@@ -370,17 +382,18 @@ function exportBacktestToCSV(results = lastBacktestResults) {
 }
 
 function renderBacktestActions() {
+  // Añadimos la clase 'active' por defecto porque las secciones se muestran al cargar
   return `
     <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; align-items: center;">
+      <button class="backtest-action active" onclick="toggleSection('backtest-performance', this)">🏆 Rendimiento</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-detailed', this)">📊 Detalle</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-risk', this)">⚠️ Riesgo</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-trading', this)">💰 Trading</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-equity', this)">📈 Equity</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-drawdown', this)">📉 Drawdown</button>
       <button class="backtest-action" onclick="exportBacktestToCSV()">
-        ⬇️ Exportar CSV
+      ⬇️ Exportar CSV
       </button>
-      <button class="backtest-action" onclick="toggleSection('backtest-performance')">🏆 Rendimiento</button>
-      <button class="backtest-action" onclick="toggleSection('backtest-detailed')">📊 Detalle</button>
-      <button class="backtest-action" onclick="toggleSection('backtest-risk')">⚠️ Riesgo</button>
-      <button class="backtest-action" onclick="toggleSection('backtest-trading')">💰 Trading</button>
-      <button class="backtest-action" onclick="toggleSection('backtest-equity')">📈 Equity</button>
-      <button class="backtest-action" onclick="toggleSection('backtest-drawdown')">📉 Drawdown</button>
     </div>
   `;
 }
@@ -995,180 +1008,182 @@ window.runBacktest = async function () {
 // =====================================================
 
 export async function runScan() {
-  const [file, suffix] = document.getElementById('marketSelect').value.split('|');
-  const strategyKey = document.getElementById('strategySelect').value;
-  const config = STRATEGY_PROFILES[strategyKey];
+  // 1. Evitar ejecución doble si ya está corriendo
+  if (isScanning) return;
 
-  const status = document.getElementById('status');
-  const tbody = document.getElementById('results');
-  const filterInfo = document.getElementById('filterInfo');
+  const btnScan = document.getElementById('btnRunScan');
 
-  tbody.innerHTML = '';
-  currentResults = [];
-  filterInfo.innerHTML = '';
+  try {
+    // 2. Bloquear sistema
+    isScanning = true;
+    if (btnScan) {
+      btnScan.disabled = true;
+      btnScan.innerText = '⏳ Escaneando...';
+      btnScan.style.opacity = '0.7';
+      btnScan.style.cursor = 'wait';
+    }
 
-  status.innerText = '⏳ Iniciando escaneo...';
+    const [file, suffix] = document.getElementById('marketSelect').value.split('|');
+    const strategyKey = document.getElementById('strategySelect').value;
+    const config = STRATEGY_PROFILES[strategyKey];
 
-  status.innerText = '📊 Cargando benchmark...';
-  benchmarkData = await loadBenchmark(suffix);
+    const status = document.getElementById('status');
+    const tbody = document.getElementById('results');
+    const filterInfo = document.getElementById('filterInfo');
 
-  status.innerText = '📦 Cargando universo...';
-  const universe = await (await fetch(file)).json();
+    // 3. Limpieza garantizada antes de empezar
+    tbody.innerHTML = '';
+    currentResults = []; // Limpiar array de memoria
+    filterInfo.innerHTML = '';
 
-  let analyzed = 0;
-  let filtered = 0;
+    status.innerText = '⏳ Iniciando escaneo...';
 
-  const BATCH_SIZE = 5;
+    status.innerText = '📊 Cargando benchmark...';
+    benchmarkData = await loadBenchmark(suffix);
 
-  for (let i = 0; i < universe.length; i += BATCH_SIZE) {
-    const batch = universe.slice(i, i + BATCH_SIZE);
+    status.innerText = '📦 Cargando universo...';
+    const universe = await (await fetch(file)).json();
 
-    status.innerText = `🔎 Analizando activos ${i + 1}–${Math.min(i + BATCH_SIZE, universe.length)} de ${universe.length} | ✓ ${analyzed} | ✖ ${filtered}`;
+    let analyzed = 0;
+    let filtered = 0;
 
-    const batchResults = await Promise.all(
-      batch.map(stock =>
-        analyzeStock(stock, suffix, config, benchmarkData?.rocs, benchmarkData?.volatility)
-      )
-    );
+    const BATCH_SIZE = 5;
 
-    batchResults.forEach((res, idx) => {
-      if (res?.passed) {
-        const originalStockData = batch[idx]; // Recuperamos la data original (sector, industry)
-        const sectorId = getSectorId(originalStockData.sector || originalStockData.industry || 'Unknown');
-        const tempStats = calculateSectorStats(currentResults);
-        const anomalyData = detectAnomalies(res, tempStats);
-        currentResults.push({
-          ...res,
-          vRatio: Number(res.vRatio) || 1.0,
-          sectorId,
-          sectorRaw: originalStockData.sector || originalStockData.industry || 'Unknown',
-          hasAnomalies: anomalyData.hasAnomalies,
-          anomalies: anomalyData.anomalies,
-          anomalyMetrics: anomalyData.metrics || {}
-        });
-        analyzed++;
-      } else {
-        filtered++;
+    for (let i = 0; i < universe.length; i += BATCH_SIZE) {
+      const batch = universe.slice(i, i + BATCH_SIZE);
+
+      status.innerText = `🔎 Analizando activos ${i + 1}–${Math.min(i + BATCH_SIZE, universe.length)} de ${universe.length} | ✓ ${analyzed} | ✖ ${filtered}`;
+
+      const batchResults = await Promise.all(
+        batch.map(stock =>
+          analyzeStock(stock, suffix, config, benchmarkData?.rocs, benchmarkData?.volatility)
+        )
+      );
+
+      batchResults.forEach((res, idx) => {
+        if (res?.passed) {
+          const originalStockData = batch[idx];
+          const sectorId = getSectorId(originalStockData.sector || originalStockData.industry || 'Unknown');
+          const tempStats = calculateSectorStats(currentResults);
+          const anomalyData = detectAnomalies(res, tempStats);
+          currentResults.push({
+            ...res,
+            vRatio: Number(res.vRatio) || 1.0,
+            sectorId,
+            sectorRaw: originalStockData.sector || originalStockData.industry || 'Unknown',
+            hasAnomalies: anomalyData.hasAnomalies,
+            anomalies: anomalyData.anomalies,
+            anomalyMetrics: anomalyData.metrics || {}
+          });
+          analyzed++;
+        } else {
+          filtered++;
+        }
+      });
+
+      if (i % (BATCH_SIZE * 2) === 0) {
+        const sectorStats = calculateSectorStats(currentResults);
+        renderTable(currentResults);
+        updateSectorUI(sectorStats);
       }
+
+      await sleep(50);
+    }
+
+    currentResults.sort((a, b) => b.scoreTotal - a.scoreTotal);
+    const finalStats = calculateSectorStats(currentResults);
+
+    currentResults = currentResults.map(asset => {
+      const anomalyData = detectAnomalies(asset, finalStats);
+
+      let updatedScore = asset.scoreTotal;
+      let penalty = 0;
+
+      if (anomalyData.hasAnomalies) {
+        penalty = Math.min(15, Math.round((anomalyData.metrics?.volumeZScore || 0) * 3));
+        updatedScore = Math.max(0, updatedScore - penalty);
+      }
+
+      return {
+        ...asset,
+        anomalies: anomalyData.anomalies,
+        warnings: [
+          ...(asset.warnings || []),
+          ...(anomalyData.warnings || [])
+        ],
+        hasAnomalies: anomalyData.hasAnomalies,
+        anomalyMetrics: anomalyData.metrics,
+        scoreTotal: updatedScore,
+        anomalyPenalty: penalty
+      };
     });
 
-    if (i % (BATCH_SIZE * 2) === 0) {
-      const sectorStats = calculateSectorStats(currentResults);
-      renderTable(currentResults);
-      updateSectorUI(sectorStats); // Llamada al resumen superior
+    renderTable(currentResults);
+    updateSectorUI(finalStats);
+
+    status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
+    filterInfo.innerHTML = `✅ ${analyzed} aprobados | ❌ ${filtered} filtrados`;
+
+    appState.scanResults = currentResults;
+    appState.market = { file, suffix };
+    appState.strategy = strategyKey;
+
+    const canBuildPortfolio =
+      appState.scanResults.filter(
+        r => Array.isArray(r.pricesWithDates) && r.pricesWithDates.length >= 30
+      ).length >= 3;
+
+    const buildBtn = document.querySelector('button[onclick="buildPortfolio()"]');
+    if (buildBtn) {
+      buildBtn.disabled = !canBuildPortfolio;
     }
 
-    await sleep(50);
-  }
-
-  currentResults.sort((a, b) => b.scoreTotal - a.scoreTotal);
-  const finalStats = calculateSectorStats(currentResults);
-
-  currentResults = currentResults.map(asset => {
-    const anomalyData = detectAnomalies(asset, finalStats);
-
-    let updatedScore = asset.scoreTotal;
-    let penalty = 0;
-
-    if (anomalyData.hasAnomalies) {
-      // Cálculo de penalización: máximo 15 puntos basado en el Z-Score
-      penalty = Math.min(15, Math.round((anomalyData.metrics?.volumeZScore || 0) * 3));
-      updatedScore = Math.max(0, updatedScore - penalty);
+    if (!canBuildPortfolio) {
+      showInlineError('No hay suficientes activos con histórico para construir cartera');
     }
 
-    return {
-      ...asset,
-      anomalies: anomalyData.anomalies,
-      warnings: [
-        ...(asset.warnings || []),
-        ...(anomalyData.warnings || [])
-      ],
-      hasAnomalies: anomalyData.hasAnomalies,
-      anomalyMetrics: anomalyData.metrics,
-            scoreTotal: updatedScore,
-      anomalyPenalty: penalty
-    };
-  });
-
-
-  renderTable(currentResults);
-  updateSectorUI(finalStats);
-
-  status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
-  filterInfo.innerHTML = `✅ ${analyzed} aprobados | ❌ ${filtered} filtrados`;
-
-  // Guardar en estado global
-  appState.scanResults = currentResults;
-  appState.market = { file, suffix };
-  appState.strategy = strategyKey;
-
-  // ✅ Validar si se puede construir cartera con análisis de riesgo
-  const canBuildPortfolio =
-    appState.scanResults.filter(
-      r => Array.isArray(r.pricesWithDates) && r.pricesWithDates.length >= 30
-    ).length >= 3;
-
-  const buildBtn = document.querySelector('button[onclick="buildPortfolio()"]');
-  if (buildBtn) {
-    buildBtn.disabled = !canBuildPortfolio;
-  }
-
-  if (!canBuildPortfolio) {
-    showInlineError('No hay suficientes activos con histórico para construir cartera');
-  }
-
-
-  // Detección de régimen
-  if (benchmarkData && benchmarkData.symbol) {
-    try {
-      status.innerText = '🔍 Detectando régimen de mercado...';
-
-      // Cargar precios completos del benchmark
-      const benchmarkFullData = await loadYahooData(benchmarkData.symbol, '');
-
-      if (!benchmarkFullData || benchmarkFullData.length === 0) {
-        console.warn('No se pudieron cargar datos completos del benchmark para régimen');
-        status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
-      } else {
-        const benchmarkPrices = benchmarkFullData.map(d => ({
-          date: d.date,
-          close: d.close
-        }));
-
-        if (benchmarkPrices.length < 200) {
-          console.warn('Datos insuficientes para detectar régimen');
-          status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
+    // Detección de régimen
+    if (benchmarkData && benchmarkData.symbol) {
+       // ... (Código de régimen existente se mantiene igual) ...
+       // (Mantenemos tu lógica existente para brevity, pero dentro del try)
+       try {
+        status.innerText = '🔍 Detectando régimen de mercado...';
+        const benchmarkFullData = await loadYahooData(benchmarkData.symbol, '');
+        if (!benchmarkFullData || benchmarkFullData.length === 0) {
+            console.warn('No se pudieron cargar datos completos del benchmark para régimen');
         } else {
-          // Detectar régimen
-          currentRegime = regime.detectMarketRegime(benchmarkPrices, currentResults);
-
-          // Guardar en estado
-          appState.regime = currentRegime;
-
-          // Renderizar indicador de régimen
-          renderRegimeIndicator(currentRegime);
-
-          console.log('📊 Régimen detectado:', currentRegime);
-
-          // Actualizar status después de completar
-          status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
+            const benchmarkPrices = benchmarkFullData.map(d => ({ date: d.date, close: d.close }));
+            if (benchmarkPrices.length >= 200) {
+                currentRegime = regime.detectMarketRegime(benchmarkPrices, currentResults);
+                appState.regime = currentRegime;
+                renderRegimeIndicator(currentRegime);
+                console.log('📊 Régimen detectado:', currentRegime);
+            }
         }
-      }
-    } catch (err) {
-      console.error('Error detectando régimen de mercado:', err);
-      status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
+       } catch(e) { console.error(e); }
+       status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
     }
-  }
 
-  // Mostrar sección de construcción de cartera
-  const portfolioSection = document.getElementById('portfolioSection');
-  if (portfolioSection && currentResults.length > 0) {
-    portfolioSection.style.display = 'block';
+    const portfolioSection = document.getElementById('portfolioSection');
+    if (portfolioSection && currentResults.length > 0) {
+      portfolioSection.style.display = 'block';
+      const regimeOption = document.getElementById('regimeAdjustmentOption');
+      if (regimeOption && appState.regime) {
+        regimeOption.style.display = 'block';
+      }
+    }
 
-    // Regime option
-    const regimeOption = document.getElementById('regimeAdjustmentOption');
-    if (regimeOption && appState.regime) {
-      regimeOption.style.display = 'block';
+  } catch (error) {
+    console.error("Error crítico en escaneo:", error);
+    status.innerText = "❌ Error crítico durante el escaneo.";
+  } finally {
+    // 4. Restaurar botón y estado al finalizar (incluso si hubo error)
+    isScanning = false;
+    if (btnScan) {
+      btnScan.disabled = false;
+      btnScan.innerText = '🚀 Ejecutar Análisis';
+      btnScan.style.opacity = '1';
+      btnScan.style.cursor = 'pointer';
     }
   }
 }

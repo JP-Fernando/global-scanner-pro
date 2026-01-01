@@ -466,7 +466,7 @@
 
       <div class="control-group">
         <label>&nbsp;</label>
-        <button onclick="runScan()">🚀 Ejecutar Análisis</button>
+        <button id="btnRunScan" onclick="runScan()">🚀 Ejecutar Análisis</button>
       </div>
     </div>
   </div>
@@ -829,21 +829,33 @@
   }
 
   .backtest-action {
-    padding: 8px 14px;
-    border-radius: 8px;
-    border: 1px solid #334155;
-    background: #0f172a;
-    color: #cbd5e1;
-    font-size: 0.85em;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #64748b; /* Grisáceo por defecto (apagado) */
+      font-size: 0.85em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
 
-  .backtest-action:hover {
-    border-color: #818cf8;
-    color: #f8fafc;
-    transform: translateY(-1px);
-  }
+    .backtest-action:hover {
+      border-color: #475569;
+      color: #94a3b8;
+    }
+
+    /* Estado Activo (Encendido - Blanco Brillante) */
+    .backtest-action.active {
+      border-color: #818cf8;
+      color: #ffffff;
+      background: #1e293b;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+    }
+
+    .backtest-action.active:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
 
   .equity-chart {
     transition: transform 0.3s ease;
