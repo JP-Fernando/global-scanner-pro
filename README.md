@@ -668,11 +668,17 @@ El módulo `src/analytics/backtesting.js` permite evaluar estrategias con rebala
 - **Selección dinámica de activos** según el score de cada estrategia.
 - **Método de asignación configurable** (Equal Weight, ERC, Score-Weighted, etc.).
 - **Métricas comparativas**: retorno total, CAGR, volatilidad y max drawdown.
+- **Rendimiento ajustado por riesgo**: Sharpe y Calmar.
+- **Comparativa vs benchmark**: alpha, beta, tracking error e information ratio.
+- **Métricas de trading**: win rate, profit factor, avg win/loss, turnover y costos estimados (comisión + slippage).
+- **Análisis de drawdowns**: número de caídas, recuperación promedio y drawdown más largo.
+- **Equity curve** con comparación visual frente al índice de referencia.
 
 En la interfaz, la sección *Backtesting de Estrategias* permite seleccionar:
 1. Número de activos (Top N)
 2. Frecuencia de rebalanceo (en días)
 3. Método de asignación
+4. Exportación de resultados a CSV para análisis externo
 
 ### Detector de Regímenes de Mercado
 
@@ -831,6 +837,10 @@ Combina validación de cumplimiento con documentación de estrategia para genera
 4. **Backtesting de estrategias (Completado)** ✅
    - Evaluación histórica de estrategias existentes usando datos completos  
    - Comparación de métricas: rendimiento, volatilidad, drawdown  
+   - Paneles de riesgo, trading, equity curve y análisis profundo de drawdowns  
+   - Comparativa con benchmark (alpha/beta e information ratio)  
+   - Costos de transacción y rotación de cartera incluidos en el análisis  
+   - Exportación a CSV para reporting rápido  
    - Base para optimización futura y validación de métodos de asignación
 
 5. **Simulación de capital inicial variable** *(opcional)*  
