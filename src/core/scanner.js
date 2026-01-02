@@ -1558,7 +1558,7 @@ function renderTable(data) {
     const tr = document.createElement('tr');
     tr.className = rowClass;
     tr.style.cursor = 'pointer';
-    tr.onclick = () => showDetails(r.ticker);
+    tr.onclick = () => showDetails(r);
 
     tr.innerHTML = `
       <td class="rank-cell" style="color:#94a3b8; font-size:0.8em;">${idx + 1}</td>
