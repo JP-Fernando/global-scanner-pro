@@ -2,6 +2,8 @@
 // MOTOR DE RIESGO PROFESIONAL (MATRIX ENGINE) - V3 FINAL
 // =====================================================
 
+import i18n from '../i18n/i18n.js';
+
 /**
  * ÁLGEBRA MATRICIAL NATIVA
  * Implementación optimizada sin dependencias externas
@@ -558,10 +560,10 @@ export const calculateCorrelationMatrix = (assets) => {
  */
 export const runStressTest = (portfolio, totalCapital) => {
   const scenarios = [
-    { name: "Corrección Menor", marketDrop: -0.05, description: "Caída típica mensual" },
-    { name: "Corrección Moderada", marketDrop: -0.10, description: "Corrección trimestral" },
-    { name: "Crash de Mercado", marketDrop: -0.20, description: "Crisis tipo COVID-19" },
-    { name: "Crisis Sistémica", marketDrop: -0.40, description: "Crisis tipo 2008" }
+    { name: i18n.t('stress_scenarios.minor_correction'), marketDrop: -0.05, description: i18n.t('stress_scenarios.minor_correction_desc') },
+    { name: i18n.t('stress_scenarios.moderate_correction'), marketDrop: -0.10, description: i18n.t('stress_scenarios.moderate_correction_desc') },
+    { name: i18n.t('stress_scenarios.market_crash'), marketDrop: -0.20, description: i18n.t('stress_scenarios.market_crash_desc') },
+    { name: i18n.t('stress_scenarios.systemic_crisis'), marketDrop: -0.40, description: i18n.t('stress_scenarios.systemic_crisis_desc') }
   ];
 
   return scenarios.map(scenario => {
@@ -634,7 +636,7 @@ export const generateRiskReport = (portfolio, totalCapital) => {
           volatility: riskiestAsset.volatility,
           weight: ((riskiestAsset.weight || 0) * 100).toFixed(2) + '%'
         },
-        concentrationRisk: topWeight > 0.20 ? 'Alta' : topWeight > 0.10 ? 'Media' : 'Baja',
+        concentrationRisk: topWeight > 0.20 ? i18n.t('risk_levels.high') : topWeight > 0.10 ? i18n.t('risk_levels.medium') : i18n.t('risk_levels.low'),
         diversificationScore: correlationData.stats.average
           ? (100 - (parseFloat(correlationData.stats.average) * 100)).toFixed(0)
           : '50'
@@ -660,7 +662,7 @@ export const generateRiskReport = (portfolio, totalCapital) => {
       stressTests: [],
       riskMetrics: {
         riskiestAsset: { ticker: 'N/A', volatility: '0', weight: '0%' },
-        concentrationRisk: 'N/A',
+        concentrationRisk: i18n.t('risk_levels.na'),
         diversificationScore: '0'
       },
       rawMatrices: { distance: [] }

@@ -1,5 +1,5 @@
 // =====================================================
-// GLOBAL QUANT SCANNER - VERSIÓN PROFESIONAL
+// GLOBAL QUANT SCANNER - PROFESSIONAL VERSION
 // =====================================================
 
 import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from './config.js';
@@ -12,6 +12,7 @@ import * as governance from '../analytics/governance.js';
 import * as backtesting from '../analytics/backtesting.js';
 import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from '../data/sectors.js';
 import { detectAnomalies } from '../data/anomalies.js';
+import i18n from '../i18n/i18n.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
@@ -20,7 +21,7 @@ let currentRegime = null;
 let lastBacktestResults = [];
 let lastBacktestInitialCapital = null;
 const dataCache = new Map();
-let isScanning = false; // Bandera de control
+let isScanning = false; // Control flag
 
 const appState = {
   scanResults: [],
@@ -55,10 +56,10 @@ const ANOMALY_THEME = {
 const SECTOR_NAMES = SECTOR_TAXONOMY.reduce((acc, sector) => {
   acc[sector.sectorId] = sector.name;
   return acc;
-}, { 999: 'Otros' }); // Añadimos el default
+}, { 999: 'Others' }); // Add default
 
 // =====================================================
-// CARGA DE DATOS
+// DATA LOADING
 // =====================================================
 
 
@@ -100,7 +101,7 @@ async function loadYahooData(ticker, suffix) {
 }
 
 // =====================================================
-// ANÁLISIS DE ACTIVO INDIVIDUAL
+// INDIVIDUAL ASSET ANALYSIS
 // =====================================================
 
 async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) {
@@ -108,10 +109,10 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
     const data = await loadYahooData(stock.ticker, suffix);
 
     if (!data || data.length < config.filters.min_days_history) {
-      return { passed: false, reason: 'Historia insuficiente' };
+      return { passed: false, reason: 'Insufficient history' };
     }
 
-    const prices = data.map(d => d.close); // indicadores
+    const prices = data.map(d => d.close); // Indicator calculations
     const pricesWithDates = data.map(d => ({
       date: d.date,
       close: d.close
@@ -168,7 +169,6 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
       name: stock.name,
       prices,
       pricesWithDates,
-      prices: prices[prices.length - 1],
       warnings: filterResult.reasons,
       price: prices[prices.length - 1],
       scoreTotal: finalScore,
@@ -190,7 +190,7 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
     };
 
   } catch (err) {
-    console.warn(`Error analizando ${stock.ticker} - ${stock.name}:`, err.message);
+    console.warn(`Error analysing ${stock.ticker} - ${stock.name}:`, err.message);
     return {
       passed: false,
       ticker: stock.ticker,
@@ -201,22 +201,22 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
 }
 
 // =====================================================
-// CARGA Y ANÁLISIS DEL BENCHMARK
+// BENCHMARK LOADING AND ANALYSIS
 // =====================================================
 
 async function loadBenchmark(suffix) {
   const benchmarkSymbol = MARKET_BENCHMARKS[suffix];
 
   if (!benchmarkSymbol) {
-    console.log('No hay benchmark definido para este mercado');
+    console.log('No benchmark defined for this market');
     return null;
   }
 
-  console.log(`Cargando benchmark: ${benchmarkSymbol}`);
+  console.log(`Loading benchmark: ${benchmarkSymbol}`);
   const data = await loadYahooData(benchmarkSymbol, '');
 
   if (!data || data.length < 252) {
-    console.warn('Datos de benchmark insuficientes');
+    console.warn('Insufficient benchmark data');
     return null;
   }
 
@@ -234,24 +234,24 @@ async function loadBenchmark(suffix) {
       prices
     };
   } catch (e) {
-    console.warn('Error calculando métricas de benchmark:', e.message);
+    console.warn('Error calculating benchmark metrics:', e.message);
     return null;
   }
 }
 
 function getRSIDescription(rsi) {
-  if (rsi >= 70) return { text: 'Sobrecompra: Riesgo de corrección', color: '#f87171', icon: '⚠️' };
-  if (rsi >= 60) return { text: 'Tendencia Alcista Saludable', color: '#fbbf24', icon: '📈' };
-  if (rsi <= 30) return { text: 'Sobreventa: Posible rebote', color: '#4ade80', icon: '🎯' };
-  if (rsi <= 40) return { text: 'Debilidad: Interés comprador bajo', color: '#60a5fa', icon: '📉' };
-  return { text: 'Régimen Neutral / Consolidación', color: '#94a3b8', icon: '⚖️' };
+  if (rsi >= 70) return { text: 'Overbought: Correction risk', color: '#f87171', icon: '⚠️' };
+  if (rsi >= 60) return { text: 'Healthy bullish trend', color: '#fbbf24', icon: '📈' };
+  if (rsi <= 30) return { text: 'Oversold: Possible bounce', color: '#4ade80', icon: '🎯' };
+  if (rsi <= 40) return { text: 'Weakness: Low buying interest', color: '#60a5fa', icon: '📉' };
+  return { text: 'Neutral regime / Consolidation', color: '#94a3b8', icon: '⚖️' };
 }
 
 function updateSectorUI(sectorStats) {
   const container = document.getElementById('sectorSummary');
   if (!container) return;
 
-  // Limpiamos y generamos tarjetas
+  // Clear and generate cards
   container.innerHTML = Object.entries(sectorStats).map(([id, stat]) => {
     const dotColor = SECTOR_COLORS[id] || SECTOR_COLORS[999];
     const sectorName = SECTOR_NAMES[id] || `Sector ${id}`;
@@ -273,7 +273,7 @@ function updateSectorUI(sectorStats) {
         </div>
 
         <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
-          <span style="color:#475569; font-size:0.75em;">${stat.count} activos</span>
+          <span style="color:#475569; font-size:0.75em;">${stat.count} assets</span>
           <div style="width:40px; height:4px; background:#334155; border-radius:2px;">
              <div style="width:${stat.avgRsi}%; height:100%; background:${dotColor}; border-radius:2px;"></div>
           </div>
@@ -285,12 +285,12 @@ function updateSectorUI(sectorStats) {
 
 
 // =====================================================
-// BACKTESTING DE ESTRATEGIAS
+// STRATEGY BACKTESTING
 // =====================================================
 
 async function loadUniverseData(file, suffix, statusNode) {
   if (statusNode) {
-    statusNode.innerText = '📦 Cargando universo para backtesting...';
+    statusNode.innerText = i18n.t('status.loading_backtest');
   }
 
   const universe = await (await fetch(file)).json();
@@ -301,7 +301,11 @@ async function loadUniverseData(file, suffix, statusNode) {
     const batch = universe.slice(i, i + BATCH_SIZE);
 
     if (statusNode) {
-      statusNode.innerText = `🔎 Descargando históricos ${i + 1}–${Math.min(i + BATCH_SIZE, universe.length)} de ${universe.length}`;
+      statusNode.innerText = i18n.t('status.downloading_historical', {
+        current: i + 1,
+        end: Math.min(i + BATCH_SIZE, universe.length),
+        total: universe.length
+      });
     }
 
     const batchResults = await Promise.all(
@@ -395,14 +399,14 @@ function renderBacktestActions() {
   // Añadimos la clase 'active' por defecto porque las secciones se muestran al cargar
   return `
     <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; align-items: center;">
-      <button class="backtest-action active" onclick="toggleSection('backtest-performance', this)">🏆 Rendimiento</button>
-      <button class="backtest-action active" onclick="toggleSection('backtest-detailed', this)">📊 Detalle</button>
-      <button class="backtest-action active" onclick="toggleSection('backtest-risk', this)">⚠️ Riesgo</button>
-      <button class="backtest-action active" onclick="toggleSection('backtest-trading', this)">💰 Trading</button>
-      <button class="backtest-action active" onclick="toggleSection('backtest-equity', this)">📈 Equity</button>
-      <button class="backtest-action active" onclick="toggleSection('backtest-drawdown', this)">📉 Drawdown</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-performance', this)">${i18n.t('backtest_section.action_performance')}</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-detailed', this)">${i18n.t('backtest_section.action_detail')}</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-risk', this)">${i18n.t('backtest_section.action_risk')}</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-trading', this)">${i18n.t('backtest_section.action_trading')}</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-equity', this)">${i18n.t('backtest_section.action_equity')}</button>
+      <button class="backtest-action active" onclick="toggleSection('backtest-drawdown', this)">${i18n.t('backtest_section.action_drawdown')}</button>
       <button class="backtest-action active" onclick="exportBacktestToCSV()">
-      ⬇️ Exportar CSV
+      ${i18n.t('backtest_section.action_export')}
       </button>
     </div>
   `;
@@ -418,7 +422,7 @@ function renderBacktestResults(results, rebalanceEvery, benchmarkReturns = null)
   if (!validResults.length) {
     container.innerHTML = `
       <div style="background: #1e293b; padding: 20px; border-radius: 10px; color: #fbbf24;">
-        No hay resultados suficientes para mostrar el backtest.
+        ${i18n.t('backtest_section.no_results')}
       </div>
     `;
     container.style.display = 'block';
@@ -465,28 +469,28 @@ function renderBacktestHeader(results, rebalanceEvery, initialCapital = lastBack
     <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #6366f1;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <div>
-          <h3 style="color: #c7d2fe; font-size: 1.5em; margin-bottom: 10px;">📈 Resultados del Backtesting</h3>
+          <h3 style="color: #c7d2fe; font-size: 1.5em; margin-bottom: 10px;">${i18n.t('backtest_section.results_title')}</h3>
           <p style="color: #94a3b8; font-size: 0.9em;">
-            Rebalanceo cada ${rebalanceEvery} días · ${results.length} estrategias evaluadas · Capital inicial: ${formatCapital(initialCapital)}
+            ${i18n.t('backtest_section.rebalance_every', { days: rebalanceEvery })} · ${i18n.t('backtest_section.strategies_evaluated', { count: results.length })} · ${i18n.t('backtest_section.initial_capital')}: ${formatCapital(initialCapital)}
           </p>
         </div>
         <div style="text-align: right;">
-          <div style="color: #94a3b8; font-size: 0.85em; margin-bottom: 5px;">Sharpe Ratio Promedio</div>
+          <div style="color: #94a3b8; font-size: 0.85em; margin-bottom: 5px;">${i18n.t('backtest_section.avg_sharpe')}</div>
           <div style="color: #10b981; font-size: 2em; font-weight: bold;">${formatNumber(avgSharpe)}</div>
         </div>
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
         <div style="background: #0f172a; padding: 15px; border-radius: 8px; text-align: center;">
-          <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">CAGR Promedio</div>
+          <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">${i18n.t('backtest_section.avg_cagr')}</div>
           <div style="color: #38bdf8; font-size: 1.3em; font-weight: bold;">${formatPct(avgCAGR, { showSign: true })}</div>
         </div>
         <div style="background: #0f172a; padding: 15px; border-radius: 8px; text-align: center;">
-          <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Mejor Estrategia</div>
+          <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">${i18n.t('backtest_section.best_strategy')}</div>
           <div style="color: #10b981; font-size: 1.1em; font-weight: bold;">${results[0]?.strategyName || 'N/A'}</div>
         </div>
         <div style="background: #0f172a; padding: 15px; border-radius: 8px; text-align: center;">
-          <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Rebalances Totales</div>
+          <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">${i18n.t('backtest_section.total_rebalances')}</div>
           <div style="color: #818cf8; font-size: 1.3em; font-weight: bold;">${results[0]?.sample || 0}</div>
         </div>
       </div>
@@ -497,28 +501,28 @@ function renderBacktestHeader(results, rebalanceEvery, initialCapital = lastBack
 function renderPerformanceComparison(results) {
   return `
     <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
-      <h4 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.2em;">🏆 Comparativa de Rendimiento</h4>
+      <h4 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.2em;">${i18n.t('backtest_performance.comparison_title')}</h4>
 
       <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr style="border-bottom: 2px solid #334155;">
-              <th style="padding: 12px; text-align: left; color: #94a3b8; font-size: 0.85em; text-transform: uppercase;">Estrategia</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Ret. Total</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">CAGR</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Sharpe</th>
+              <th style="padding: 12px; text-align: left; color: #94a3b8; font-size: 0.85em; text-transform: uppercase;">${i18n.t('backtest_performance.strategy')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_performance.total_return')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_performance.cagr')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_performance.sharpe')}</th>
               <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Calmar</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Max DD</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_performance.max_dd')}</th>
             </tr>
           </thead>
           <tbody>
             ${results.map((result, idx) => {
-              const m = result.metrics;
-              const sharpeColor = getMetricColor(m.sharpeRatio, { excellent: 1.5, good: 1.0, poor: 0.5 });
-              const calmarColor = getMetricColor(m.calmarRatio, { excellent: 1.0, good: 0.5, poor: 0.2 });
-              const isTop = idx === 0;
+    const m = result.metrics;
+    const sharpeColor = getMetricColor(m.sharpeRatio, { excellent: 1.5, good: 1.0, poor: 0.5 });
+    const calmarColor = getMetricColor(m.calmarRatio, { excellent: 1.0, good: 0.5, poor: 0.2 });
+    const isTop = idx === 0;
 
-              return `
+    return `
                 <tr style="border-bottom: 1px solid #334155; ${isTop ? 'background: rgba(16, 185, 129, 0.05);' : ''}">
                   <td style="padding: 12px; color: #f8fafc; font-weight: ${isTop ? 'bold' : 'normal'};">
                     ${isTop ? '👑 ' : ''}${result.strategyName}
@@ -544,7 +548,7 @@ function renderPerformanceComparison(results) {
                   </td>
                 </tr>
               `;
-            }).join('')}
+  }).join('')}
           </tbody>
         </table>
       </div>
@@ -555,12 +559,12 @@ function renderPerformanceComparison(results) {
 function renderDetailedMetrics(results) {
   return `
     <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
-      <h4 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.2em;">📊 Métricas Detalladas</h4>
+      <h4 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.2em;">${i18n.t('backtest_detailed.detailed_metrics_title')}</h4>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
         ${results.map(result => {
-          const m = result.metrics;
-          return `
+    const m = result.metrics;
+    return `
             <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155;">
               <h5 style="color: #38bdf8; margin-bottom: 15px; font-size: 1em; border-bottom: 2px solid #334155; padding-bottom: 10px;">
                 ${result.strategyName}
@@ -594,7 +598,7 @@ function renderDetailedMetrics(results) {
               </div>
             </div>
           `;
-        }).join('')}
+  }).join('')}
       </div>
     </div>
   `;
@@ -603,24 +607,24 @@ function renderDetailedMetrics(results) {
 function renderRiskMetrics(results) {
   return `
     <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #f43f5e;">
-      <h4 style="color: #f87171; margin-bottom: 20px; font-size: 1.2em;">⚠️ Análisis de Riesgo</h4>
+      <h4 style="color: #f87171; margin-bottom: 20px; font-size: 1.2em;">${i18n.t('backtest_detailed.risk_analysis_title')}</h4>
 
       <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr style="border-bottom: 2px solid #334155;">
-              <th style="padding: 12px; text-align: left; color: #94a3b8; font-size: 0.85em;">Estrategia</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Max DD</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Nº Drawdowns</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Recup. Promedio</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">DD Más Largo</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Vol. Anual</th>
+              <th style="padding: 12px; text-align: left; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.strategy')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.max_dd')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.num_drawdowns')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.avg_recovery')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.longest_dd')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.annual_vol')}</th>
             </tr>
           </thead>
           <tbody>
             ${results.map(result => {
-              const m = result.metrics;
-              return `
+    const m = result.metrics;
+    return `
                 <tr style="border-bottom: 1px solid #334155;">
                   <td style="padding: 12px; color: #f8fafc;">${result.strategyName}</td>
                   <td style="padding: 12px; text-align: center; color: #f87171; font-weight: bold;">
@@ -630,27 +634,26 @@ function renderRiskMetrics(results) {
                     ${m.numDrawdowns}
                   </td>
                   <td style="padding: 12px; text-align: center; color: #fbbf24;">
-                    ${Math.round(m.avgRecoveryDays)} días
+                    ${Math.round(m.avgRecoveryDays)} ${i18n.t('backtest_detailed.days')}
                   </td>
                   <td style="padding: 12px; text-align: center; color: #f87171;">
-                    ${Math.round(m.longestDrawdown)} días
+                    ${Math.round(m.longestDrawdown)} ${i18n.t('backtest_detailed.days')}
                   </td>
                   <td style="padding: 12px; text-align: center; color: #818cf8;">
                     ${formatPct(m.volatility, { showSign: false })}
                   </td>
                 </tr>
               `;
-            }).join('')}
+  }).join('')}
           </tbody>
         </table>
       </div>
 
       <div style="margin-top: 20px; padding: 15px; background: #0f172a; border-radius: 8px; border-left: 3px solid #fbbf24;">
         <div style="font-size: 0.85em; color: #94a3b8;">
-          <strong style="color: #fbbf24;">💡 Interpretación:</strong><br>
-          • <strong>Max DD:</strong> Pérdida máxima desde el pico anterior<br>
-          • <strong>Recup. Promedio:</strong> Tiempo medio para recuperar drawdowns<br>
-          • <strong>DD Más Largo:</strong> Mayor periodo sin alcanzar nuevos máximos
+          <strong style="color: #fbbf24;">${i18n.t('backtest_section.interpretation')}</strong><br>
+          ${i18n.t('backtest_section.max_dd_meaning')}<br>
+          ${i18n.t('backtest_section.avg_recovery_meaning')}
         </div>
       </div>
     </div>
@@ -660,28 +663,28 @@ function renderRiskMetrics(results) {
 function renderTradingMetrics(results) {
   return `
     <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #10b981;">
-      <h4 style="color: #10b981; margin-bottom: 20px; font-size: 1.2em;">💰 Métricas de Trading</h4>
+      <h4 style="color: #10b981; margin-bottom: 20px; font-size: 1.2em;">${i18n.t('backtest_detailed.trading_metrics_title')}</h4>
 
       <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr style="border-bottom: 2px solid #334155;">
-              <th style="padding: 12px; text-align: left; color: #94a3b8; font-size: 0.85em;">Estrategia</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Win Rate</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Profit Factor</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Avg Win</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Avg Loss</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Turnover</th>
-              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">Costos</th>
+              <th style="padding: 12px; text-align: left; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.strategy')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.win_rate')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.profit_factor')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.avg_win')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.avg_loss')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.turnover')}</th>
+              <th style="padding: 12px; text-align: center; color: #94a3b8; font-size: 0.85em;">${i18n.t('backtest_detailed.costs')}</th>
             </tr>
           </thead>
           <tbody>
             ${results.map(result => {
-              const m = result.metrics;
-              const winRateColor = getMetricColor(m.winRate, { excellent: 60, good: 50, poor: 40 });
-              const pfColor = getMetricColor(m.profitFactor, { excellent: 2.0, good: 1.5, poor: 1.0 });
+    const m = result.metrics;
+    const winRateColor = getMetricColor(m.winRate, { excellent: 60, good: 50, poor: 40 });
+    const pfColor = getMetricColor(m.profitFactor, { excellent: 2.0, good: 1.5, poor: 1.0 });
 
-              return `
+    return `
                 <tr style="border-bottom: 1px solid #334155;">
                   <td style="padding: 12px; color: #f8fafc;">${result.strategyName}</td>
                   <td style="padding: 12px; text-align: center;">
@@ -708,18 +711,18 @@ function renderTradingMetrics(results) {
                   </td>
                 </tr>
               `;
-            }).join('')}
+  }).join('')}
           </tbody>
         </table>
       </div>
 
       <div style="margin-top: 20px; padding: 15px; background: #0f172a; border-radius: 8px; border-left: 3px solid #38bdf8;">
         <div style="font-size: 0.85em; color: #94a3b8;">
-          <strong style="color: #38bdf8;">📌 Notas:</strong><br>
-          • <strong>Win Rate:</strong> % de periodos con retorno positivo<br>
-          • <strong>Profit Factor:</strong> Ratio ganancias/pérdidas (>1.5 es excelente)<br>
-          • <strong>Turnover:</strong> % de cartera rotado en cada rebalanceo<br>
-          • <strong>Costos:</strong> Comisiones + slippage estimados (0.15% por operación)
+          <strong style="color: #38bdf8;">${i18n.t('backtest_detailed.notes')}</strong><br>
+          ${i18n.t('backtest_detailed.win_rate_note')}<br>
+          ${i18n.t('backtest_detailed.profit_factor_note')}<br>
+          ${i18n.t('backtest_detailed.turnover_note')}<br>
+          ${i18n.t('backtest_detailed.costs_note')}
         </div>
       </div>
     </div>
@@ -784,135 +787,135 @@ function renderEquityCurveChart(bestStrategy, benchmarkReturns = null) {
     return `${x},${y}`;
   }).join(' ');
 
-  return `
-    <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-        <h4 style="color: #c7d2fe; font-size: 1.2em; margin: 0;">📈 Curva de Equity - ${bestStrategy.strategyName}</h4>
+    return `
+      <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+          <h4 style="color: #c7d2fe; font-size: 1.2em; margin: 0;">📈 ${i18n.t('backtest.equity_curve')} - ${bestStrategy.strategyName}</h4>
+          ${alignedBenchmark ? `
+            <div style="background: ${outperformanceColor}20; padding: 8px 16px; border-radius: 8px; border: 2px solid ${outperformanceColor};">
+              <span style="color: #94a3b8; font-size: 0.85em; margin-right: 8px;">${i18n.t('backtest.benchmark')}:</span>
+              <span style="color: ${outperformanceColor}; font-weight: bold; font-size: 1.1em;">
+                ${outperformance >= 0 ? '+' : ''}${formatNumber(outperformance)}%
+              </span>
+            </div>
+          ` : ''}
+        </div>
+
         ${alignedBenchmark ? `
-          <div style="background: ${outperformanceColor}20; padding: 8px 16px; border-radius: 8px; border: 2px solid ${outperformanceColor};">
-            <span style="color: #94a3b8; font-size: 0.85em; margin-right: 8px;">vs Benchmark:</span>
-            <span style="color: ${outperformanceColor}; font-weight: bold; font-size: 1.1em;">
-              ${outperformance >= 0 ? '+' : ''}${formatNumber(outperformance)}%
-            </span>
+          <div style="display: flex; gap: 20px; margin-bottom: 15px; font-size: 0.9em;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 20px; height: 3px; background: #10b981; border-radius: 2px;"></div>
+              <span style="color: #94a3b8;">${i18n.t('backtest.strategy')}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 20px; height: 3px; background: #818cf8; border-radius: 2px; opacity: 0.7;"></div>
+              <span style="color: #94a3b8;">Benchmark</span>
+            </div>
           </div>
         ` : ''}
-      </div>
 
-      ${alignedBenchmark ? `
-        <div style="display: flex; gap: 20px; margin-bottom: 15px; font-size: 0.9em;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 20px; height: 3px; background: #10b981; border-radius: 2px;"></div>
-            <span style="color: #94a3b8;">Estrategia</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 20px; height: 3px; background: #818cf8; border-radius: 2px; opacity: 0.7;"></div>
-            <span style="color: #94a3b8;">Benchmark</span>
-          </div>
-        </div>
-      ` : ''}
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; position: relative;">
+          <svg class="equity-chart" viewBox="0 0 100 ${chartHeight}" style="width: 100%; height: ${chartHeight}px; overflow: visible;">
+            ${[0, 25, 50, 75, 100].map(y => `
+              <line x1="0" y1="${y * chartHeight / 100}" x2="100" y2="${y * chartHeight / 100}"
+                    stroke="#334155" stroke-width="0.2" stroke-dasharray="1,1"/>
+            `).join('')}
 
-      <div style="background: #0f172a; padding: 20px; border-radius: 8px; position: relative;">
-        <svg class="equity-chart" viewBox="0 0 100 ${chartHeight}" style="width: 100%; height: ${chartHeight}px; overflow: visible;">
-          ${[0, 25, 50, 75, 100].map(y => `
-            <line x1="0" y1="${y * chartHeight / 100}" x2="100" y2="${y * chartHeight / 100}"
-                  stroke="#334155" stroke-width="0.2" stroke-dasharray="1,1"/>
-          `).join('')}
+            <polygon points="0,${chartHeight} ${strategyPoints} 100,${chartHeight}"
+                     fill="url(#strategyGradient)" opacity="0.3"/>
 
-          <polygon points="0,${chartHeight} ${strategyPoints} 100,${chartHeight}"
-                   fill="url(#strategyGradient)" opacity="0.3"/>
+            ${alignedBenchmark ? `
+              <polyline points="${benchmarkPoints}"
+                        fill="none"
+                        stroke="#818cf8"
+                        stroke-width="0.5"
+                        stroke-dasharray="2,2"
+                        opacity="0.7"
+                        vector-effect="non-scaling-stroke"/>
+            ` : ''}
 
-          ${alignedBenchmark ? `
-            <polyline points="${benchmarkPoints}"
+            <polyline points="${strategyPoints}"
                       fill="none"
-                      stroke="#818cf8"
-                      stroke-width="0.5"
-                      stroke-dasharray="2,2"
-                      opacity="0.7"
+                      stroke="#10b981"
+                      stroke-width="0.7"
                       vector-effect="non-scaling-stroke"/>
-          ` : ''}
 
-          <polyline points="${strategyPoints}"
-                    fill="none"
-                    stroke="#10b981"
-                    stroke-width="0.7"
-                    vector-effect="non-scaling-stroke"/>
+            <defs>
+              <linearGradient id="strategyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8" />
+                <stop offset="100%" style="stop-color:#10b981;stop-opacity:0" />
+              </linearGradient>
+            </defs>
+          </svg>
 
-          <defs>
-            <linearGradient id="strategyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8" />
-              <stop offset="100%" style="stop-color:#10b981;stop-opacity:0" />
-            </linearGradient>
-          </defs>
-        </svg>
-
-        <div style="display: grid; grid-template-columns: ${alignedBenchmark ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 15px; margin-top: 15px; font-size: 0.85em;">
-          <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
-            <div style="color: #94a3b8; margin-bottom: 5px;">Estrategia</div>
-            <div style="color: #10b981; font-weight: bold; font-size: 1.2em;">
-              ${formatPct((strategyFinal - 1) * 100, { showSign: true })}
-            </div>
-          </div>
-
-          ${alignedBenchmark ? `
+          <div style="display: grid; grid-template-columns: ${alignedBenchmark ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 15px; margin-top: 15px; font-size: 0.85em;">
             <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
-              <div style="color: #94a3b8; margin-bottom: 5px;">Benchmark</div>
-              <div style="color: #818cf8; font-weight: bold; font-size: 1.2em;">
-                ${formatPct((benchmarkFinal - 1) * 100, { showSign: true })}
-              </div>
-            </div>
-
-            <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
-              <div style="color: #94a3b8; margin-bottom: 5px;">Diferencia</div>
-              <div style="color: ${outperformanceColor}; font-weight: bold; font-size: 1.2em;">
-                ${outperformance >= 0 ? '+' : ''}${formatNumber(outperformance)}%
-              </div>
-            </div>
-          ` : `
-            <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
-              <div style="color: #94a3b8; margin-bottom: 5px;">Retorno Total</div>
+              <div style="color: #94a3b8; margin-bottom: 5px;">${i18n.t('backtest.strategy')}</div>
               <div style="color: #10b981; font-weight: bold; font-size: 1.2em;">
                 ${formatPct((strategyFinal - 1) * 100, { showSign: true })}
               </div>
             </div>
-          `}
-        </div>
-      </div>
 
-      <div style="background: #0f172a; padding: 20px; border-radius: 8px; margin-top: 15px;">
-        <h5 style="color: #f87171; margin-bottom: 10px; font-size: 0.9em;">📉 Drawdown de la Estrategia (%)</h5>
-        <svg viewBox="0 0 100 60" style="width: 100%; height: 60px;">
-          <polyline points="${drawdownPoints}"
-                    fill="rgba(248, 113, 113, 0.2)"
-                    stroke="#f87171"
-                    stroke-width="0.5"/>
-        </svg>
-      </div>
+            ${alignedBenchmark ? `
+              <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
+                <div style="color: #94a3b8; margin-bottom: 5px;">Benchmark</div>
+                <div style="color: #818cf8; font-weight: bold; font-size: 1.2em;">
+                  ${formatPct((benchmarkFinal - 1) * 100, { showSign: true })}
+                </div>
+              </div>
 
-      ${alignedBenchmark ? `
-        <div style="margin-top: 15px; padding: 15px; background: #0f172a; border-radius: 8px; border-left: 3px solid #38bdf8;">
-          <div style="font-size: 0.85em; color: #94a3b8;">
-            <strong style="color: #38bdf8;">💡 Interpretación:</strong><br>
-            ${outperformance > 0
-              ? `La estrategia <strong style="color: #10b981;">superó al benchmark</strong> en ${formatNumber(outperformance)}%. Esto indica que la selección activa de activos añadió valor respecto a mantener el índice.`
-              : `La estrategia <strong style="color: #f87171;">quedó por debajo del benchmark</strong> en ${formatNumber(Math.abs(outperformance))}%. Considera revisar los parámetros o usar gestión pasiva.`
-            }
+              <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
+                <div style="color: #94a3b8; margin-bottom: 5px;">${i18n.t('backtest.difference')}</div>
+                <div style="color: ${outperformanceColor}; font-weight: bold; font-size: 1.2em;">
+                  ${outperformance >= 0 ? '+' : ''}${formatNumber(outperformance)}%
+                </div>
+              </div>
+            ` : `
+              <div style="text-align: center; padding: 10px; background: #1e293b; border-radius: 6px;">
+                <div style="color: #94a3b8; margin-bottom: 5px;">${i18n.t('backtest_performance.total_return')}</div>
+                <div style="color: #10b981; font-weight: bold; font-size: 1.2em;">
+                  ${formatPct((strategyFinal - 1) * 100, { showSign: true })}
+                </div>
+              </div>
+            `}
           </div>
         </div>
-      ` : ''}
-    </div>
-  `;
-}
+
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; margin-top: 15px;">
+          <h5 style="color: #f87171; margin-bottom: 10px; font-size: 0.9em;">📉 % Drawdown</h5>
+          <svg viewBox="0 0 100 60" style="width: 100%; height: 60px;">
+            <polyline points="${drawdownPoints}"
+                      fill="rgba(248, 113, 113, 0.2)"
+                      stroke="#f87171"
+                      stroke-width="0.5"/>
+          </svg>
+        </div>
+
+        ${alignedBenchmark ? `
+          <div style="margin-top: 15px; padding: 15px; background: #0f172a; border-radius: 8px; border-left: 3px solid #38bdf8;">
+            <div style="font-size: 0.85em; color: #94a3b8;">
+              <strong style="color: #38bdf8;">${i18n.t('backtest_section.interpretation')}:</strong><br>
+              ${outperformance > 0
+          ? `${i18n.t('backtest_section.outperformed_benchmark', { value: formatNumber(outperformance) })}`
+          : `${i18n.t('backtest_section.underperformed_benchmark', { value: formatNumber(Math.abs(outperformance)) })}`
+        }
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
 
 function renderDrawdownAnalysis(results) {
   return `
     <div style="background: #1e293b; padding: 25px; border-radius: 12px; border-left: 4px solid #fbbf24;">
-      <h4 style="color: #fbbf24; margin-bottom: 20px; font-size: 1.2em;">📉 Análisis de Drawdowns Profundo</h4>
+      <h4 style="color: #fbbf24; margin-bottom: 20px; font-size: 1.2em;">${i18n.t('backtest_detailed.drawdown_analysis_title')}</h4>
 
       ${results.map(result => {
-        const m = result.metrics;
-        const avgDD = m.maxDrawdown / (m.numDrawdowns || 1);
+    const m = result.metrics;
+    const avgDD = m.maxDrawdown / (m.numDrawdowns || 1);
 
-        return `
+    return `
           <div style="background: #0f172a; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #334155;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
               <h5 style="color: #f8fafc; font-size: 1em;">${result.strategyName}</h5>
@@ -923,30 +926,30 @@ function renderDrawdownAnalysis(results) {
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
               <div style="text-align: center;">
-                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">DD Promedio</div>
+                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">${i18n.t('backtest_detailed.avg_dd')}</div>
                 <div style="color: #fbbf24; font-size: 1.2em; font-weight: bold;">${formatPct(avgDD, { showSign: false })}</div>
               </div>
 
               <div style="text-align: center;">
-                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Total DDs</div>
+                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">${i18n.t('backtest_detailed.total_dds')}</div>
                 <div style="color: #818cf8; font-size: 1.2em; font-weight: bold;">${m.numDrawdowns}</div>
               </div>
 
               <div style="text-align: center;">
-                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Recup. Promedio</div>
+                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">${i18n.t('backtest_detailed.avg_recovery')}</div>
                 <div style="color: #10b981; font-size: 1.2em; font-weight: bold;">${Math.round(m.avgRecoveryDays)}d</div>
               </div>
 
               <div style="text-align: center;">
-                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">Peor Recup.</div>
+                <div style="color: #94a3b8; font-size: 0.8em; margin-bottom: 5px;">${i18n.t('backtest_detailed.worst_recovery')}</div>
                 <div style="color: #f87171; font-size: 1.2em; font-weight: bold;">${Math.round(m.longestDrawdown)}d</div>
               </div>
             </div>
 
             <div style="margin-top: 15px;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.8em; color: #94a3b8;">
-                <span>Tiempo en drawdown</span>
-                <span>${formatNumber((m.longestDrawdown / 252) * 100)}% del tiempo</span>
+                <span>${i18n.t('backtest_detailed.time_in_drawdown')}</span>
+                <span>${formatNumber((m.longestDrawdown / 252) * 100)}${i18n.t('backtest_detailed.of_time')}</span>
               </div>
               <div style="height: 8px; background: #334155; border-radius: 4px; overflow: hidden;">
                 <div style="height: 100%; width: ${Math.min(100, (m.longestDrawdown / 252) * 100)}%; background: linear-gradient(90deg, #f87171, #fbbf24); border-radius: 4px;"></div>
@@ -954,7 +957,7 @@ function renderDrawdownAnalysis(results) {
             </div>
           </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 }
@@ -973,11 +976,11 @@ window.runBacktest = async function () {
   const status = document.getElementById('backtestStatus');
 
   if (!file) {
-    showInlineError('Selecciona un mercado antes de ejecutar el backtest');
+    showInlineError(i18n.t('errors.select_market_first'));
     return;
   }
 
-  status.innerText = '⏳ Preparando backtest...';
+  status.innerText = i18n.t('status.preparing_backtest');
 
   try {
     const universeData = await loadUniverseData(file, suffix, status);
@@ -985,7 +988,7 @@ window.runBacktest = async function () {
     const benchmarkPrices = benchmark?.prices ?? null;
 
     if (!universeData.length) {
-      status.innerText = '⚠️ No se pudieron cargar datos históricos para el universo';
+      status.innerText = i18n.t('errors.no_historical_data');
       return;
     }
 
@@ -993,7 +996,7 @@ window.runBacktest = async function () {
     const strategies = Object.entries(STRATEGY_PROFILES);
 
     for (const [strategyKey, strategyConfig] of strategies) {
-      status.innerText = `🧪 Backtest ${strategyConfig.name}...`;
+      status.innerText = i18n.t('status.backtest_strategy', { strategy: strategyConfig.name });
       const result = backtesting.runStrategyBacktest({
         strategyKey,
         strategyConfig,
@@ -1008,21 +1011,21 @@ window.runBacktest = async function () {
       await sleep(20);
     }
 
-    status.innerText = '✅ Backtest completado';
+    status.innerText = i18n.t('status.backtest_completed');
     renderBacktestResults(results, rebalanceEvery);
   } catch (err) {
     console.error('Error en backtest:', err);
-    status.innerText = `❌ Error en backtest: ${err.message}`;
+    status.innerText = i18n.t('errors.backtest_failed') + ': ' + err.message;
   }
 };
 
 
 // =====================================================
-// ESCANEO PRINCIPAL
+// MAIN SCANNING
 // =====================================================
 
 export async function runScan() {
-  // 1. Evitar ejecución doble si ya está corriendo
+  // 1. Prevent double execution if already running
   if (isScanning) return;
 
   const btnScan = document.getElementById('btnRunScan');
@@ -1032,7 +1035,7 @@ export async function runScan() {
     isScanning = true;
     if (btnScan) {
       btnScan.disabled = true;
-      btnScan.innerText = '⏳ Escaneando...';
+      btnScan.innerText = i18n.t('status.scanning');
       btnScan.style.opacity = '0.7';
       btnScan.style.cursor = 'wait';
     }
@@ -1050,12 +1053,12 @@ export async function runScan() {
     currentResults = []; // Limpiar array de memoria
     filterInfo.innerHTML = '';
 
-    status.innerText = '⏳ Iniciando escaneo...';
+    status.innerText = i18n.t('status.initializing');
 
-    status.innerText = '📊 Cargando benchmark...';
+    status.innerText = i18n.t('status.loading_benchmark');
     benchmarkData = await loadBenchmark(suffix);
 
-    status.innerText = '📦 Cargando universo...';
+    status.innerText = i18n.t('status.loading_universe');
     const universe = await (await fetch(file)).json();
 
     let analyzed = 0;
@@ -1066,7 +1069,10 @@ export async function runScan() {
     for (let i = 0; i < universe.length; i += BATCH_SIZE) {
       const batch = universe.slice(i, i + BATCH_SIZE);
 
-      status.innerText = `🔎 Analizando activos ${i + 1}–${Math.min(i + BATCH_SIZE, universe.length)} de ${universe.length} | ✓ ${analyzed} | ✖ ${filtered}`;
+      status.innerText = i18n.t('status.analyzing', {
+        current: i + 1,
+        total: universe.length
+      }) + ` | ✓ ${analyzed} | ✖ ${filtered}`;
 
       const batchResults = await Promise.all(
         batch.map(stock =>
@@ -1135,8 +1141,11 @@ export async function runScan() {
     renderTable(currentResults);
     updateSectorUI(finalStats);
 
-    status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
-    filterInfo.innerHTML = `✅ ${analyzed} aprobados | ❌ ${filtered} filtrados`;
+    status.innerText = i18n.t('status.scan_complete', { count: analyzed });
+    filterInfo.innerHTML = i18n.t('filters.info', {
+      approved: analyzed,
+      filtered: filtered
+    });
 
     appState.scanResults = currentResults;
     appState.market = { file, suffix };
@@ -1153,29 +1162,29 @@ export async function runScan() {
     }
 
     if (!canBuildPortfolio) {
-      showInlineError('No hay suficientes activos con histórico para construir cartera');
+      showInlineError(i18n.t('errors.insufficient_assets_portfolio'));
     }
 
     // Detección de régimen
     if (benchmarkData && benchmarkData.symbol) {
-       // ... (Código de régimen existente se mantiene igual) ...
-       // (Mantenemos tu lógica existente para brevity, pero dentro del try)
-       try {
-        status.innerText = '🔍 Detectando régimen de mercado...';
+      // ... (Código de régimen existente se mantiene igual) ...
+      // (Mantenemos tu lógica existente para brevity, pero dentro del try)
+      try {
+        status.innerText = i18n.t('status.detecting_regime');
         const benchmarkFullData = await loadYahooData(benchmarkData.symbol, '');
         if (!benchmarkFullData || benchmarkFullData.length === 0) {
-            console.warn('No se pudieron cargar datos completos del benchmark para régimen');
+          console.warn('No se pudieron cargar datos completos del benchmark para régimen');
         } else {
-            const benchmarkPrices = benchmarkFullData.map(d => ({ date: d.date, close: d.close }));
-            if (benchmarkPrices.length >= 200) {
-                currentRegime = regime.detectMarketRegime(benchmarkPrices, currentResults);
-                appState.regime = currentRegime;
-                renderRegimeIndicator(currentRegime);
-                console.log('📊 Régimen detectado:', currentRegime);
-            }
+          const benchmarkPrices = benchmarkFullData.map(d => ({ date: d.date, close: d.close }));
+          if (benchmarkPrices.length >= 200) {
+            currentRegime = regime.detectMarketRegime(benchmarkPrices, currentResults);
+            appState.regime = currentRegime;
+            renderRegimeIndicator(currentRegime);
+            console.log('📊 Régimen detectado:', currentRegime);
+          }
         }
-       } catch(e) { console.error(e); }
-       status.innerText = `✅ Escaneo completado. ${analyzed} activos encontrados.`;
+      } catch (e) { console.error(e); }
+      status.innerText = i18n.t('status.scan_complete', { count: analyzed });
     }
 
     const portfolioSection = document.getElementById('portfolioSection');
@@ -1189,13 +1198,13 @@ export async function runScan() {
 
   } catch (error) {
     console.error("Error crítico en escaneo:", error);
-    status.innerText = "❌ Error crítico durante el escaneo.";
+    status.innerText = i18n.t('errors.scan_failed');
   } finally {
     // 4. Restaurar botón y estado al finalizar (incluso si hubo error)
     isScanning = false;
     if (btnScan) {
       btnScan.disabled = false;
-      btnScan.innerText = '🚀 Ejecutar Análisis';
+      btnScan.innerText = i18n.t('buttons.runScan');
       btnScan.style.opacity = '1';
       btnScan.style.cursor = 'pointer';
     }
@@ -1203,7 +1212,7 @@ export async function runScan() {
 }
 
 // =====================================================
-// CONSTRUCCIÓN DE CARTERA
+// PORTFOLIO CONSTRUCTION
 // =====================================================
 
 window.buildPortfolio = function () {
@@ -1293,7 +1302,7 @@ window.buildPortfolio = function () {
       ? enrichedAllocation.filter(a => !invalidAssets.includes(a))
       : enrichedAllocation;
 
-      // 5. Generar reporte de riesgo completo
+    // 5. Generar reporte de riesgo completo
     const riskReport = risk.generateRiskReport(finalAllocation, totalCapital);
 
     // Meta-información UI (NO cuant)
@@ -1331,7 +1340,7 @@ window.buildPortfolio = function () {
 };
 
 // =====================================================
-// RENDERIZADO DE CARTERA
+// PORTFOLIO RENDERING
 // =====================================================
 
 function renderPortfolio(portfolio) {
@@ -1351,12 +1360,12 @@ function renderPortfolio(portfolio) {
 function renderRiskSummary(risk) {
   return `
     <div class="portfolio-summary">
-      <h3>📊 Resumen de Cartera</h3>
+      <h3>${i18n.t('portfolio_section.summary_title')}</h3>
       <div class="risk-metrics">
-        ${riskCard('Volatilidad Cartera', `${risk.portfolioVolatility}%`)}
-        ${riskCard('Ratio Diversificación', `${risk.diversificationRatio}x`)}
-        ${riskCard('Nº Efectivo Activos', risk.effectiveNAssets)}
-        ${riskCard('Max DD Estimado', `${risk.estimatedMaxDD}%`)}
+        ${riskCard(i18n.t('portfolio_section.portfolio_volatility'), `${risk.portfolioVolatility}%`)}
+        ${riskCard(i18n.t('portfolio_section.diversification_ratio'), `${risk.diversificationRatio}x`)}
+        ${riskCard(i18n.t('portfolio_section.effective_n_assets'), risk.effectiveNAssets)}
+        ${riskCard(i18n.t('portfolio_section.estimated_max_dd'), `${risk.estimatedMaxDD}%`)}
       </div>
     </div>
   `;
@@ -1374,61 +1383,61 @@ function riskCard(label, value) {
 function renderAdvancedRiskDashboard(riskReport) {
   return `
     <div class="risk-dashboard-container">
-      <h3>🧩 Análisis Avanzado de Riesgo</h3>
+      <h3>${i18n.t('portfolio_section.advanced_risk_title')}</h3>
 
       ${riskReport.meta?.degraded ? `
         <div class="small-text" style="margin-bottom: 15px; color: #fbbf24;">
-          ⚠️ Análisis de riesgo realizado con universo reducido.
-          Activos excluidos: ${riskReport.meta.excludedAssets.join(', ')}
+          ${i18n.t('portfolio_section.degraded_warning')}
+          ${i18n.t('portfolio_section.excluded_assets')}: ${riskReport.meta.excludedAssets.join(', ')}
         </div>
       ` : ''}
 
       <div class="risk-grid-layout">
         <div class="risk-panel-dark">
-          <h4>📉 Value at Risk (VaR 95%)</h4>
+          <h4>${i18n.t('portfolio_section.var_title')}</h4>
           <div style="font-size: 2em; color: #f43f5e; font-weight: bold; margin: 15px 0;">
             -€${riskReport.portfolioVaR.diversifiedVaR}
           </div>
           <div class="small-text">
-            Pérdida máxima esperada en el 95% de días<br>
-            <strong>Sin diversificar:</strong> -€${riskReport.portfolioVaR.undiversifiedVaR}<br>
-            <strong>Beneficio diversificación:</strong> ${riskReport.portfolioVaR.diversificationBenefit}%
+            ${i18n.t('portfolio_section.max_loss_expected')}<br>
+            <strong>${i18n.t('portfolio_section.undiversified')}:</strong> -€${riskReport.portfolioVaR.undiversifiedVaR}<br>
+            <strong>${i18n.t('portfolio_section.diversification_benefit')}:</strong> ${riskReport.portfolioVaR.diversificationBenefit}%
           </div>
         </div>
 
         <div class="risk-panel-dark">
-          <h4>⚠️ Activo Más Arriesgado</h4>
+          <h4>${i18n.t('portfolio_section.riskiest_asset_title')}</h4>
           <div style="font-size: 1.5em; color: #fbbf24; font-weight: bold; margin: 15px 0;">
             ${riskReport.riskMetrics?.riskiestAsset?.ticker || 'N/A'} (${riskReport.riskMetrics?.riskiestAsset?.name})
           </div>
           <div class="small-text">
-            <strong>Volatilidad:</strong> ${riskReport.riskMetrics.riskiestAsset.volatility}%<br>
-            <strong>Peso en cartera:</strong> ${riskReport.riskMetrics.riskiestAsset.weight}<br>
-            <strong>Riesgo concentración:</strong> ${riskReport.riskMetrics.concentrationRisk}
+            <strong>${i18n.t('modal.volatility')}:</strong> ${riskReport.riskMetrics.riskiestAsset.volatility}%<br>
+            <strong>${i18n.t('portfolio_section.portfolio_weight')}:</strong> ${riskReport.riskMetrics.riskiestAsset.weight}<br>
+            <strong>${i18n.t('portfolio_section.concentration_risk')}:</strong> ${riskReport.riskMetrics.concentrationRisk}
           </div>
         </div>
       </div>
 
       <div style="margin-top: 20px;">
-        <h4>🔥 Matriz de Correlaciones</h4>
+        <h4>${i18n.t('portfolio_section.correlation_matrix')}</h4>
         ${renderHeatmap(riskReport.correlationData.matrix)}
         <div class="small-text" style="margin-top: 10px;">
-          <strong>Correlación promedio:</strong> ${riskReport.correlationData.stats.average} |
-          <strong>Máxima:</strong> ${riskReport.correlationData.stats.max} |
-          <strong>Score diversificación:</strong> ${riskReport.riskMetrics.diversificationScore}/100
+          <strong>${i18n.t('portfolio_section.avg_correlation')}:</strong> ${riskReport.correlationData.stats.average} |
+          <strong>${i18n.t('portfolio_section.max_correlation')}:</strong> ${riskReport.correlationData.stats.max} |
+          <strong>${i18n.t('portfolio_section.diversification_score')}:</strong> ${riskReport.riskMetrics.diversificationScore}/100
         </div>
       </div>
 
       <div style="margin-top: 20px;">
-        <h4>🌪️ Stress Test</h4>
+        <h4>${i18n.t('portfolio_section.stress_test_title')}</h4>
         <table class="stress-table">
           <thead>
             <tr>
-              <th>Escenario</th>
-              <th>Mercado</th>
-              <th>Tu Pérdida</th>
-              <th>% Cartera</th>
-              <th>Capital Restante</th>
+              <th>${i18n.t('portfolio_section.scenario')}</th>
+              <th>${i18n.t('portfolio_section.market')}</th>
+              <th>${i18n.t('portfolio_section.your_loss')}</th>
+              <th>${i18n.t('portfolio_section.portfolio_pct')}</th>
+              <th>${i18n.t('portfolio_section.remaining_capital')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1478,16 +1487,16 @@ function renderHeatmap(matrix) {
 function renderAllocationTable(allocation) {
   return `
     <div class="portfolio-table-container">
-      <h3>💼 Asignación de Capital (${allocation.length} activos)</h3>
+      <h3>${i18n.t('portfolio_section.allocation_table_title')} (${allocation.length} ${i18n.t('portfolio_section.top_n_assets').toLowerCase()})</h3>
       <table class="portfolio-table">
         <thead>
           <tr>
-            <th>Ticker</th>
-            <th>Nombre</th>
-            <th>Peso %</th>
-            <th>Capital €</th>
-            <th>Score</th>
-            <th>Volatilidad</th>
+            <th>${i18n.t('table.ticker')}</th>
+            <th>${i18n.t('table.name')}</th>
+            <th>${i18n.t('table.weight')}</th>
+            <th>${i18n.t('table.capital')}</th>
+            <th>${i18n.t('table.score')}</th>
+            <th>${i18n.t('modal.volatility')}</th>
           </tr>
         </thead>
         <tbody>
@@ -1513,11 +1522,11 @@ function renderWeightChart(allocation) {
 
   return `
     <div class="portfolio-chart">
-      <h3>📈 Distribución de Pesos (Top 10)</h3>
+      <h3>${i18n.t('portfolio_section.weight_chart_title')} (Top 10)</h3>
       <div class="weight-bars">
         ${top.map(a => {
-          const width = (parseFloat(a.weight_pct) / maxWeight) * 100;
-          return `
+    const width = (parseFloat(a.weight_pct) / maxWeight) * 100;
+    return `
             <div class="weight-bar-container">
               <div class="weight-bar-label">${a.ticker}</div>
               <div class="weight-bar-wrapper">
@@ -1526,14 +1535,14 @@ function renderWeightChart(allocation) {
               </div>
             </div>
           `;
-        }).join('')}
+  }).join('')}
       </div>
     </div>
   `;
 }
 
 // =====================================================
-// RENDERIZADO DE TABLA
+// TABLE RENDERING
 // =====================================================
 
 function renderTable(data) {
@@ -1568,7 +1577,7 @@ function renderTable(data) {
       <td class="name-cell">
         <div style="font-weight: 600; color: #f8fafc; margin-bottom: 2px;">${r.name}</div>
         <div style="font-size: 0.7em; color: #94a3b8; text-transform: uppercase; display: flex; align-items: center; gap: 4px;">
-           <span style="color: ${dotColor}; font-size: 1.2em;">•</span> ${r.sectorRaw || 'No clasificado'}
+           <span style="color: ${dotColor}; font-size: 1.2em;">•</span> ${r.sectorRaw || i18n.t('table.no_classification')}
         </div>
         </td>
         <td>${renderScorePill(displayScore)}</td>
@@ -1577,8 +1586,8 @@ function renderTable(data) {
         x${Number(r.vRatio || 1).toFixed(2)}
         </span>
         ${r.anomalyMetrics?.volumeZScore > 3 ?
-          `<span style="cursor:help" title="Volumen inusual (Z-Score: ${r.anomalyMetrics.volumeZScore.toFixed(2)})">🔥</span>`
-          : ''}
+        `<span style="cursor:help" title="${i18n.t('table.unusual_volume', { zscore: r.anomalyMetrics.volumeZScore.toFixed(2) })}">🔥</span>`
+        : ''}
       </td>
       <td>
         <div class="signal-badge" style="background: ${r.signal.color}20; color: ${r.signal.color}; border: 1px solid ${r.signal.color}; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; display: inline-block;">
@@ -1615,23 +1624,23 @@ function renderRegimeIndicator(regimeData) {
       <div style="font-size: 2em;">${regimeData.emoji}</div>
       <div style="flex: 1;">
         <div style="font-weight: bold; color: ${regimeData.color}; font-size: 1.1em; margin-bottom: 5px;">
-          Régimen de Mercado: ${regimeData.name}
+          ${i18n.t('regime_indicator.market_regime')}: ${regimeData.name}
         </div>
         <div style="font-size: 0.85em; color: #94a3b8;">
           ${regimeData.description}
         </div>
         <div style="margin-top: 8px; font-size: 0.8em; color: #64748b;">
-          <strong>Confianza:</strong> ${confidencePct}% |
-          <strong>Tendencia:</strong> ${regimeData.benchmarkAnalysis.details.trendDescription} |
-          <strong>Volatilidad:</strong> ${regimeData.benchmarkAnalysis.details.volDescription}
-          ${regimeData.breadthAnalysis ? ` | <strong>Amplitud:</strong> ${regimeData.breadthAnalysis.breadth}% (${regimeData.breadthAnalysis.description})` : ''}
+          <strong>${i18n.t('regime_indicator.confidence')}:</strong> ${confidencePct}% |
+          <strong>${i18n.t('regime_indicator.trend')}:</strong> ${regimeData.benchmarkAnalysis.details.trendDescription} |
+          <strong>${i18n.t('regime_indicator.volatility')}:</strong> ${regimeData.benchmarkAnalysis.details.volDescription}
+          ${regimeData.breadthAnalysis ? ` | <strong>${i18n.t('regime_indicator.breadth')}:</strong> ${regimeData.breadthAnalysis.breadth}% (${regimeData.breadthAnalysis.description})` : ''}
         </div>
       </div>
       <button
         onclick="showRegimeDetails()"
         style="padding: 8px 16px; background: ${regimeData.color}; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85em; white-space: nowrap;"
       >
-        Ver Detalles
+        ${i18n.t('regime_indicator.view_details')}
       </button>
     </div>
   `;
@@ -1737,12 +1746,12 @@ function showDetails(result) {
 function renderGovernanceReport(governanceReport, complianceCheck) {
   const hasViolations = !complianceCheck.compliant;
   const statusColor = hasViolations ? '#f43f5e' : '#10b981';
-  const statusText = hasViolations ? 'CON ALERTAS' : 'COMPLIANT';
+  const statusText = hasViolations ? i18n.t('governance.status_with_alerts') : i18n.t('governance.status_compliant');
 
   return `
     <div class="governance-report" style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 30px; border-left: 4px solid ${statusColor};">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="color: ${statusColor}; margin: 0;">🏛️ Reporte de Gobernanza</h3>
+        <h3 style="color: ${statusColor}; margin: 0;">${i18n.t('governance.title')}</h3>
         <span style="padding: 8px 16px; background: ${statusColor}20; color: ${statusColor}; border-radius: 6px; font-weight: bold; font-size: 0.9em;">
           ${statusText}
         </span>
@@ -1750,51 +1759,51 @@ function renderGovernanceReport(governanceReport, complianceCheck) {
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
         <div style="background: #0f172a; padding: 15px; border-radius: 8px;">
-          <h4 style="color: #94a3b8; font-size: 0.9em; margin-bottom: 10px;">ESTRATEGIA</h4>
+          <h4 style="color: #94a3b8; font-size: 0.9em; margin-bottom: 10px;">${i18n.t('governance.strategy_title')}</h4>
           <div style="color: #f8fafc; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">
             ${governanceReport.strategy.name}
           </div>
           <div style="color: #64748b; font-size: 0.85em;">
-            Perfil: ${governanceReport.strategy.profile}
+            ${i18n.t('governance.profile_label')}: ${governanceReport.strategy.profile}
           </div>
         </div>
 
         <div style="background: #0f172a; padding: 15px; border-radius: 8px;">
-          <h4 style="color: #94a3b8; font-size: 0.9em; margin-bottom: 10px;">RESUMEN DE CARTERA</h4>
+          <h4 style="color: #94a3b8; font-size: 0.9em; margin-bottom: 10px;">${i18n.t('governance.portfolio_summary_title')}</h4>
           <div style="color: #f8fafc; font-size: 0.9em;">
-            <div>Activos: <strong>${governanceReport.portfolio_summary.n_assets}</strong></div>
-            <div>Posición máx: <strong>${(parseFloat(governanceReport.portfolio_summary.max_position) * 100).toFixed(2)}%</strong></div>
-            <div>Top 3: <strong>${(parseFloat(governanceReport.portfolio_summary.top3_concentration) * 100).toFixed(2)}%</strong></div>
+            <div>${i18n.t('governance.assets_label')}: <strong>${governanceReport.portfolio_summary.n_assets}</strong></div>
+            <div>${i18n.t('governance.max_position_label')}: <strong>${(parseFloat(governanceReport.portfolio_summary.max_position) * 100).toFixed(2)}%</strong></div>
+            <div>${i18n.t('governance.top3_concentration_label')}: <strong>${(parseFloat(governanceReport.portfolio_summary.top3_concentration) * 100).toFixed(2)}%</strong></div>
           </div>
         </div>
       </div>
 
       ${hasViolations ? `
         <div style="background: rgba(244, 63, 94, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #f43f5e;">
-          <h4 style="color: #f43f5e; margin-bottom: 10px;">⚠️ Violaciones Detectadas (${complianceCheck.violations.length})</h4>
+          <h4 style="color: #f43f5e; margin-bottom: 10px;">${i18n.t('governance.violations_count', { count: complianceCheck.violations.length })}</h4>
           <ul style="list-style: none; padding: 0; margin: 0;">
             ${complianceCheck.violations.map(v => `
               <li style="padding: 8px 0; border-bottom: 1px solid rgba(244, 63, 94, 0.2); color: #f8fafc; font-size: 0.9em;">
-                <strong>${v.asset || 'Cartera'}</strong>: ${v.message}
+                <strong>${v.asset || i18n.t('governance.portfolio_label')}</strong>: ${v.message}
                 <div style="color: #94a3b8; font-size: 0.85em; margin-top: 3px;">
-                  Valor: ${v.value} | Límite: ${v.limit}
+                  ${i18n.t('governance.value_label')}: ${v.value} | ${i18n.t('governance.limit_label')}: ${v.limit}
                 </div>
               </li>
             `).join('')}
           </ul>
           <div style="margin-top: 15px; padding: 10px; background: #0f172a; border-radius: 6px; font-size: 0.85em; color: #94a3b8;">
-            ✅ Se han aplicado correcciones automáticas para cumplir las reglas
+            ${i18n.t('governance.auto_corrections_applied')}
           </div>
         </div>
       ` : ''}
 
       ${complianceCheck.warnings.length > 0 ? `
         <div style="background: rgba(251, 191, 36, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #fbbf24; margin-top: 15px;">
-          <h4 style="color: #fbbf24; margin-bottom: 10px;">ℹ️ Advertencias (${complianceCheck.warnings.length})</h4>
+          <h4 style="color: #fbbf24; margin-bottom: 10px;">${i18n.t('governance.warnings_count', { count: complianceCheck.warnings.length })}</h4>
           <ul style="list-style: none; padding: 0; margin: 0;">
             ${complianceCheck.warnings.slice(0, 3).map(w => `
               <li style="padding: 5px 0; color: #f8fafc; font-size: 0.85em;">
-                ${w.asset || 'Cartera'}: ${w.message}
+                ${w.asset || i18n.t('governance.portfolio_label')}: ${w.message}
               </li>
             `).join('')}
           </ul>
@@ -1806,7 +1815,7 @@ function renderGovernanceReport(governanceReport, complianceCheck) {
 
 // Regime frontend
 
-window.showRegimeDetails = function() {
+window.showRegimeDetails = function () {
   if (!appState.regime) return;
 
   const r = appState.regime;
@@ -1814,10 +1823,10 @@ window.showRegimeDetails = function() {
   const content = document.getElementById('modalContent');
 
   content.innerHTML = `
-    <h2>${r.emoji} Análisis de Régimen de Mercado</h2>
+    <h2>${r.emoji} ${i18n.t('modal.regime_analysis')}</h2>
 
     <div class="detail-section">
-      <h3>📊 Clasificación</h3>
+      <h3>${i18n.t('governance.classification_title')}</h3>
       <div style="padding: 20px; background: ${r.color}20; border-left: 4px solid ${r.color}; border-radius: 8px;">
         <div style="font-size: 1.5em; font-weight: bold; color: ${r.color}; margin-bottom: 10px;">
           ${r.name}
@@ -1826,24 +1835,24 @@ window.showRegimeDetails = function() {
           ${r.description}
         </div>
         <div style="font-size: 0.9em; color: #64748b;">
-          <strong>Confianza:</strong> ${(r.confidence * 100).toFixed(0)}%
+          <strong>${i18n.t('modal.confidence')}:</strong> ${(r.confidence * 100).toFixed(0)}%
         </div>
       </div>
     </div>
 
     <div class="detail-section">
-      <h3>🔍 Señales del Benchmark</h3>
+      <h3>${i18n.t('modal.benchmark_signals')}</h3>
       <ul>
-        <li>Tendencia: <strong>${r.benchmarkAnalysis.details.trendDescription}</strong> (${r.benchmarkAnalysis.signals.trend > 0 ? '🟢' : r.benchmarkAnalysis.signals.trend < 0 ? '🔴' : '🟡'})</li>
-        <li>Volatilidad: <strong>${r.benchmarkAnalysis.details.volDescription}</strong> (${r.benchmarkAnalysis.signals.volatility > 0 ? '🟢' : r.benchmarkAnalysis.signals.volatility < 0 ? '🔴' : '🟡'})</li>
-        <li>Momentum: <strong>${r.benchmarkAnalysis.details.momentumDescription}</strong> (${r.benchmarkAnalysis.signals.momentum > 0 ? '🟢' : r.benchmarkAnalysis.signals.momentum < 0 ? '🔴' : '🟡'})</li>
+        <li>${i18n.t('modal.trend')}: <strong>${r.benchmarkAnalysis.details.trendDescription}</strong> (${r.benchmarkAnalysis.signals.trend > 0 ? '🟢' : r.benchmarkAnalysis.signals.trend < 0 ? '🔴' : '🟡'})</li>
+        <li>${i18n.t('modal.vol_description')}: <strong>${r.benchmarkAnalysis.details.volDescription}</strong> (${r.benchmarkAnalysis.signals.volatility > 0 ? '🟢' : r.benchmarkAnalysis.signals.volatility < 0 ? '🔴' : '🟡'})</li>
+        <li>${i18n.t('modal.momentum')}: <strong>${r.benchmarkAnalysis.details.momentumDescription}</strong> (${r.benchmarkAnalysis.signals.momentum > 0 ? '🟢' : r.benchmarkAnalysis.signals.momentum < 0 ? '🔴' : '🟡'})</li>
         <li>Score Compuesto: <strong>${r.benchmarkAnalysis.signals.composite}</strong></li>
       </ul>
     </div>
 
     ${r.breadthAnalysis ? `
     <div class="detail-section">
-      <h3>📊 Amplitud de Mercado</h3>
+      <h3>${i18n.t('modal.market_breadth')}</h3>
       <ul>
         <li>Activos alcistas: <strong>${r.breadthAnalysis.bullishCount} / ${r.breadthAnalysis.totalAnalyzed}</strong></li>
         <li>Porcentaje: <strong>${r.breadthAnalysis.breadth}%</strong></li>
@@ -1865,7 +1874,7 @@ window.showRegimeDetails = function() {
     </div>
 
     <div class="detail-section" style="background: #0f172a; border-left: 4px solid #38bdf8;">
-      <h3>💡 Interpretación</h3>
+      <h3>${i18n.t('backtest_section.interpretation')}:</h3>
       <p style="color: #94a3b8; line-height: 1.6;">
         ${getRegimeInterpretation(r.regime)}
       </p>
@@ -1876,7 +1885,7 @@ window.showRegimeDetails = function() {
 };
 
 function getRegimeInterpretation(regimeType) {
-  switch(regimeType) {
+  switch (regimeType) {
     case 'risk_on':
       return 'El mercado está en modo alcista con baja volatilidad. Este es un entorno favorable para estrategias de momentum y growth. Se recomienda aumentar la exposición a activos con fuerte impulso y reducir las restricciones por riesgo.';
 
@@ -1906,6 +1915,24 @@ export function updateView() {
   currentResults.sort((a, b) => b[key] - a[key]);
   renderTable(currentResults);
 }
+
+// =====================================================
+// LANGUAGE MANAGEMENT
+// =====================================================
+
+window.changeLanguage = function (lang) {
+  i18n.setLanguage(lang);
+  // The languageChanged event will be dispatched automatically
+  // and will update all elements with data-i18n attributes
+};
+
+// Initialize language selector on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const selector = document.getElementById('languageSelect');
+  if (selector) {
+    selector.value = i18n.getCurrentLanguage();
+  }
+});
 
 window.runScan = runScan;
 window.updateView = updateView;

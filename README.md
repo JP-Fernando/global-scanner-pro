@@ -56,13 +56,29 @@ node server.js
 ### Uso Básico
 
 1. Abre la interfaz: `http://localhost:3000/index.html`
-2. Selecciona un mercado (España, USA, Alemania, etc.)
-3. Elige una estrategia según tu perfil de riesgo
-4. Haz clic en "Ejecutar Análisis"
-5. Explora los resultados ordenando por *scores* y factores
-6. **Opcional**: Construye una cartera profesional con los mejores activos
-7. Revisa el **régimen de mercado** detectado automáticamente
+2. **Selecciona el idioma** (🇪🇸 Español o 🇬🇧 English) en el selector superior derecho
+3. Selecciona un mercado (España, USA, Alemania, etc.)
+4. Elige una estrategia según tu perfil de riesgo
+5. Haz clic en "Ejecutar Análisis"
+6. Explora los resultados ordenando por *scores* y factores
+7. **Opcional**: Construye una cartera profesional con los mejores activos
+8. Revisa el **régimen de mercado** detectado automáticamente
 
+
+---
+
+### Cómo cambiar el idioma:
+
+1. Haz clic en el selector de idioma en la esquina superior derecha
+2. Selecciona 🇪🇸 Español o 🇬🇧 English
+3. La interfaz se actualizará automáticamente
+
+El sistema traduce:
+- Nombres de mercados y estrategias
+- Mensajes de estado y progreso
+- Botones y controles
+- Errores y advertencias
+- Resultados de análisis y backtesting
 
 ---
 
@@ -75,7 +91,48 @@ Documentos destacados:
 - [Interpretación de señales](docs/interpretacion-senales.md)
 - [Construcción de cartera y análisis de riesgo](docs/cartera-riesgo.md)
 - [Sección técnica](docs/arquitectura-tecnica.md)
+- [Sistema de internacionalización (i18n)](src/i18n/README.md)
 - [Roadmap](docs/roadmap.md)
+
+---
+
+## 🏗️ Arquitectura Técnica
+
+### Estructura del Proyecto
+
+```
+global-scanner-pro/
+├── index.html                    # Interfaz principal
+├── server.js                     # Servidor Express
+├── package.json                  # Dependencias
+│
+├── src/
+│   ├── core/
+│   │   ├── scanner.js           # Motor principal (con i18n integrado)
+│   │   └── config.js            # Configuración (con traducciones dinámicas)
+│   │
+│   ├── i18n/                    # 🆕 Sistema de internacionalización
+│   │   ├── i18n.js              # Motor de traducciones
+│   │   ├── ui-translator.js     # Helper para actualización automática del DOM
+│   │   ├── translations/
+│   │   │   ├── es.js            # Español Europeo (por defecto)
+│   │   │   └── en.js            # Inglés Británico
+│   │   ├── README.md            # Documentación completa del sistema i18n
+│   │   └── example-integration.html  # Ejemplo funcional
+│   │
+│   ├── indicators/              # Indicadores técnicos y scoring
+│   ├── allocation/              # Métodos de asignación de capital
+│   ├── analytics/               # Backtesting, risk, governance, regime
+│   └── data/                    # Sectores y anomalías
+│
+└── universes/                   # Datos de mercados (18 mercados)
+```
+
+### Tecnologías Utilizadas
+
+- **Frontend**: Vanilla JavaScript (ES6 Modules)
+- **Backend**: Node.js + Express
+- **Datos**: Yahoo Finance API
 
 ---
 

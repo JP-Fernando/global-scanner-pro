@@ -1,12 +1,13 @@
 // =====================================================
-// MOTOR DE BACKTESTING DE ESTRATEGIAS
+// STRATEGY BACKTESTING ENGINE
 // =====================================================
 
 import * as scoring from '../indicators/scoring.js';
 import { allocateCapital } from '../allocation/allocation.js';
+import { BACKTESTING_CONFIG } from '../core/config.js';
 
-const TRADING_DAYS_PER_YEAR = 252;
-const INITIAL_CAPITAL = 10000;
+const TRADING_DAYS_PER_YEAR = BACKTESTING_CONFIG.TRADING_DAYS_PER_YEAR;
+const INITIAL_CAPITAL = BACKTESTING_CONFIG.INITIAL_CAPITAL;
 
 const TRANSACTION_COSTS = {
   commission_pct: 0.001,

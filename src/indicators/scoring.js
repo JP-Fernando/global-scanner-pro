@@ -1,22 +1,23 @@
 // =====================================================
-// MOTOR DE SCORING CUANTITATIVO AVANZADO
+// ADVANCED QUANTITATIVE SCORING ENGINE
 // =====================================================
 
 import * as ind from './indicators.js';
+import i18n from '../i18n/i18n.js';
 
-// Normalización a percentiles dentro del universo
+// Normalisation to percentiles within the universe
 export const normalizeToPercentile = (value, values) => {
   const sorted = [...values].sort((a, b) => a - b);
   const rank = sorted.filter(v => v <= value).length;
   return (rank / values.length) * 100;
 };
 
-// Cálculo de Alpha vs Benchmark
+// Alpha calculation vs Benchmark
 export const calculateAlpha = (assetROC, benchmarkROC) => {
   return assetROC - benchmarkROC;
 };
 
-// Cálculo de Volatilidad Relativa
+// Relative volatility calculation
 export const calculateRelativeVolatility = (assetVol, benchmarkVol) => {
   return benchmarkVol === 0 ? 1.0 : assetVol / benchmarkVol;
 };
@@ -535,15 +536,15 @@ export const calculateFinalScore = (trendScore, momentumScore, riskScore, liquid
 // Generar señal basada en score y umbrales configurables
 export const generateSignal = (score, config) => {
   if (score >= config.strong_buy) {
-    return { text: 'COMPRA FUERTE', color: '#10b981', confidence: 95 };
+    return { text: i18n.t('signals.strong_buy'), color: '#10b981', confidence: 95 };
   } else if (score >= config.buy) {
-    return { text: 'COMPRA', color: '#4ade80', confidence: 75 };
+    return { text: i18n.t('signals.buy'), color: '#4ade80', confidence: 75 };
   } else if (score >= config.hold_upper) {
-    return { text: 'MANTENER+', color: '#fbbf24', confidence: 55 };
+    return { text: i18n.t('signals.hold_upper'), color: '#fbbf24', confidence: 55 };
   } else if (score >= config.hold_lower) {
-    return { text: 'MANTENER', color: '#fcd34d', confidence: 40 };
+    return { text: i18n.t('signals.hold'), color: '#fcd34d', confidence: 40 };
   } else {
-    return { text: 'VENTA', color: '#f87171', confidence: 25 };
+    return { text: i18n.t('signals.sell'), color: '#f87171', confidence: 25 };
   }
 };
 

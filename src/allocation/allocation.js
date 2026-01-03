@@ -1,42 +1,43 @@
 // =====================================================
-// SISTEMA DE ASIGNACIÓN DE CAPITAL
+// CAPITAL ALLOCATION SYSTEM
 // =====================================================
 
 import * as ind from '../indicators/indicators.js';
+import i18n from '../i18n/i18n.js';
 
 // =====================================================
-// CONFIGURACIÓN
+// CONFIGURATION
 // =====================================================
 
 export const ALLOCATION_METHODS = {
   equal_weight: {
     name: "Equal Weight",
-    description: "Peso igual para todos los activos seleccionados",
-    risk_level: "Bajo"
+    description: "Equal weight for all selected assets",
+    risk_level: "Low"
   },
 
   score_weighted: {
     name: "Score-Weighted",
-    description: "Peso proporcional al Quant Score de cada activo",
-    risk_level: "Medio"
+    description: "Weight proportional to Quant Score of each asset",
+    risk_level: "Medium"
   },
 
   erc: {
     name: "Equal Risk Contribution (ERC)",
-    description: "Cada activo contribuye igual al riesgo total",
-    risk_level: "Medio-Bajo"
+    description: "Each asset contributes equally to total risk",
+    risk_level: "Medium-Low"
   },
 
   volatility_target: {
     name: "Volatility Targeting",
-    description: "Ajusta pesos para alcanzar volatilidad objetivo",
+    description: "Adjusts weights to reach target volatility",
     risk_level: "Configurable"
   },
 
   hybrid: {
     name: "Hybrid (ERC + Score)",
-    description: "Combina diversificación por riesgo con calidad de señales",
-    risk_level: "Medio"
+    description: "Combines risk diversification with signal quality",
+    risk_level: "Medium"
   }
 };
 
@@ -49,7 +50,7 @@ export const ALLOCATION_CONFIG = {
 };
 
 // =====================================================
-// MÉTODOS DE ASIGNACIÓN
+// ALLOCATION METHODS
 // =====================================================
 
 export const equalWeightAllocation = (assets) => {
@@ -168,7 +169,7 @@ export const hybridAllocation = (assets, config = ALLOCATION_CONFIG) => {
 };
 
 // =====================================================
-// CÁLCULO DE RIESGO AGREGADO
+// AGGREGATE RISK CALCULATION
 // =====================================================
 
 export const calculatePortfolioRisk = (allocatedAssets) => {
@@ -223,14 +224,14 @@ const calculateSimplePortfolioVolatility = (volatilities, weights) => {
 };
 
 // =====================================================
-// FUNCIÓN PRINCIPAL
+// MAIN FUNCTION
 // =====================================================
 
 export const allocateCapital = (assets, method = 'hybrid', config = ALLOCATION_CONFIG) => {
   const selectedAssets = assets.slice(0, Math.min(assets.length, config.max_assets_in_portfolio));
 
   if (selectedAssets.length < config.min_assets_in_portfolio) {
-    throw new Error(`Se requieren al menos ${config.min_assets_in_portfolio} activos para construir cartera`);
+    throw new Error(i18n.t('errors.min_assets_required', { min: config.min_assets_in_portfolio }));
   }
 
   let allocation;

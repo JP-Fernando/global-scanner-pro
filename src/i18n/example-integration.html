@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>i18n Integration Example - Global Scanner Pro</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #f8fafc;
+      padding: 40px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: #1e293b;
+      border-radius: 16px;
+      position: relative;
+    }
+
+    .language-selector {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    .language-selector select {
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 2px solid #334155;
+      background: #334155;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .language-selector select:hover {
+      border-color: #38bdf8;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section {
+      background: #1e293b;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .section h2 {
+      color: #38bdf8;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+    }
+
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .control-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #94a3b8;
+      font-size: 0.9em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    select {
+      background: #334155;
+      color: white;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    select:hover {
+      border-color: #38bdf8;
+    }
+
+    button {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+      margin-top: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+    }
+
+    .status-box {
+      background: #334155;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-family: 'Courier New', monospace;
+      color: #10b981;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .card {
+      background: #334155;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .card h3 {
+      color: #818cf8;
+      font-size: 1.2em;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      color: #cbd5e1;
+      font-size: 0.9em;
+    }
+
+    .code {
+      background: #0f172a;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      overflow-x: auto;
+    }
+
+    .code pre {
+      color: #10b981;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header with language selector -->
+    <div class="header">
+      <div class="language-selector">
+        <select id="languageSelect" onchange="changeLanguage(this.value)">
+          <option value="es">🇪🇸 Español</option>
+          <option value="en">🇬🇧 English</option>
+        </select>
+      </div>
+
+      <h1>Global Quant Scanner Pro</h1>
+      <p data-i18n="header.subtitle">Sistema de internacionalización activado</p>
+    </div>
+
+    <!-- Example 1: Market Selection -->
+    <div class="section">
+      <h2 data-i18n="examples.market_selection">Selección de Mercado</h2>
+
+      <div class="control-group">
+        <label data-i18n="markets.label">📍 Mercado</label>
+        <select id="marketSelect">
+          <option value="es" data-i18n="markets.spain">España (BME)</option>
+          <option value="us" data-i18n="markets.usa">Estados Unidos (NYSE/NASDAQ)</option>
+          <option value="fr" data-i18n="markets.france">Francia (Euronext Paris)</option>
+          <option value="de" data-i18n="markets.germany">Alemania (XETRA)</option>
+          <option value="uk" data-i18n="markets.uk">Reino Unido (LSE)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Example 2: Strategy Selection -->
+    <div class="section">
+      <h2 data-i18n="examples.strategy_selection">Selección de Estrategia</h2>
+
+      <div class="control-group">
+        <label data-i18n="strategies.label">🎯 Estrategia</label>
+        <select id="strategySelect">
+          <option value="balanced" data-i18n="strategies.balanced">Equilibrado</option>
+          <option value="momentum_aggressive" data-i18n="strategies.momentum_aggressive">Momentum Agresivo</option>
+          <option value="trend_conservative" data-i18n="strategies.trend_conservative">Seguimiento de Tendencia Conservador</option>
+          <option value="sector_rotation" data-i18n="strategies.sector_rotation">Rotación Sectorial</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Example 3: Buttons with translations -->
+    <div class="section">
+      <h2 data-i18n="examples.actions">Acciones</h2>
+
+      <button data-i18n="buttons.runScan" onclick="simulateScan()">🚀 Ejecutar Análisis</button>
+      <button data-i18n="buttons.buildPortfolio" onclick="simulatePortfolio()">📊 Construir Cartera</button>
+      <button data-i18n="buttons.runBacktest" onclick="simulateBacktest()">⏮️ Ejecutar Backtesting</button>
+
+      <div class="status-box" id="statusBox" data-i18n="status.initializing">
+        ⏳ Iniciando escaneo...
+      </div>
+    </div>
+
+    <!-- Example 4: Dynamic content -->
+    <div class="section">
+      <h2 data-i18n="examples.dynamic_content">Contenido Dinámico</h2>
+
+      <div class="grid">
+        <div class="card">
+          <h3 data-i18n="signals.strong_buy">COMPRA FUERTE</h3>
+          <p data-i18n="examples.signal_desc">Señal de trading</p>
+        </div>
+
+        <div class="card">
+          <h3 data-i18n="signals.buy">COMPRA</h3>
+          <p data-i18n="examples.signal_desc">Señal de trading</p>
+        </div>
+
+        <div class="card">
+          <h3 data-i18n="signals.hold">MANTENER</h3>
+          <p data-i18n="examples.signal_desc">Señal de trading</p>
+        </div>
+
+        <div class="card">
+          <h3 data-i18n="signals.sell">VENTA</h3>
+          <p data-i18n="examples.signal_desc">Señal de trading</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Example 5: Showing current language -->
+    <div class="section">
+      <h2 data-i18n="examples.current_lang">Idioma Actual</h2>
+
+      <div class="code">
+        <pre id="langInfo">Current Language: es</pre>
+      </div>
+    </div>
+
+    <!-- Example 6: How to use in code -->
+    <div class="section">
+      <h2 data-i18n="examples.code_usage">Uso en Código</h2>
+
+      <div class="code">
+        <pre>// Import the i18n module
+import i18n from './i18n/i18n.js';
+
+// Get translation
+const text = i18n.t('buttons.runScan');
+
+// With parameters
+const msg = i18n.t('status.analyzing', {
+  current: 5,
+  total: 10
+});
+
+// Change language
+i18n.setLanguage('en');</pre>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import i18n from './i18n.js';
+    import uiTranslator from './ui-translator.js';
+
+    // Add missing translations for this example page
+    i18n.translations.es.header = {
+      subtitle: 'Sistema de internacionalización activado'
+    };
+
+    i18n.translations.en.header = {
+      subtitle: 'Internationalisation system enabled'
+    };
+
+    i18n.translations.es.examples = {
+      market_selection: 'Selección de Mercado',
+      strategy_selection: 'Selección de Estrategia',
+      actions: 'Acciones',
+      dynamic_content: 'Contenido Dinámico',
+      current_lang: 'Idioma Actual',
+      code_usage: 'Uso en Código',
+      signal_desc: 'Señal de trading'
+    };
+
+    i18n.translations.en.examples = {
+      market_selection: 'Market Selection',
+      strategy_selection: 'Strategy Selection',
+      actions: 'Actions',
+      dynamic_content: 'Dynamic Content',
+      current_lang: 'Current Language',
+      code_usage: 'Usage in Code',
+      signal_desc: 'Trading signal'
+    };
+
+    // Global function to change language
+    window.changeLanguage = function(lang) {
+      i18n.setLanguage(lang);
+      updateLangInfo();
+    };
+
+    // Update language info display
+    function updateLangInfo() {
+      const langInfo = document.getElementById('langInfo');
+      const currentLang = i18n.getCurrentLanguage();
+      const langName = i18n.t('language.name');
+      langInfo.textContent = `Current Language: ${currentLang} (${langName})`;
+    }
+
+    // Simulate scan action
+    window.simulateScan = function() {
+      const statusBox = document.getElementById('statusBox');
+      statusBox.textContent = i18n.t('status.initializing');
+
+      setTimeout(() => {
+        statusBox.textContent = i18n.t('status.loading_universe');
+      }, 1000);
+
+      setTimeout(() => {
+        statusBox.textContent = i18n.t('status.analyzing', { current: 5, total: 10 });
+      }, 2000);
+
+      setTimeout(() => {
+        statusBox.textContent = i18n.t('status.complete', { time: '3.2' });
+      }, 3500);
+    };
+
+    // Simulate portfolio action
+    window.simulatePortfolio = function() {
+      const statusBox = document.getElementById('statusBox');
+      statusBox.textContent = i18n.t('status.building_portfolio');
+
+      setTimeout(() => {
+        statusBox.textContent = i18n.t('status.portfolio_complete', { assets: 15 });
+      }, 2000);
+    };
+
+    // Simulate backtest action
+    window.simulateBacktest = function() {
+      const statusBox = document.getElementById('statusBox');
+      statusBox.textContent = i18n.t('status.loading_backtest');
+
+      setTimeout(() => {
+        statusBox.textContent = i18n.t('status.running_backtest');
+      }, 1000);
+
+      setTimeout(() => {
+        statusBox.textContent = i18n.t('status.backtest_complete', { samples: 42 });
+      }, 3000);
+    };
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const selector = document.getElementById('languageSelect');
+      if (selector) {
+        selector.value = i18n.getCurrentLanguage();
+      }
+      updateLangInfo();
+    });
+
+    // Listen for language changes
+    window.addEventListener('languageChanged', () => {
+      updateLangInfo();
+    });
+  </script>
+</body>
+</html>

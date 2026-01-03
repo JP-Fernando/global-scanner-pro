@@ -422,51 +422,57 @@
 <body>
 <div class="container">
   <div class="header">
+    <div style="position: absolute; top: 20px; right: 20px;">
+      <select id="languageSelect" onchange="changeLanguage(this.value)" style="padding: 8px 12px; border-radius: 6px; border: 2px solid #334155; background: #334155; color: white; font-size: 14px; cursor: pointer; transition: all 0.3s;">
+        <option value="es">🇪🇸 Español</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+    </div>
     <h1>🎯 Global Quant Scanner Pro</h1>
-    <p>Sistema cuantitativo avanzado con análisis multi-factor y benchmarking</p>
+    <p data-i18n="app.subtitle">Sistema cuantitativo avanzado con análisis multi-factor y benchmarking</p>
   </div>
 
   <div class="controls">
     <div class="control-row">
       <div class="control-group">
-        <label>📍 Mercado</label>
+        <label data-i18n="markets.label">📍 Mercado</label>
         <select id="marketSelect">
           <optgroup label="🇪🇺 Europa">
-            <option value="universes/bme_universe.json|.MC">España (BME)</option>
-            <option value="universes/euronext_universe.json|.PA">Francia (Euronext)</option>
-            <option value="universes/frankfurt_universe.json|.DE">Alemania (XETRA)</option>
-            <option value="universes/lse_universe.json|.L">Reino Unido (LSE)</option>
-            <option value="universes/milan_universe.json|.MI">Italia (Borsa)</option>
+            <option value="universes/bme_universe.json|.MC" data-i18n="markets.spain">España (BME)</option>
+            <option value="universes/euronext_universe.json|.PA" data-i18n="markets.france">Francia (Euronext)</option>
+            <option value="universes/frankfurt_universe.json|.DE" data-i18n="markets.germany">Alemania (XETRA)</option>
+            <option value="universes/lse_universe.json|.L" data-i18n="markets.uk">Reino Unido (LSE)</option>
+            <option value="universes/milan_universe.json|.MI" data-i18n="markets.italy">Italia (Borsa)</option>
           </optgroup>
           <optgroup label="🌎 América">
-            <option value="universes/us_universe.json|">Estados Unidos (NYSE/NASDAQ)</option>
-            <option value="universes/brazil_universe.json|.SA">Brasil (B3)</option>
-            <option value="universes/mexico_universe.json|.MX">México (BMV)</option>
-            <option value="universes/toronto_universe.json|.TO">Canadá (TSX)</option>
+            <option value="universes/us_universe.json|" data-i18n="markets.usa">Estados Unidos (NYSE/NASDAQ)</option>
+            <option value="universes/brazil_universe.json|.SA" data-i18n="markets.brazil">Brasil (B3)</option>
+            <option value="universes/mexico_universe.json|.MX" data-i18n="markets.mexico">México (BMV)</option>
+            <option value="universes/toronto_universe.json|.TO" data-i18n="markets.canada">Canadá (TSX)</option>
           </optgroup>
           <optgroup label="🌏 Asia">
-            <option value="universes/tokyo_universe.json|.T">Japón (TSE)</option>
-            <option value="universes/china_hongkong.json|.HK">Hong Kong (SEHK)</option>
-            <option value="universes/china_shanghai.json|.SS">China (SSE)</option>
-            <option value="universes/china_shenzhen.json|.SZ">Shenzhen (SZSE)</option>
-            <option value="universes/korea_universe.json|.KS">Corea (KRX)</option>
+            <option value="universes/tokyo_universe.json|.T" data-i18n="markets.japan">Japón (TSE)</option>
+            <option value="universes/china_hongkong.json|.HK" data-i18n="markets.hongkong">Hong Kong (SEHK)</option>
+            <option value="universes/china_shanghai.json|.SS" data-i18n="markets.china_shanghai">China (SSE)</option>
+            <option value="universes/china_shenzhen.json|.SZ" data-i18n="markets.china_shenzhen">Shenzhen (SZSE)</option>
+            <option value="universes/korea_universe.json|.KS" data-i18n="markets.southkorea">Corea (KRX)</option>
           </optgroup>
         </select>
       </div>
 
       <div class="control-group">
-        <label>⚙️ Estrategia</label>
+        <label data-i18n="strategies.label">⚙️ Estrategia</label>
         <select id="strategySelect">
-          <option value="balanced">Equilibrado</option>
-          <option value="momentum_aggressive">Momentum Agresivo</option>
-          <option value="trend_conservative">Trend Conservador</option>
-          <option value="sector_rotation">Rotación Sectorial</option>
+          <option value="balanced" data-i18n="strategies.balanced">Equilibrado</option>
+          <option value="momentum_aggressive" data-i18n="strategies.momentum_aggressive">Momentum Agresivo</option>
+          <option value="trend_conservative" data-i18n="strategies.trend_conservative">Trend Conservador</option>
+          <option value="sector_rotation" data-i18n="strategies.sector_rotation">Rotación Sectorial</option>
         </select>
       </div>
 
       <div class="control-group">
         <label>&nbsp;</label>
-        <button id="btnRunScan" onclick="runScan()">🚀 Ejecutar Análisis</button>
+        <button id="btnRunScan" onclick="runScan()" data-i18n="buttons.runScan">🚀 Ejecutar Análisis</button>
       </div>
     </div>
   </div>
@@ -475,17 +481,17 @@
 
   <div class="info-bar">
     <div class="info-card strategy">
-      <div id="strategyInfo">Selecciona una estrategia y mercado para comenzar</div>
+      <div id="strategyInfo" data-i18n="info.select_strategy_market">Selecciona una estrategia y mercado para comenzar</div>
     </div>
     <div class="info-card">
-      <div id="filterInfo">Esperando escaneo...</div>
+      <div id="filterInfo" data-i18n="info.waiting_scan">Esperando escaneo...</div>
     </div>
   </div>
 
   <div id="status" class="status">
-    <!-- Indicador de Régimen de Mercado -->
+    <!-- Market Regime Indicator -->
     <div id="regimeIndicator" style="display: none; margin-bottom: 20px;"></div>
-    🎯 Sistema listo. Configura parámetros y ejecuta el análisis.
+    <span data-i18n="info.system_ready">🎯 Sistema listo. Configura parámetros y ejecuta el análisis.</span>
   </div>
 
   <div id="sectorSummary" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:15px; margin-bottom:25px;">
@@ -495,80 +501,80 @@
     <table>
       <thead>
         <tr>
-          <th style="width: 60px;">Rank</th>
-          <th style="width: 100px;">Ticker</th>
-          <th>Nombre</th>
+          <th style="width: 60px;" data-i18n="table.rank">Rank</th>
+          <th style="width: 100px;" data-i18n="table.ticker">Ticker</th>
+          <th data-i18n="table.name">Nombre</th>
           <th style="width: 200px;">
             <select id="viewMode" class="view-selector" onchange="updateView()">
-              <option value="scoreTotal">📊 Score Total</option>
-              <option value="scoreShort">⚡ Corto Plazo (6m)</option>
-              <option value="scoreMedium">📈 Medio Plazo (18m)</option>
-              <option value="scoreLong">🎯 Largo Plazo (4a)</option>
-              <option value="scoreTrend">📉 Tendencia</option>
-              <option value="scoreMomentum">🚀 Momentum</option>
-              <option value="scoreRisk">⚠️ Riesgo</option>
-              <option value="scoreLiquidity">💧 Liquidez</option>
+              <option value="scoreTotal" data-i18n="view_modes.total_score">📊 Score Total</option>
+              <option value="scoreShort" data-i18n="view_modes.short_term">⚡ Corto Plazo (6m)</option>
+              <option value="scoreMedium" data-i18n="view_modes.medium_term">📈 Medio Plazo (18m)</option>
+              <option value="scoreLong" data-i18n="view_modes.long_term">🎯 Largo Plazo (4a)</option>
+              <option value="scoreTrend" data-i18n="view_modes.trend">📉 Tendencia</option>
+              <option value="scoreMomentum" data-i18n="view_modes.momentum">🚀 Momentum</option>
+              <option value="scoreRisk" data-i18n="view_modes.risk">⚠️ Riesgo</option>
+              <option value="scoreLiquidity" data-i18n="view_modes.liquidity">💧 Liquidez</option>
             </select>
           </th>
-          <th style="width: 100px;">Volumen</th>
-          <th style="width: 180px;">Señal</th>
+          <th style="width: 100px;" data-i18n="table.volume">Volumen</th>
+          <th style="width: 180px;" data-i18n="table.signal">Señal</th>
         </tr>
       </thead>
       <tbody id="results">
         <tr>
-          <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;">
+          <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;" data-i18n="table.waiting_data">
             Esperando datos de análisis...
           </td>
         </tr>
       </tbody>
     </table>
-    <!-- AÑADIR ESTE HTML JUSTO ANTES DE </div> que cierra .container en index.html -->
-<!-- Después de la tabla de resultados -->
+    <!-- ADD THIS HTML JUST BEFORE THE </div> THAT CLOSES .container IN index.html -->
+<!-- After the results table -->
 
-  <!-- Nueva Sección: Construcción de Cartera -->
+  <!-- New Section: Portfolio Construction -->
   <div id="portfolioSection" style="display: none; background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #10b981;">
-    <h3 style="color: #10b981; margin-bottom: 20px; font-size: 1.3em;">💼 Construcción de Cartera</h3>
+    <h3 style="color: #10b981; margin-bottom: 20px; font-size: 1.3em;" data-i18n="portfolio_section.title">💼 Construcción de Cartera</h3>
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Método de Asignación</label>
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="portfolio_section.allocation_method">Método de Asignación</label>
         <select id="allocationMethod" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
-          <option value="hybrid">Hybrid (ERC + Score)</option>
-          <option value="erc">Equal Risk Contribution</option>
-          <option value="score_weighted">Score-Weighted</option>
-          <option value="volatility_target">Volatility Targeting</option>
-          <option value="equal_weight">Equal Weight</option>
+          <option value="hybrid" data-i18n="allocation.hybrid">Hybrid (ERC + Score)</option>
+          <option value="erc" data-i18n="allocation.erc">Equal Risk Contribution</option>
+          <option value="score_weighted" data-i18n="allocation.score_weighted">Score-Weighted</option>
+          <option value="volatility_target" data-i18n="allocation.volatility_target">Volatility Targeting</option>
+          <option value="equal_weight" data-i18n="allocation.equal_weight">Equal Weight</option>
         </select>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Top N Activos</label>
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="portfolio_section.top_n_assets">Top N Activos</label>
         <input type="number" id="topNAssets" value="10" min="1" max="30" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Capital Total (€)</label>
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="portfolio_section.total_capital">Capital Total (€)</label>
         <input type="number" id="totalCapital" value="20000" min="500" step="500" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <label style="font-size: 0.85em; color: #94a3b8;">&nbsp;</label>
-        <button onclick="buildPortfolio()" style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">📊 Construir Cartera</button>
+        <button onclick="buildPortfolio()" style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);" data-i18n="portfolio_section.build_button">📊 Construir Cartera</button>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Perfil de Riesgo</label>
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="portfolio_section.risk_profile">Perfil de Riesgo</label>
         <select id="riskProfile" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
-          <option value="conservative">Conservador</option>
-          <option value="moderate" selected>Moderado</option>
-          <option value="aggressive">Agresivo</option>
+          <option value="conservative" data-i18n="risk.conservative">Conservador</option>
+          <option value="moderate" selected data-i18n="risk.moderate">Moderado</option>
+          <option value="aggressive" data-i18n="risk.aggressive">Agresivo</option>
         </select>
       </div>
       <div id="regimeAdjustmentOption" style="display: none; margin-top: 15px; padding: 12px; background: #0f172a; border-radius: 6px; border-left: 3px solid #38bdf8;">
         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9em; color: #94a3b8;">
           <input type="checkbox" id="applyRegimeAdjustment" checked style="width: auto; cursor: pointer; margin: 0;" />
           <span style="flex: 1;">
-            <strong style="color: #38bdf8;">Aplicar ajustes automáticos según régimen de mercado</strong>
-            <div style="font-size: 0.85em; color: #64748b; margin-top: 3px;">
+            <strong style="color: #38bdf8;" data-i18n="portfolio_section.regime_adjustment">Aplicar ajustes automáticos según régimen de mercado</strong>
+            <div style="font-size: 0.85em; color: #64748b; margin-top: 3px;" data-i18n="portfolio_section.regime_adjustment_desc">
               Ajusta scores y filtros según condiciones actuales del mercado
             </div>
           </span>
@@ -580,46 +586,46 @@
 
   </div>
 
-  <!-- Resultados de Cartera -->
+  <!-- Portfolio Results -->
   <div id="portfolioResults" style="display: none;"></div>
 
-  <!-- Backtesting de Estrategias -->
+  <!-- Strategy Backtesting -->
   <div id="backtestSection" style="background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #6366f1;">
-    <h3 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.3em;">🧪 Backtesting de Estrategias</h3>
+    <h3 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.3em;" data-i18n="backtest_section.title">🧪 Backtesting de Estrategias</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Top N Activos</label>
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="backtest_section.top_n_assets">Top N Activos</label>
         <input type="number" id="backtestTopN" value="10" min="3" max="30" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Rebalanceo (días)</label>
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="backtest_section.rebalance_days">Rebalanceo (días)</label>
         <input type="number" id="backtestRebalance" value="21" min="5" max="126" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Método de Asignación</label>
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="backtest_section.allocation_method">Método de Asignación</label>
         <select id="backtestAllocationMethod" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
-          <option value="hybrid">Hybrid (ERC + Score)</option>
-          <option value="erc">Equal Risk Contribution</option>
-          <option value="score_weighted">Score-Weighted</option>
-          <option value="volatility_target">Volatility Targeting</option>
-          <option value="equal_weight">Equal Weight</option>
+          <option value="hybrid" data-i18n="allocation.hybrid">Hybrid (ERC + Score)</option>
+          <option value="erc" data-i18n="allocation.erc">Equal Risk Contribution</option>
+          <option value="score_weighted" data-i18n="allocation.score_weighted">Score-Weighted</option>
+          <option value="volatility_target" data-i18n="allocation.volatility_target">Volatility Targeting</option>
+          <option value="equal_weight" data-i18n="allocation.equal_weight">Equal Weight</option>
         </select>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Capital Inicial</label>
+        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="backtest_section.initial_capital">Capital Inicial</label>
         <input type="number" id="backtestInitialCapital" value="10000" min="1000" step="500" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <label style="font-size: 0.85em; color: #94a3b8;">&nbsp;</label>
-        <button onclick="runBacktest()" style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);">📈 Ejecutar Backtest</button>
+        <button onclick="runBacktest()" style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);" data-i18n="backtest_section.run_button">📈 Ejecutar Backtest</button>
       </div>
     </div>
 
-    <div id="backtestStatus" class="small-text" style="color:#94a3b8; margin-bottom: 15px;">Selecciona un mercado y ejecuta el backtest para comparar estrategias.</div>
+    <div id="backtestStatus" class="small-text" style="color:#94a3b8; margin-bottom: 15px;" data-i18n="backtest_section.status_waiting">Selecciona un mercado y ejecuta el backtest para comparar estrategias.</div>
     <div id="backtestResults" style="display: none;"></div>
   </div>
 
@@ -911,7 +917,7 @@
   </div>
 </div>
 
-<!-- Modal de detalles -->
+<!-- Details Modal -->
 <div id="detailModal" class="modal" onclick="if(event.target === this) closeModal()">
   <div class="modal-content">
     <button class="close-modal" onclick="closeModal()">×</button>
@@ -920,5 +926,6 @@
 </div>
 
 <script type="module" src="src/core/scanner.js"></script>
+<script type="module" src="src/i18n/ui-translator.js"></script>
 </body>
 </html>

@@ -2,6 +2,8 @@
 // GOVERNANCE & COMPLIANCE ENGINE
 // =====================================================
 
+import i18n from '../i18n/i18n.js';
+
 // =====================================================
 // REGLAS DE INVERSIÓN (INVESTMENT RULES)
 // =====================================================
@@ -295,7 +297,7 @@ export const validateCompliance = (portfolio, rules = INVESTMENT_RULES) => {
         asset: asset.ticker,
         value: avgVol.toFixed(0),
         limit: rules.min_daily_volume,
-        message: `${asset.ticker} tiene baja liquidez`
+        message: i18n.t('governance_warnings.low_liquidity', { ticker: asset.ticker })
       });
     }
   });
@@ -310,7 +312,7 @@ export const validateCompliance = (portfolio, rules = INVESTMENT_RULES) => {
         asset: asset.ticker,
         value: vol.toFixed(2) + '%',
         limit: '50%',
-        message: `${asset.ticker} tiene volatilidad extrema`
+        message: i18n.t('governance_warnings.extreme_volatility', { ticker: asset.ticker })
       });
     }
   });

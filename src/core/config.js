@@ -1,11 +1,19 @@
 // =====================================================
-// CONFIGURACIÓN DE ESTRATEGIAS Y PARÁMETROS
+// STRATEGY AND PARAMETER CONFIGURATION
 // =====================================================
+
+import i18n from '../i18n/i18n.js';
+
+// Backtesting Configuration
+export const BACKTESTING_CONFIG = {
+  INITIAL_CAPITAL: 10000,
+  TRADING_DAYS_PER_YEAR: 252
+};
 
 export const STRATEGY_PROFILES = {
   momentum_aggressive: {
-    name: "Momentum Agresivo",
-    description: "Favorece activos con fuerte impulso reciente",
+    get name() { return i18n.t('strategies.momentum_aggressive'); },
+    get description() { return i18n.t('strategies.momentum_aggressive_desc'); },
     weights: {
       trend: 0.25,
       momentum: 0.45,
@@ -21,8 +29,8 @@ export const STRATEGY_PROFILES = {
       bb_period: 20,
       adx_period: 14,
       williams_period: 14,
-      roc_short: 126,  // 6 meses
-      roc_long: 252    // 12 meses
+      roc_short: 126,  // 6 months
+      roc_long: 252    // 12 months
     },
     filters: {
       min_volume_20d: 5000,
@@ -41,8 +49,8 @@ export const STRATEGY_PROFILES = {
   },
 
   trend_conservative: {
-    name: "Trend-Following Conservador",
-    description: "Prioriza tendencias estables y baja volatilidad",
+    get name() { return i18n.t('strategies.trend_conservative'); },
+    get description() { return i18n.t('strategies.trend_conservative_desc'); },
     weights: {
       trend: 0.45,
       momentum: 0.20,
@@ -78,8 +86,8 @@ export const STRATEGY_PROFILES = {
   },
 
   balanced: {
-    name: "Equilibrado",
-    description: "Balance entre crecimiento y estabilidad",
+    get name() { return i18n.t('strategies.balanced'); },
+    get description() { return i18n.t('strategies.balanced_desc'); },
     weights: {
       trend: 0.30,
       momentum: 0.30,
@@ -115,8 +123,8 @@ export const STRATEGY_PROFILES = {
   },
 
   sector_rotation: {
-    name: "Rotación Sectorial",
-    description: "Optimizado para rotación entre sectores",
+    get name() { return i18n.t('strategies.sector_rotation'); },
+    get description() { return i18n.t('strategies.sector_rotation_desc'); },
     weights: {
       trend: 0.20,
       momentum: 0.40,
@@ -132,8 +140,8 @@ export const STRATEGY_PROFILES = {
       bb_period: 20,
       adx_period: 14,
       williams_period: 14,
-      roc_short: 63,   // 3 meses
-      roc_long: 189    // 9 meses
+      roc_short: 63,   // 3 months
+      roc_long: 189    // 9 months
     },
     filters: {
       min_volume_20d: 20000,
@@ -152,7 +160,7 @@ export const STRATEGY_PROFILES = {
   }
 };
 
-// Benchmarks por mercado para cálculo de alpha
+// Market benchmarks for alpha calculation
 export const MARKET_BENCHMARKS = {
   '.MC': '^IBEX',      // IBEX 35
   '.PA': '^FCHI',      // CAC 40
@@ -170,4 +178,4 @@ export const MARKET_BENCHMARKS = {
   '.KS': '^KS11'       // KOSPI
 };
 
-export default { STRATEGY_PROFILES, MARKET_BENCHMARKS };
+export default { BACKTESTING_CONFIG, STRATEGY_PROFILES, MARKET_BENCHMARKS };
