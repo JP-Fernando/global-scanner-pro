@@ -3,29 +3,30 @@
 // =====================================================
 
 import * as ind from '../indicators/indicators.js';
+import i18n from '../i18n/i18n.js';
 
 // =====================================================
-// CONFIGURACIÓN
+// CONFIGURATION
 // =====================================================
 
 export const REGIME_TYPES = {
   risk_on: {
-    name: "Risk-On",
+    name: i18n.t('market_regime.risk_on_name'),
     emoji: "🟢",
     color: "#10b981",
-    description: "Mercado alcista, baja volatilidad, amplitud fuerte",
+    description: i18n.t('market_regime.risk_on_desc'),
     strategy_adjustment: {
-      momentum_weight: 1.2,  // Aumentar momentum
-      risk_penalty: 0.8,      // Reducir penalización por riesgo
-      min_score: -5           // Más permisivo
+      momentum_weight: 1.2,  // Increase momentum
+      risk_penalty: 0.8,      // Reduce risk penalty
+      min_score: -5           // More permissive
     }
   },
 
   neutral: {
-    name: "Neutral",
+    name: i18n.t('market_regime.neutral_name'),
     emoji: "🟡",
     color: "#fbbf24",
-    description: "Mercado lateral, sin tendencia clara",
+    description: i18n.t('market_regime.neutral_desc'),
     strategy_adjustment: {
       momentum_weight: 1.0,
       risk_penalty: 1.0,
@@ -34,30 +35,30 @@ export const REGIME_TYPES = {
   },
 
   risk_off: {
-    name: "Risk-Off",
+    name: i18n.t('market_regime.risk_off_name'),
     emoji: "🔴",
     color: "#f43f5e",
-    description: "Mercado bajista o alta volatilidad",
+    description: i18n.t('market_regime.risk_off_desc'),
     strategy_adjustment: {
-      momentum_weight: 0.7,  // Reducir momentum
-      risk_penalty: 1.3,      // Aumentar penalización por riesgo
-      min_score: +10          // Más estricto
+      momentum_weight: 0.7,  // Reduce momentum
+      risk_penalty: 1.3,      // Increase risk penalty
+      min_score: +10          // More strict
     }
   }
 };
 
 export const REGIME_CONFIG = {
-  lookback_trend: 200,        // Días para calcular tendencia
-  lookback_volatility: 20,    // Días para volatilidad reciente
-  vol_threshold_low: 12,      // Vol < 12% = baja
-  vol_threshold_high: 20,     // Vol > 20% = alta
-  ema_threshold: 0.02,        // 2% sobre EMA200 = alcista
-  breadth_threshold_high: 60, // >60% activos alcistas = fuerte
-  breadth_threshold_low: 40   // <40% activos alcistas = débil
+  lookback_trend: 200,        // Days to calculate trend
+  lookback_volatility: 20,    // Days for recent volatility
+  vol_threshold_low: 12,      // Vol < 12% = low
+  vol_threshold_high: 20,     // Vol > 20% = high
+  ema_threshold: 0.02,        // 2% above EMA200 = bullish
+  breadth_threshold_high: 60, // >60% bullish assets = strong
+  breadth_threshold_low: 40   // <40% bullish assets = weak
 };
 
 // =====================================================
-// ANÁLISIS DE BENCHMARK (ÍNDICE)
+// BENCHMARK ANALYSIS (INDEX)
 // =====================================================
 
 export const analyzeBenchmarkRegime = (benchmarkPrices, config = REGIME_CONFIG) => {
@@ -65,67 +66,67 @@ export const analyzeBenchmarkRegime = (benchmarkPrices, config = REGIME_CONFIG) 
     return {
       regime: 'neutral',
       confidence: 0.5,
-      reason: 'Datos insuficientes para análisis de régimen'
+      reason: i18n.t('market_regime.reason_insufficient_data')
     };
   }
 
   const lastPrice = benchmarkPrices[benchmarkPrices.length - 1];
 
-  // 1. TENDENCIA: Precio vs EMA200
+  // 1. TREND: Price vs EMA200
   let trendSignal = 0;
   try {
     const ema200 = ind.EMA(benchmarkPrices, config.lookback_trend);
     const distance = ((lastPrice / ema200) - 1);
 
     if (distance > config.ema_threshold) {
-      trendSignal = 1; // Alcista
+      trendSignal = 1; // Bullish
     } else if (distance < -config.ema_threshold) {
-      trendSignal = -1; // Bajista
+      trendSignal = -1; // Bearish
     } else {
       trendSignal = 0; // Neutral
     }
   } catch (e) {
-    console.warn('Error calculando tendencia:', e.message);
+    console.warn(`⚠️ ${i18n.t('market_regime.error_calculating_trend')}:`, e.message);
   }
 
-  // 2. VOLATILIDAD: Reciente vs histórica
+  // 2. VOLATILITY: Recent vs historical
   let volSignal = 0;
   try {
     const recentVol = ind.Volatility(benchmarkPrices.slice(-60), 20);
     const historicalVol = ind.Volatility(benchmarkPrices, Math.min(252, benchmarkPrices.length - 1));
 
     if (recentVol < config.vol_threshold_low) {
-      volSignal = 1; // Baja volatilidad = Risk-On
+      volSignal = 1; // Low volatility = Risk-On
     } else if (recentVol > config.vol_threshold_high || recentVol > historicalVol * 1.5) {
-      volSignal = -1; // Alta volatilidad = Risk-Off
+      volSignal = -1; // High volatility = Risk-Off
     } else {
-      volSignal = 0; // Volatilidad normal
+      volSignal = 0; // Normal volatility
     }
   } catch (e) {
-    console.warn('Error calculando volatilidad:', e.message);
+    console.warn(`⚠️ ${i18n.t('market_regime.error_calculating_volatility')}:`, e.message);
   }
 
-  // 3. MOMENTUM: ROC 3 meses y 6 meses
+  // 3. MOMENTUM: ROC 3 months and 6 months
   let momentumSignal = 0;
   try {
     const roc3m = ind.ROC(benchmarkPrices, 63);
     const roc6m = ind.ROC(benchmarkPrices, 126);
 
     if (roc3m > 5 && roc6m > 10) {
-      momentumSignal = 1; // Fuerte momentum alcista
+      momentumSignal = 1; // Strong bullish momentum
     } else if (roc3m < -5 || roc6m < -10) {
-      momentumSignal = -1; // Momentum bajista
+      momentumSignal = -1; // Bearish momentum
     } else {
-      momentumSignal = 0; // Momentum neutral
+      momentumSignal = 0; // Neutral momentum
     }
   } catch (e) {
-    console.warn('Error calculando momentum:', e.message);
+    console.warn(`⚠️ ${i18n.t('market_regime.error_calculating_momentum')}:`, e.message);
   }
 
-  // 4. SCORE COMPUESTO
+  // 4. COMPOSITE SCORE
   const compositeScore = trendSignal + volSignal + momentumSignal;
 
-  // Clasificación
+  // Classification
   let regime, confidence;
 
   if (compositeScore >= 2) {
@@ -149,15 +150,15 @@ export const analyzeBenchmarkRegime = (benchmarkPrices, config = REGIME_CONFIG) 
       composite: compositeScore
     },
     details: {
-      trendDescription: trendSignal > 0 ? 'Alcista' : trendSignal < 0 ? 'Bajista' : 'Lateral',
-      volDescription: volSignal > 0 ? 'Baja' : volSignal < 0 ? 'Alta' : 'Normal',
-      momentumDescription: momentumSignal > 0 ? 'Positivo' : momentumSignal < 0 ? 'Negativo' : 'Neutral'
+      trendDescription: trendSignal > 0 ? i18n.t('market_regime.trend_bullish') : trendSignal < 0 ? i18n.t('market_regime.trend_bearish') : i18n.t('market_regime.trend_sideways'),
+      volDescription: volSignal > 0 ? i18n.t('market_regime.vol_low') : volSignal < 0 ? i18n.t('market_regime.vol_high') : i18n.t('market_regime.vol_normal'),
+      momentumDescription: momentumSignal > 0 ? i18n.t('market_regime.momentum_positive') : momentumSignal < 0 ? i18n.t('market_regime.momentum_negative') : i18n.t('market_regime.momentum_neutral')
     }
   };
 };
 
 // =====================================================
-// AMPLITUD DE MERCADO (MARKET BREADTH)
+// MARKET BREADTH
 // =====================================================
 
 export const calculateMarketBreadth = (scanResults, config = REGIME_CONFIG) => {
@@ -165,11 +166,11 @@ export const calculateMarketBreadth = (scanResults, config = REGIME_CONFIG) => {
     return {
       breadth: 50,
       signal: 0,
-      description: 'Sin datos de amplitud'
+      description: i18n.t('market_regime.breadth_no_data')
     };
   }
 
-  // Contar activos con tendencia alcista (precio > EMA50)
+  // Count assets with bullish trend (price > EMA50)
   let bullishCount = 0;
   let totalAnalyzed = 0;
 
@@ -187,24 +188,24 @@ export const calculateMarketBreadth = (scanResults, config = REGIME_CONFIG) => {
     return {
       breadth: 50,
       signal: 0,
-      description: 'Sin datos válidos'
+      description: i18n.t('market_regime.breadth_no_valid')
     };
   }
 
   const breadthPct = (bullishCount / totalAnalyzed) * 100;
 
-  // Clasificar amplitud
+  // Classify breadth
   let signal, description;
 
   if (breadthPct >= config.breadth_threshold_high) {
-    signal = 1; // Amplitud fuerte = Risk-On
-    description = 'Fuerte (>60% activos alcistas)';
+    signal = 1; // Strong breadth = Risk-On
+    description = i18n.t('market_regime.breadth_strong');
   } else if (breadthPct <= config.breadth_threshold_low) {
-    signal = -1; // Amplitud débil = Risk-Off
-    description = 'Débil (<40% activos alcistas)';
+    signal = -1; // Weak breadth = Risk-Off
+    description = i18n.t('market_regime.breadth_weak');
   } else {
-    signal = 0; // Amplitud neutral
-    description = 'Normal (40-60%)';
+    signal = 0; // Neutral breadth
+    description = i18n.t('market_regime.breadth_normal');
   }
 
   return {
@@ -217,35 +218,35 @@ export const calculateMarketBreadth = (scanResults, config = REGIME_CONFIG) => {
 };
 
 // =====================================================
-// DETECTOR COMPLETO DE RÉGIMEN
+// COMPLETE REGIME DETECTOR
 // =====================================================
 
 export const detectMarketRegime = (benchmarkPrices, scanResults = null, config = REGIME_CONFIG) => {
-  // 1. Análisis del benchmark
+  // 1. Benchmark analysis
   const benchmarkAnalysis = analyzeBenchmarkRegime(benchmarkPrices, config);
 
-  // 2. Amplitud de mercado (si hay datos de escaneo)
+  // 2. Market breadth (if scan data available)
   let breadthAnalysis = null;
   if (scanResults && scanResults.length > 0) {
     breadthAnalysis = calculateMarketBreadth(scanResults, config);
   }
 
-  // 3. Combinar señales
+  // 3. Combine signals
   let finalRegime = benchmarkAnalysis.regime;
   let finalConfidence = benchmarkAnalysis.confidence;
 
-  // Ajustar con amplitud de mercado
+  // Adjust with market breadth
   if (breadthAnalysis) {
     const breadthSignal = breadthAnalysis.signal;
     const benchmarkSignal = benchmarkAnalysis.signals.composite;
 
-    // Si hay divergencia entre benchmark y amplitud, reducir confianza
+    // If divergence between benchmark and breadth, reduce confidence
     if ((benchmarkSignal > 0 && breadthSignal < 0) || (benchmarkSignal < 0 && breadthSignal > 0)) {
-      finalConfidence *= 0.8; // Reducir confianza por divergencia
-      finalRegime = 'neutral'; // Divergencia = neutral
+      finalConfidence *= 0.8; // Reduce confidence due to divergence
+      finalRegime = 'neutral'; // Divergence = neutral
     }
 
-    // Si ambos confirman, aumentar confianza
+    // If both confirm, increase confidence
     if ((benchmarkSignal >= 1 && breadthSignal === 1) || (benchmarkSignal <= -1 && breadthSignal === -1)) {
       finalConfidence = Math.min(0.95, finalConfidence * 1.1);
     }
@@ -268,7 +269,7 @@ export const detectMarketRegime = (benchmarkPrices, scanResults = null, config =
 };
 
 // =====================================================
-// AJUSTE DE ESTRATEGIA SEGÚN RÉGIMEN
+// STRATEGY ADJUSTMENT BY REGIME
 // =====================================================
 
 export const adjustStrategyForRegime = (baseStrategy, regimeData) => {
@@ -294,7 +295,7 @@ export const adjustStrategyForRegime = (baseStrategy, regimeData) => {
     original_strategy: baseStrategy.name || 'Unknown'
   };
 
-  // Renormalizar pesos
+  // Renormalise weights
   const totalWeight = Object.values(adjustedStrategy.weights).reduce((a, b) => a + b, 0);
   Object.keys(adjustedStrategy.weights).forEach(key => {
     adjustedStrategy.weights[key] /= totalWeight;
@@ -304,7 +305,7 @@ export const adjustStrategyForRegime = (baseStrategy, regimeData) => {
 };
 
 // =====================================================
-// HISTÓRICO DE RÉGIMEN (PARA ANÁLISIS)
+// REGIME HISTORY (FOR ANALYSIS)
 // =====================================================
 
 export const analyzeRegimeHistory = (benchmarkPrices, windowSize = 60) => {
@@ -321,7 +322,7 @@ export const analyzeRegimeHistory = (benchmarkPrices, windowSize = 60) => {
     });
   }
 
-  // Estadísticas
+  // Statistics
   const regimeCounts = history.reduce((acc, h) => {
     acc[h.regime] = (acc[h.regime] || 0) + 1;
     return acc;

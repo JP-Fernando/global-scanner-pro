@@ -1,12 +1,12 @@
 // =====================================================
-// MOTOR DE RIESGO PROFESIONAL (MATRIX ENGINE) - V3 FINAL
+// PROFESSIONAL RISK ENGINE (MATRIX ENGINE) - V3 FINAL
 // =====================================================
 
 import i18n from '../i18n/i18n.js';
 
 /**
- * ÁLGEBRA MATRICIAL NATIVA
- * Implementación optimizada sin dependencias externas
+ * NATIVE MATRIX ALGEBRA
+ * Optimised implementation without external dependencies
  */
 const MatrixMath = {
   transpose: (matrix) => {
@@ -18,7 +18,7 @@ const MatrixMath = {
     const c1 = m1[0].length;
     const r2 = m2.length;
     const c2 = m2[0].length;
-    if (c1 !== r2) throw new Error(`Dimensión incompatible: ${c1} vs ${r2}`);
+    if (c1 !== r2) throw new Error(`Incompatible dimension: ${c1} vs ${r2}`);
 
     const result = new Array(r1);
     for (let i = 0; i < r1; i++) {
@@ -35,7 +35,7 @@ const MatrixMath = {
   },
 
   dot: (v1, v2) => {
-    if (v1.length !== v2.length) throw new Error("Vectores de diferente longitud");
+    if (v1.length !== v2.length) throw new Error("Vectors of different length");
     return v1.reduce((sum, val, i) => sum + val * v2[i], 0);
   },
 
@@ -55,11 +55,11 @@ const MatrixMath = {
 };
 
 // =====================================================
-// PREPARACIÓN Y ALINEACIÓN DE DATOS
+// DATA PREPARATION AND ALIGNMENT
 // =====================================================
 
 /**
- * Calcula retornos logarítmicos con manejo robusto de datos faltantes
+ * Calculates logarithmic returns with robust handling of missing data
  */
 const calculateLogReturns = (prices) => {
   const returns = [];
@@ -73,51 +73,51 @@ const calculateLogReturns = (prices) => {
       returns.push(Math.log(curr / prev));
     } else {
       invalidCount++;
-      // No insertar nada para mantener alineación
+      // Do not insert anything to maintain alignment
     }
   }
 
-  // Alerta si hay muchos datos faltantes
+  // Alert if there are many missing data points
   const missingPct = (invalidCount / (prices.length - 1)) * 100;
   if (missingPct > 5) {
-    console.warn(`⚠️ ${missingPct.toFixed(1)}% de datos inválidos detectados`);
+    console.warn(`⚠️ ${i18n.t('risk_engine.warning_invalid_data_pct', { pct: missingPct.toFixed(1) })}`);
   }
 
   return returns;
 };
 
 /**
- * Alineación por fecha (Inner Join) - VERSIÓN MEJORADA
- * Requiere que scanner.js pase prices como: [{ date: 'YYYY-MM-DD', close: number }]
+ * Date-based alignment (Inner Join) - IMPROVED VERSION
+ * Requires scanner.js to pass prices as: [{ date: 'YYYY-MM-DD', close: number }]
  */
 const alignSeriesByDate = (assets) => {
   if (!assets || assets.length === 0) return null;
 
-  // Verificar si tenemos timestamps
+  // Check if we have timestamps
   const hasTimestamps = assets[0].prices[0]?.date !== undefined;
 
   if (!hasTimestamps) {
-    console.warn("⚠️ No hay timestamps disponibles, usando alineación por longitud (menos preciso)");
+    console.warn(`⚠️ ${i18n.t('risk_engine.warning_no_timestamps')}`);
     return alignSeriesByLength(assets);
   }
 
-  // 1. Extraer sets de fechas de cada activo
+  // 1. Extract date sets from each asset
   const dateSets = assets.map(a =>
     new Set(a.prices.map(p => p.date))
   );
 
-  // 2. Intersección: fechas comunes a TODOS los activos
+  // 2. Intersection: dates common to ALL assets
   const commonDates = [...dateSets[0]].filter(date =>
     dateSets.every(set => set.has(date))
   ).sort();
 
   if (commonDates.length < 30) {
-    throw new Error(`Insuficientes fechas comunes (${commonDates.length}). Mínimo: 30`);
+    throw new Error(i18n.t('risk_engine.warning_insufficient_common_dates', { count: commonDates.length }));
   }
 
-  console.log(`✅ Alineación por fecha: ${commonDates.length} observaciones comunes`);
+  console.log(`✅ ${i18n.t('risk_engine.warning_alignment_verified', { count: commonDates.length })}`);
 
-  // 3. Alinear todos a fechas comunes
+  // 3. Align all to common dates
   const alignedAssets = assets.map(asset => {
     const priceMap = new Map(asset.prices.map(p => [p.date, p.close]));
     return {
@@ -127,16 +127,16 @@ const alignSeriesByDate = (assets) => {
     };
   });
 
-  // 4. Calcular retornos logarítmicos alineados
+  // 4. Calculate aligned logarithmic returns
   const assetReturns = alignedAssets.map(a => calculateLogReturns(a.prices));
 
-  // Verificar que todos tengan la misma longitud
+  // Verify all have the same length
   const returnLengths = assetReturns.map(r => r.length);
   if (new Set(returnLengths).size > 1) {
-    throw new Error("Error en alineación: retornos de diferente longitud");
+    throw new Error("Alignment error: returns of different length");
   }
 
-  // 5. Construir matriz de retornos (T x N)
+  // 5. Construct returns matrix (T x N)
   const nRows = assetReturns[0].length;
   const returnsMatrix = [];
 
@@ -149,18 +149,18 @@ const alignSeriesByDate = (assets) => {
     tickers: alignedAssets.map(a => a.ticker),
     weights: alignedAssets.map(a => a.weight),
     nObservations: nRows,
-    dates: commonDates.slice(1) // Retornos empiezan en t=1
+    dates: commonDates.slice(1) // Returns start at t=1
   };
 };
 
 /**
- * Alineación por longitud (fallback si no hay timestamps)
+ * Length-based alignment (fallback if no timestamps)
  */
 const alignSeriesByLength = (assets) => {
   const minLength = Math.min(...assets.map(a => a.prices.length));
 
   if (minLength < 30) {
-    throw new Error(`Historia insuficiente: ${minLength} días (mínimo 30)`);
+    throw new Error(`Insufficient history: ${minLength} days (minimum 30)`);
   }
 
   const alignedAssets = assets.map(asset => ({
@@ -186,29 +186,29 @@ const alignSeriesByLength = (assets) => {
 };
 
 // =====================================================
-// CÁLCULO DE MATRICES (COVARIANZA Y CORRELACIÓN)
+// MATRIX CALCULATION (COVARIANCE AND CORRELATION)
 // =====================================================
 
 /**
- * Validación de matriz de covarianza (semi-definida positiva)
+ * Covariance matrix validation (positive semi-definite)
  */
 const validateCovarianceMatrix = (covMatrix) => {
   const N = covMatrix.length;
 
-  // 1. Verificar simetría
+  // 1. Verify symmetry
   for (let i = 0; i < N; i++) {
     for (let j = i + 1; j < N; j++) {
       const diff = Math.abs(covMatrix[i][j] - covMatrix[j][i]);
       if (diff > 1e-10) {
-        console.warn(`⚠️ Matriz no simétrica en (${i},${j}): diff=${diff.toExponential(2)}`);
+        console.warn(`⚠️ ${i18n.t('risk_engine.warning_non_symmetric_matrix', { i, j, diff: diff.toExponential(2) })}`);
       }
     }
   }
 
-  // 2. Verificar diagonal positiva (varianzas)
+  // 2. Verify positive diagonal (variances)
   const diag = covMatrix.map((row, i) => row[i]);
   if (diag.some(d => d < 0)) {
-    console.error("❌ Varianzas negativas en diagonal");
+    console.error(`❌ ${i18n.t('risk_engine.warning_negative_variances')}`);
     return false;
   }
 
@@ -216,7 +216,7 @@ const validateCovarianceMatrix = (covMatrix) => {
 };
 
 /**
- * Ledoit-Wolf Shrinkage para muestras pequeñas
+ * Ledoit-Wolf Shrinkage for small samples
  */
 const ledoitWolfShrinkage = (covMatrix, T) => {
   const N = covMatrix.length;
@@ -234,15 +234,15 @@ const ledoitWolfShrinkage = (covMatrix, T) => {
   const avgCov = sumOffDiag / (N * (N - 1));
   const avgCorr = avgCov / avgVar;
 
-  // Matriz target F
+  // Target matrix F
   const F = covMatrix.map((row, i) =>
     row.map((_, j) => i === j ? avgVar : avgVar * avgCorr)
   );
 
-  // Intensidad de shrinkage (simplificado)
+  // Shrinkage intensity (simplified)
   const delta = Math.min(1, Math.max(0, (N + 1) / (T * N)));
 
-  console.log(`📊 Shrinkage aplicado: δ=${delta.toFixed(3)} (T=${T}, N=${N})`);
+  console.log(`📊 ${i18n.t('risk_engine.warning_shrinkage_applied', { delta: delta.toFixed(3), T, N })}`);
 
   // Shrinkage: S = δ*F + (1-δ)*Σ
   return covMatrix.map((row, i) =>
@@ -251,7 +251,7 @@ const ledoitWolfShrinkage = (covMatrix, T) => {
 };
 
 /**
- * Detectar activos con correlación perfecta (singularidades)
+ * Detect assets with perfect correlation (singularities)
  */
 const detectSingularities = (corrMatrix, tickers) => {
   const N = corrMatrix.length;
@@ -269,45 +269,45 @@ const detectSingularities = (corrMatrix, tickers) => {
   }
 
   if (duplicates.length > 0) {
-    console.warn("⚠️ Activos casi idénticos detectados:", duplicates);
+    console.warn(`⚠️ ${i18n.t('risk_engine.warning_nearly_identical')}:`, duplicates);
   }
 
   return duplicates;
 };
 
 /**
- * Cálculo de matrices de covarianza, correlación y distancia
+ * Calculation of covariance, correlation and distance matrices
  */
 const calculateMatrices = (returnsMatrix) => {
   const T = returnsMatrix.length;
   const N = returnsMatrix[0].length;
 
-  if (T < 2) throw new Error("Historia insuficiente (T < 2)");
+  if (T < 2) throw new Error("Insufficient history (T < 2)");
 
-  // 1. Centrar matriz (X - X̄)
+  // 1. Centre matrix (X - X̄)
   const centered = MatrixMath.center(returnsMatrix);
 
-  // 2. Transponer
+  // 2. Transpose
   const centeredT = MatrixMath.transpose(centered);
 
-  // 3. Covarianza: Σ = (1/(T-1)) * X^T * X
+  // 3. Covariance: Σ = (1/(T-1)) * X^T * X
   const rawCov = MatrixMath.multiply(centeredT, centered);
   let covMatrix = rawCov.map(row => row.map(val => val / (T - 1)));
 
-  // 4. Validar
+  // 4. Validate
   if (!validateCovarianceMatrix(covMatrix)) {
-    console.error("❌ Matriz de covarianza inválida");
+    console.error(`❌ ${i18n.t('risk_engine.error_invalid_covariance')}`);
   }
 
-  // 5. Aplicar shrinkage si muestra pequeña
+  // 5. Apply shrinkage if small sample
   if (T < 252) {
     covMatrix = ledoitWolfShrinkage(covMatrix, T);
   }
 
-  // 6. Desviaciones estándar (raíz de diagonal)
+  // 6. Standard deviations (square root of diagonal)
   const stdDevs = covMatrix.map((row, i) => Math.sqrt(Math.max(0, row[i])));
 
-  // 7. Matriz de correlación
+  // 7. Correlation matrix
   const corrMatrix = [];
   const distMatrix = [];
 
@@ -318,7 +318,7 @@ const calculateMatrices = (returnsMatrix) => {
     for (let j = 0; j < N; j++) {
       const den = stdDevs[i] * stdDevs[j];
 
-      // Correlación
+      // Correlation
       let rho;
       if (den === 0) {
         rho = (i === j) ? 1 : 0;
@@ -326,11 +326,11 @@ const calculateMatrices = (returnsMatrix) => {
         rho = covMatrix[i][j] / den;
       }
 
-      // Clipping numérico
+      // Numerical clipping
       rho = Math.max(-1, Math.min(1, rho));
       corrRow.push(rho);
 
-      // Distancia: d = √(2(1 - ρ))
+      // Distance: d = √(2(1 - ρ))
       const dist = Math.sqrt(Math.max(0, 2 * (1 - rho)));
       distRow.push(dist);
     }
@@ -343,12 +343,12 @@ const calculateMatrices = (returnsMatrix) => {
 };
 
 // =====================================================
-// TEST DE AUTOCORRELACIÓN (Para escalado temporal)
+// AUTOCORRELATION TEST (For temporal scaling)
 // =====================================================
 
 const testAutocorrelation = (returns, lag = 1) => {
   const n = returns.length - lag;
-  if (n < 10) return 0; // Insuficiente para test
+  if (n < 10) return 0; // Insufficient for test
 
   const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
 
@@ -364,11 +364,11 @@ const testAutocorrelation = (returns, lag = 1) => {
 };
 
 // =====================================================
-// API PÚBLICA - EXPORTACIONES
+// PUBLIC API - EXPORTS
 // =====================================================
 
 /**
- * VaR Histórico Individual (mantenido por utilidad)
+ * Individual Historical VaR (maintained for utility)
  */
 export const calculateVaR = (prices, confidence = 0.95, capital = 10000) => {
   if (!prices || prices.length < 30) return { pct: 0, value: 0 };
@@ -388,27 +388,27 @@ export const calculateVaR = (prices, confidence = 0.95, capital = 10000) => {
 };
 
 /**
- * VaR Paramétrico de Cartera (Matricial)
+ * Parametric Portfolio VaR (Matrix-based)
  */
 export const calculatePortfolioVaR = (allocatedAssets, totalCapital, confidence = 0.95) => {
   try {
-    // 1. Alinear datos
+    // 1. Align data
     const data = alignSeriesByDate(allocatedAssets);
     if (!data || data.returnsMatrix.length === 0) {
-      throw new Error("Datos insuficientes para análisis");
+      throw new Error(i18n.t('risk_engine.error_insufficient_data'));
     }
 
     const { returnsMatrix, weights, nObservations } = data;
     const N = weights.length;
 
     if (N < 2) {
-      throw new Error("Se requieren al menos 2 activos para análisis matricial");
+      throw new Error(i18n.t('risk_engine.error_min_assets'));
     }
 
-    // 2. Calcular matrices
+    // 2. Calculate matrices
     const { covMatrix, stdDevs } = calculateMatrices(returnsMatrix);
 
-    // 3. Varianza de cartera: σ²_p = w^T * Σ * w
+    // 3. Portfolio variance: σ²_p = w^T * Σ * w
     const SigmaW = new Array(N).fill(0);
     for (let i = 0; i < N; i++) {
       for (let j = 0; j < N; j++) {
@@ -419,26 +419,26 @@ export const calculatePortfolioVaR = (allocatedAssets, totalCapital, confidence 
     const portfolioVariance = MatrixMath.dot(weights, SigmaW);
     const dailyVol = Math.sqrt(Math.max(0, portfolioVariance));
 
-    // 4. Test de autocorrelación para escalado temporal
+    // 4. Autocorrelation test for temporal scaling
     const portfolioReturns = returnsMatrix.map(row => MatrixMath.dot(row, weights));
     const rho = testAutocorrelation(portfolioReturns);
 
-    // Ajuste de escalado si hay autocorrelación significativa
+    // Scaling adjustment if significant autocorrelation
     let scalingFactor = Math.sqrt(252);
     if (Math.abs(rho) > 0.1) {
       scalingFactor = Math.sqrt(252 * (1 + 2 * rho));
-      console.log(`📊 Autocorrelación detectada: ρ=${rho.toFixed(3)}, ajustando escalado`);
+      console.log(`📊 ${i18n.t('risk_engine.warning_autocorrelation_detected', { rho: rho.toFixed(3) })}`);
     }
 
     const annualVol = dailyVol * scalingFactor;
 
-    // 5. VaR Paramétrico
+    // 5. Parametric VaR
     const zScores = { 0.90: 1.28, 0.95: 1.65, 0.99: 2.33 };
     const z = zScores[confidence] || 1.65;
 
     const diversifiedVaRValue = z * dailyVol * totalCapital;
 
-    // 6. VaR sin diversificar (suma ponderada)
+    // 6. Undiversified VaR (weighted sum)
     let sumWeightedVol = 0;
     for (let i = 0; i < N; i++) {
       sumWeightedVol += stdDevs[i] * weights[i];
@@ -457,11 +457,11 @@ export const calculatePortfolioVaR = (allocatedAssets, totalCapital, confidence 
       dailyVolatility: (dailyVol * 100).toFixed(4),
       autocorrelation: rho.toFixed(3),
       observations: nObservations,
-      method: "Parametric (Covariance Matrix)"
+      method: i18n.t('risk_engine.method_parametric')
     };
 
   } catch (e) {
-    console.error("❌ Error en cálculo de VaR:", e);
+    console.error("❌ " + i18n.t('risk_engine.error_var_calculation') + ":", e);
     return {
       undiversifiedVaR: "0.00",
       diversifiedVaR: "0.00",
@@ -474,22 +474,22 @@ export const calculatePortfolioVaR = (allocatedAssets, totalCapital, confidence 
 };
 
 /**
- * CVaR (Expected Shortfall) - Complemento a VaR
+ * CVaR (Expected Shortfall) - Complement to VaR
  */
 export const calculatePortfolioCVaR = (allocatedAssets, totalCapital, confidence = 0.95) => {
   try {
     const data = alignSeriesByDate(allocatedAssets);
-    if (!data) throw new Error("Datos insuficientes");
+    if (!data) throw new Error(i18n.t('risk_engine.error_insufficient_data'));
 
     const { returnsMatrix, weights } = data;
 
-    // Calcular retornos históricos de cartera
+    // Calculate historical portfolio returns
     const portfolioReturns = returnsMatrix.map(row => MatrixMath.dot(row, weights));
 
-    // Ordenar de peor a mejor
+    // Sort from worst to best
     portfolioReturns.sort((a, b) => a - b);
 
-    // CVaR = promedio de retornos en la cola
+    // CVaR = average of returns in the tail
     const varIndex = Math.floor((1 - confidence) * portfolioReturns.length);
     const tailReturns = portfolioReturns.slice(0, varIndex + 1);
 
@@ -504,13 +504,13 @@ export const calculatePortfolioCVaR = (allocatedAssets, totalCapital, confidence
     };
 
   } catch (e) {
-    console.error("❌ Error calculando CVaR:", e);
+    console.error("❌ " + i18n.t('risk_engine.error_cvar_calculation') + ":", e);
     return { cvar: "0.00", cvarPct: "0.00", error: e.message };
   }
 };
 
 /**
- * Matriz de Correlación para visualización
+ * Correlation Matrix for visualisation
  */
 export const calculateCorrelationMatrix = (assets) => {
   try {
@@ -520,16 +520,16 @@ export const calculateCorrelationMatrix = (assets) => {
     const { returnsMatrix, tickers } = data;
     const { corrMatrix, distMatrix } = calculateMatrices(returnsMatrix);
 
-    // Detectar singularidades
+    // Detect singularities
     detectSingularities(corrMatrix, tickers);
 
-    // Formatear para frontend
+    // Format for frontend
     const matrixObj = tickers.map((ticker, i) => ({
       ticker,
       values: corrMatrix[i].map(v => parseFloat(v.toFixed(2)))
     }));
 
-    // Estadísticas (solo off-diagonal)
+    // Statistics (off-diagonal only)
     const flatCorrs = [];
     for (let i = 0; i < corrMatrix.length; i++) {
       for (let j = 0; j < corrMatrix[i].length; j++) {
@@ -541,7 +541,7 @@ export const calculateCorrelationMatrix = (assets) => {
 
     return {
       matrix: matrixObj,
-      rawDistanceMatrix: distMatrix, // Para HRP en allocation.js
+      rawDistanceMatrix: distMatrix, // For HRP in allocation.js
       stats: {
         average: avgCorr.toFixed(2),
         max: Math.max(...flatCorrs).toFixed(2),
@@ -550,7 +550,7 @@ export const calculateCorrelationMatrix = (assets) => {
     };
 
   } catch (e) {
-    console.warn("⚠️ Error generando matriz de correlaciones:", e);
+    console.warn("⚠️ " + i18n.t('risk_engine.error_correlation_matrix') + ":", e);
     return { matrix: [], stats: { average: 0 } };
   }
 };
@@ -599,21 +599,21 @@ export const runStressTest = (portfolio, totalCapital) => {
 };
 
 /**
- * REPORTE COMPLETO DE RIESGO (Punto de entrada principal)
+ * COMPLETE RISK REPORT (Main entry point)
  */
 export const generateRiskReport = (portfolio, totalCapital) => {
   try {
-    // 1. Análisis Matricial (VaR y CVaR)
+    // 1. Matrix Analysis (VaR and CVaR)
     const portfolioRisk = calculatePortfolioVaR(portfolio, totalCapital);
     const cvarData = calculatePortfolioCVaR(portfolio, totalCapital);
 
-    // 2. Correlaciones y Distancias
+    // 2. Correlations and Distances
     const correlationData = calculateCorrelationMatrix(portfolio);
 
     // 3. Stress Tests
     const stressTests = runStressTest(portfolio, totalCapital);
 
-    // 4. Métricas de activos individuales
+    // 4. Individual asset metrics
     const riskiestAsset = portfolio.reduce((max, asset) => {
       const vol = parseFloat(asset.volatility) || 0;
       return vol > parseFloat(max.volatility || 0) ? asset : max;
@@ -647,9 +647,9 @@ export const generateRiskReport = (portfolio, totalCapital) => {
     };
 
   } catch (e) {
-    console.error("❌ Error generando reporte de riesgo:", e);
+    console.error(`❌ ${i18n.t('risk_engine.error_risk_report')}:`, e);
 
-    // Retorno seguro en caso de error
+    // Safe return in case of error
     return {
       portfolioVaR: {
         diversifiedVaR: "0.00",
@@ -671,7 +671,7 @@ export const generateRiskReport = (portfolio, totalCapital) => {
 };
 
 // =====================================================
-// EXPORTACIONES
+// EXPORTS
 // =====================================================
 
 export default {

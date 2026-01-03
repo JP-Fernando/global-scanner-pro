@@ -90,6 +90,8 @@ export default {
 
   // Status messages
   status: {
+    yahoo_load_failed: 'Error loading {{symbol}}:',
+    analyze_stock_failed: 'Error analysing {{ticker}} - {{name}}:',
     initializing: '⏳ Initialising scan...',
     loading_universe: '📦 Loading asset universe...',
     loading_benchmark: '📊 Loading market benchmark...',
@@ -142,6 +144,7 @@ export default {
     signal: 'Signal',
     trend: 'Trend',
     momentum: 'Momentum',
+    composite_score: 'Composite Score',
     risk: 'Risk',
     liquidity: 'Liquidity',
     price: 'Price',
@@ -278,7 +281,13 @@ export default {
     scan_failed: '❌ Critical error during scan.',
     insufficient_assets_portfolio: 'Not enough assets with historical data to build portfolio',
     no_historical_data: '⚠️ Could not load historical data for universe',
-    select_market_first: 'Select a market before running backtest'
+    select_market_first: 'Select a market before running backtest',
+    no_benchmark_market: 'No benchmark defined for this market',
+    insufficient_data: 'Insufficient benchmark data',
+    benchmark_calculation_failed: 'Error calculating benchmark metrics:',
+    backtest_error: 'Backtest error',
+    regime_full_benchmark_load_failed: 'Full benchmark data could not be loaded for regime',
+
   },
 
   // Detail modal
@@ -303,7 +312,31 @@ export default {
     momentum: 'Momentum',
     market_breadth: 'Market Breadth',
     benchmark_signals: 'Benchmark Signals',
-    vol_description: 'Volatility'
+    vol_description: 'Volatility',
+    bullish_assets: 'Bullish assets',
+    percentage: 'Percentage',
+    description: 'Description',
+    classification: "Classification",
+    strategy_adjustments: "Recommended Strategy Adjustments",
+    momentum_weight: "Momentum Weight",
+    risk_penalty: "Risk Penalty",
+    min_score_adjustment: "Minimum Score Adjustment",
+    points: "points",
+    increase: "(increase)",
+    reduce: "(reduce)",
+    maintain: "(maintain)",
+    stricter: "(stricter)",
+    more_permissive: "(more permissive)",
+    normal: "(normal)"
+  },
+
+
+  rsi: {
+    overbought: 'Overbought: correction risk',
+    healthy_bullish: 'Healthy bullish trend',
+    oversold: 'Oversold: possible bounce',
+    weakness: 'Weakness: low buying interest',
+    neutral: 'Neutral regime / consolidation'
   },
 
   // Settings
@@ -348,7 +381,19 @@ export default {
     trend: 'Trend',
     volatility: 'Volatility',
     breadth: 'Breadth',
-    view_details: 'View Details'
+    view_details: 'View Details',
+    interpretation: {
+      risk_on:
+        'The market is in a bullish, low-volatility regime. This environment is favorable for momentum and growth strategies. Increasing exposure to strong-momentum assets and relaxing risk constraints is recommended.',
+
+      risk_off:
+        'The market is in a defensive regime with high volatility or a downward trend. It is recommended to prioritize asset quality, reduce exposure to extreme momentum, and focus on stability. Consider increasing cash or defensive assets.',
+
+      neutral:
+        'The market shows no clear trend. This environment favors balanced strategies and diversification. Maintain balanced factor weights and avoid over-concentration in momentum or value.',
+
+      unknown: 'Unidentified regime.'
+    }
   },
 
   // Portfolio section
@@ -531,5 +576,248 @@ export default {
     medium: 'Medium',
     low: 'Low',
     na: 'N/A'
+  },
+
+  // Details
+  details: {
+    main_scores_title: "Main Scores",
+    total: "Total",
+    trend: "Trend",
+    momentum: "Momentum",
+    risk: "Risk",
+    liquidity: "Liquidity",
+
+    time_analysis_title: "Timeframe Analysis",
+    short_term_6m: "Short Term (6m)",
+    medium_term_18m: "Medium Term (18m)",
+    long_term_4y: "Long Term (4y)",
+
+    trend_analysis_title: "Trend Analysis",
+    position_score: "Position score",
+    consistency_score: "Consistency score",
+    adx_score: "ADX score",
+    ema50: "EMA50",
+    ema200: "EMA200",
+
+    momentum_analysis_title: "Momentum Analysis",
+    roc_6m: "6-month ROC",
+    roc_12m: "12-month ROC",
+    alpha_6m: "6m alpha",
+    alpha_12m: "12m alpha",
+    rsi: "RSI",
+
+    risk_analysis_title: "Risk Analysis",
+    atr_pct: "ATR%",
+    annual_volatility: "Annual volatility",
+    relative_volatility: "Relative volatility",
+    max_drawdown_52w: "52-week max drawdown",
+
+    anomalies_title: "Anomaly Detection",
+    anomalies_penalty_text: "This asset shows unusual behavior and received a -{{points}} point penalty.",
+    anomaly_type: "Type",
+    anomaly_volume_zscore: "Volume Z-Score",
+    anomaly_sector_ratio: "Sector-relative ratio",
+    anomaly_return_1d: "1-day return",
+    anomaly_normal_lt: "Normal < {{value}}",
+    anomaly_normal_approx: "Normal ~{{value}}",
+
+    liquidity_analysis_title: "Liquidity Analysis",
+    avg_vol_20d: "20-day avg volume",
+    avg_vol_60d: "60-day avg volume",
+    volume_ratio: "Volume ratio",
+
+    signal: "Signal",
+    confidence: "Confidence"
+  },
+
+  // Governance module
+  governance_module: {
+    // Risk profile names
+    risk_profile_conservative: "Conservative",
+    risk_profile_moderate: "Moderate",
+    risk_profile_aggressive: "Aggressive",
+
+    // Risk profile descriptions
+    risk_profile_conservative_desc: "Minimise risk, prioritise stability",
+    risk_profile_moderate_desc: "Balance between growth and stability",
+    risk_profile_aggressive_desc: "Maximise growth, accept volatility",
+
+    // Investor types
+    investor_type_conservative: "Investors with low risk tolerance, near retirement",
+    investor_type_moderate: "Investors with medium horizon (5-10 years)",
+    investor_type_aggressive: "Young investors with long horizon (10+ years)",
+
+    // Strategy names
+    strategy_momentum_aggressive: "Aggressive Momentum",
+    strategy_trend_conservative: "Conservative Trend-Following",
+    strategy_balanced: "Balanced",
+    strategy_sector_rotation: "Sector Rotation",
+
+    // Strategy objectives
+    objective_momentum_aggressive: "Capture short-term trends with active rotation",
+    objective_trend_conservative: "Follow structural trends with low volatility",
+    objective_balanced: "Optimal balance between growth and stability",
+    objective_sector_rotation: "Rotate capital towards sectors with relative momentum",
+
+    // Strategy characteristics
+    char_high_turnover: "High portfolio turnover",
+    char_sensitive_regime: "Sensitive to regime changes",
+    char_active_monitoring: "Requires active monitoring",
+    char_high_tax_impact: "Higher tax impact from rotation",
+    char_low_turnover: "Low portfolio turnover",
+    char_high_stability: "High stability",
+    char_low_market_noise: "Lower sensitivity to market noise",
+    char_tax_efficient: "Tax efficient",
+    char_factor_diversification: "Diversification between factors",
+    char_regime_adaptability: "Adaptability to different regimes",
+    char_moderate_turnover: "Moderate turnover",
+    char_optimal_cost_benefit: "Optimal cost-benefit balance",
+    char_sector_concentration: "Temporary sector concentration",
+    char_requires_macro: "Requires macro analysis",
+    char_high_liquidity: "High liquidity necessary",
+    char_cycle_sensitive: "Sensitive to economic cycles",
+
+    // Ideal conditions
+    ideal_bull_trend: "Markets in upward trend (Risk-On)",
+    ideal_low_volatility: "Low general volatility",
+    ideal_high_breadth: "High market breadth (>60% bullish assets)",
+    ideal_clear_trend: "Markets in clear and sustained trend",
+    ideal_controlled_volatility: "Controlled volatility",
+    ideal_expansive_cycle: "Expansive economic cycle",
+    ideal_any_regime: "Any market regime",
+    ideal_simplify_decisions: "Investors seeking to simplify decisions",
+    ideal_medium_horizons: "Medium investment horizons",
+    ideal_cycle_changes: "Clear changes in economic cycle",
+    ideal_sector_divergence: "Marked sector divergence",
+    ideal_macro_catalysts: "Identifiable macro catalysts",
+
+    // Strategy risks
+    risk_sharp_reversals: "Sharp reversals in regime changes",
+    risk_whipsaws: "Whipsaws in sideways markets",
+    risk_high_transaction_costs: "High transaction costs",
+    risk_sideways_underperformance: "Underperformance in sideways markets",
+    risk_late_entry: "Late entry into new trends",
+    risk_late_exit: "Late exit when regime changes",
+    risk_no_maximize_rallies: "May not maximise gains in rallies",
+    risk_no_avoid_drawdowns: "Does not completely avoid moderate drawdowns",
+    risk_high_sector_concentration: "High sector concentration",
+    risk_critical_rotation_timing: "Critical rotation timing",
+    risk_higher_complexity: "Higher management complexity",
+
+    // Compliance violation messages
+    violation_max_position: "{{ticker}} exceeds maximum permitted weight",
+    violation_top3_concentration: "Top 3 positions excessively concentrated",
+    violation_portfolio_volatility: "Portfolio volatility exceeds limit",
+
+    // Warning messages
+    warning_min_position: "{{ticker}} has very low weight (inefficient)",
+    warning_low_liquidity: "{{ticker}} has low liquidity",
+    warning_extreme_volatility: "{{ticker}} has extreme volatility",
+
+    // Correction actions
+    action_reduce_weight: "REDUCE_WEIGHT",
+    action_remove: "REMOVE",
+    action_renormalize: "RENORMALISE",
+
+    // Correction reasons
+    reason_weight_below_minimum: "Weight below minimum",
+    reason_adjust_weights: "Adjust weights to sum 100%",
+
+    // Strategy properties
+    horizon: "Horizon",
+    expected_return: "Expected Return",
+    expected_volatility: "Expected Volatility",
+    max_drawdown: "Max Drawdown",
+    sharpe_target: "Sharpe Target",
+    investor_profile: "Investor Profile",
+    risk_tolerance: "Risk Tolerance",
+    rebalance_frequency: "Rebalance Frequency",
+    min_capital: "Minimum Capital",
+    benchmark: "Benchmark",
+
+    // Risk tolerance levels
+    risk_tolerance_high: "High",
+    risk_tolerance_low: "Low",
+    risk_tolerance_medium: "Medium",
+    risk_tolerance_medium_high: "Medium-High",
+
+    // Investor profile types
+    investor_profile_moderate_aggressive: "Moderate-Aggressive",
+
+    // Rebalance frequencies
+    rebalance_monthly: "Monthly",
+    rebalance_quarterly: "Quarterly",
+    rebalance_bimonthly: "Bimonthly"
+  },
+
+  // Risk engine module
+  risk_engine: {
+    // Calculation methods
+    method_parametric: "Parametric (Covariance Matrix)",
+    method_historical: "Historical",
+
+    // Error messages
+    error_insufficient_data: "Insufficient data for analysis",
+    error_min_assets: "At least 2 assets required for matrix analysis",
+    error_var_calculation: "Error in VaR calculation",
+    error_cvar_calculation: "Error calculating CVaR",
+    error_correlation_matrix: "Error generating correlation matrix",
+    error_invalid_covariance: "Invalid covariance matrix",
+    error_risk_report: "Error generating risk report",
+
+    // Console warnings
+    warning_invalid_data_pct: "{{pct}}% invalid data detected",
+    warning_no_timestamps: "No timestamps available, using length-based alignment (less accurate)",
+    warning_insufficient_common_dates: "Insufficient common dates ({{count}}). Minimum: 30",
+    warning_alignment_verified: "Date-based alignment: {{count}} common observations",
+    warning_non_symmetric_matrix: "Non-symmetric matrix at ({{i}},{{j}}): diff={{diff}}",
+    warning_negative_variances: "Negative variances in diagonal",
+    warning_nearly_identical: "Nearly identical assets detected",
+    warning_autocorrelation_detected: "Autocorrelation detected: ρ={{rho}}, adjusting scaling",
+    warning_shrinkage_applied: "Shrinkage applied: δ={{delta}} (T={{T}}, N={{N}})"
+  },
+
+  // Market regime module
+  market_regime: {
+    // Regime names
+    risk_on_name: "Risk-On",
+    neutral_name: "Neutral",
+    risk_off_name: "Risk-Off",
+
+    // Regime descriptions
+    risk_on_desc: "Bullish market, low volatility, strong breadth",
+    neutral_desc: "Sideways market, no clear trend",
+    risk_off_desc: "Bearish market or high volatility",
+
+    // Trend descriptions
+    trend_bullish: "Bullish",
+    trend_bearish: "Bearish",
+    trend_sideways: "Sideways",
+
+    // Volatility descriptions
+    vol_low: "Low",
+    vol_high: "High",
+    vol_normal: "Normal",
+
+    // Momentum descriptions
+    momentum_positive: "Positive",
+    momentum_negative: "Negative",
+    momentum_neutral: "Neutral",
+
+    // Breadth descriptions
+    breadth_strong: "Strong (>60% bullish assets)",
+    breadth_weak: "Weak (<40% bullish assets)",
+    breadth_normal: "Normal (40-60%)",
+    breadth_no_data: "No breadth data",
+    breadth_no_valid: "No valid data",
+
+    // Error messages
+    error_calculating_trend: "Error calculating trend",
+    error_calculating_volatility: "Error calculating volatility",
+    error_calculating_momentum: "Error calculating momentum",
+
+    // Reason messages
+    reason_insufficient_data: "Insufficient data for regime analysis"
   }
+
 };

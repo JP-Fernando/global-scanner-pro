@@ -95,7 +95,9 @@ async function loadYahooData(ticker, suffix) {
     dataCache.set(fullSymbol, series);
     return series;
   } catch (e) {
-    console.warn(`Error cargando ${fullSymbol}:`, e.message);
+    console.warn(
+      i18n.t('errors.yahoo_load_failed',{symbol: fullSymbol}), 
+      e.message);
     return [];
   }
 }
@@ -190,7 +192,10 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
     };
 
   } catch (err) {
-    console.warn(`Error analysing ${stock.ticker} - ${stock.name}:`, err.message);
+    console.warn(i18n.t('errors.analyse_stock', {
+      ticker: stock.ticker,
+      name: stock.name
+    }), err.message);
     return {
       passed: false,
       ticker: stock.ticker,
@@ -208,7 +213,7 @@ async function loadBenchmark(suffix) {
   const benchmarkSymbol = MARKET_BENCHMARKS[suffix];
 
   if (!benchmarkSymbol) {
-    console.log('No benchmark defined for this market');
+    console.log(i18n.t('errors.no_benchmark_market'));
     return null;
   }
 
@@ -216,7 +221,7 @@ async function loadBenchmark(suffix) {
   const data = await loadYahooData(benchmarkSymbol, '');
 
   if (!data || data.length < 252) {
-    console.warn('Insufficient benchmark data');
+    console.warn(i18n.t('errors.insufficient_benchmark_data'));
     return null;
   }
 
@@ -234,18 +239,51 @@ async function loadBenchmark(suffix) {
       prices
     };
   } catch (e) {
-    console.warn('Error calculating benchmark metrics:', e.message);
+    console.warn(i18n.t('errors.benchmark_calculation_failed'), e.message);
     return null;
   }
 }
 
 function getRSIDescription(rsi) {
-  if (rsi >= 70) return { text: 'Overbought: Correction risk', color: '#f87171', icon: '⚠️' };
-  if (rsi >= 60) return { text: 'Healthy bullish trend', color: '#fbbf24', icon: '📈' };
-  if (rsi <= 30) return { text: 'Oversold: Possible bounce', color: '#4ade80', icon: '🎯' };
-  if (rsi <= 40) return { text: 'Weakness: Low buying interest', color: '#60a5fa', icon: '📉' };
-  return { text: 'Neutral regime / Consolidation', color: '#94a3b8', icon: '⚖️' };
+  if (rsi >= 70) {
+    return {
+      text: i18n.t('rsi.overbought'),
+      color: '#f87171',
+      icon: '⚠️'
+    };
+  }
+
+  if (rsi >= 60) {
+    return {
+      text: i18n.t('rsi.healthy_bullish'),
+      color: '#fbbf24',
+      icon: '📈'
+    };
+  }
+
+  if (rsi <= 30) {
+    return {
+      text: i18n.t('rsi.oversold'),
+      color: '#4ade80',
+      icon: '🎯'
+    };
+  }
+
+  if (rsi <= 40) {
+    return {
+      text: i18n.t('rsi.weakness'),
+      color: '#60a5fa',
+      icon: '📉'
+    };
+  }
+
+  return {
+    text: i18n.t('rsi.neutral'),
+    color: '#94a3b8',
+    icon: '⚖️'
+  };
 }
+
 
 function updateSectorUI(sectorStats) {
   const container = document.getElementById('sectorSummary');
@@ -373,7 +411,16 @@ function toggleSection(sectionId, el) {
 
 function exportBacktestToCSV(results = lastBacktestResults) {
   if (!results?.length) return;
-  const headers = ['Estrategia', 'Capital inicial', 'CAGR', 'Sharpe', 'Max DD', 'Win Rate', 'Alpha', 'Beta'];
+  const headers = [
+    i18n.t('backtest.strategy'),
+    i18n.t('backtest.initial_capital'),
+    i18n.t('backtest.cagr'),
+    i18n.t('backtest.sharpe'),
+    i18n.t('backtest.max_drawdown'),
+    i18n.t('backtest.win_rate'),
+    i18n.t('backtest.alpha'),
+    i18n.t('backtest.beta')
+  ]
   const rows = results.map(result => [
     result.strategyName,
     result.initialCapital ?? '',
@@ -787,7 +834,7 @@ function renderEquityCurveChart(bestStrategy, benchmarkReturns = null) {
     return `${x},${y}`;
   }).join(' ');
 
-    return `
+  return `
       <div style="background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
           <h4 style="color: #c7d2fe; font-size: 1.2em; margin: 0;">📈 ${i18n.t('backtest.equity_curve')} - ${bestStrategy.strategyName}</h4>
@@ -896,15 +943,15 @@ function renderEquityCurveChart(bestStrategy, benchmarkReturns = null) {
             <div style="font-size: 0.85em; color: #94a3b8;">
               <strong style="color: #38bdf8;">${i18n.t('backtest_section.interpretation')}:</strong><br>
               ${outperformance > 0
-          ? `${i18n.t('backtest_section.outperformed_benchmark', { value: formatNumber(outperformance) })}`
-          : `${i18n.t('backtest_section.underperformed_benchmark', { value: formatNumber(Math.abs(outperformance)) })}`
-        }
+        ? `${i18n.t('backtest_section.outperformed_benchmark', { value: formatNumber(outperformance) })}`
+        : `${i18n.t('backtest_section.underperformed_benchmark', { value: formatNumber(Math.abs(outperformance)) })}`
+      }
             </div>
           </div>
         ` : ''}
       </div>
     `;
-  }
+}
 
 function renderDrawdownAnalysis(results) {
   return `
@@ -1014,7 +1061,7 @@ window.runBacktest = async function () {
     status.innerText = i18n.t('status.backtest_completed');
     renderBacktestResults(results, rebalanceEvery);
   } catch (err) {
-    console.error('Error en backtest:', err);
+    console.error(i18n.t('errors.backtest_error'), err);
     status.innerText = i18n.t('errors.backtest_failed') + ': ' + err.message;
   }
 };
@@ -1653,89 +1700,125 @@ function showDetails(result) {
   const content = document.getElementById('modalContent');
   const d = result.details;
 
+  const li = (labelKey, valueHtml) =>
+    `<li>${i18n.t(labelKey)}: <strong>${valueHtml}</strong></li>`;
+
+  const scoreCell = (labelKey, value) =>
+    `<div>${i18n.t(labelKey)}: <strong>${value}</strong></div>`;
+
+  const timeCard = (labelKey, value, style) => `
+    <div style="${style}">
+      <div style="font-size: 0.85em; margin-bottom: 5px;">
+        ${i18n.t(labelKey)}
+      </div>
+      <strong style="font-size: 1.5em;">${value}</strong>
+    </div>
+  `;
+
+  const anomaliesSection = result.hasAnomalies
+    ? `
+      <div class="detail-section" style="border-left: 4px solid #f43f5e; background: #450a0a;">
+        <h3 style="color: #f43f5e;">🚨 ${i18n.t('details.anomalies_title')}</h3>
+        <div style="margin-bottom: 10px; color: #fca5a5;">
+          ${i18n.t('details.anomalies_penalty_text', { points: result.anomalyPenalty })}
+        </div>
+        <ul>
+          ${li('details.anomaly_type', result.anomalies.join(', '))}
+          <li>
+            ${i18n.t('details.anomaly_volume_zscore')}: <strong>${result.anomalyMetrics.volumeZScore}</strong>
+            (${i18n.t('details.anomaly_normal_lt', { value: '3.0' })})
+          </li>
+          <li>
+            ${i18n.t('details.anomaly_sector_ratio')}: <strong>${result.anomalyMetrics.sectorRelVolume}x</strong>
+            (${i18n.t('details.anomaly_normal_approx', { value: '1.0' })})
+          </li>
+          ${li('details.anomaly_return_1d', result.anomalyMetrics.priceReturn1d)}
+        </ul>
+      </div>
+    `
+    : '';
+
   content.innerHTML = `
     <h2>${result.ticker} - ${result.name}</h2>
+
     <div class="detail-section">
-      <h3>📊 Scores Principales</h3>
+      <h3>📊 ${i18n.t('details.main_scores_title')}</h3>
       <div class="score-grid">
-        <div>Total: <strong>${result.scoreTotal}</strong></div>
-        <div>Trend: <strong>${result.scoreTrend}/100</strong></div>
-        <div>Momentum: <strong>${result.scoreMomentum}/100</strong></div>
-        <div>Risk: <strong>${result.scoreRisk}/100</strong></div>
-        <div>Liquidity: <strong>${result.scoreLiquidity}/100</strong></div>
+        ${scoreCell('details.total', result.scoreTotal)}
+        ${scoreCell('details.trend', `${result.scoreTrend}/100`)}
+        ${scoreCell('details.momentum', `${result.scoreMomentum}/100`)}
+        ${scoreCell('details.risk', `${result.scoreRisk}/100`)}
+        ${scoreCell('details.liquidity', `${result.scoreLiquidity}/100`)}
       </div>
     </div>
+
     <div class="detail-section">
-      <h3>⏱️ Análisis Temporal</h3>
+      <h3>⏱️ ${i18n.t('details.time_analysis_title')}</h3>
       <div class="score-grid">
-        <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-          <div style="font-size: 0.85em; color: #93c5fd; margin-bottom: 5px;">Corto Plazo (6m)</div>
-          <strong style="font-size: 1.5em;">${result.scoreShort}</strong>
-        </div>
-        <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-          <div style="font-size: 0.85em; color: #c4b5fd; margin-bottom: 5px;">Medio Plazo (18m)</div>
-          <strong style="font-size: 1.5em;">${result.scoreMedium}</strong>
-        </div>
-        <div style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
-          <div style="font-size: 0.85em; color: #fbcfe8; margin-bottom: 5px;">Largo Plazo (4a)</div>
-          <strong style="font-size: 1.5em;">${result.scoreLong}</strong>
-        </div>
+        ${timeCard(
+          'details.short_term_6m',
+          result.scoreShort,
+          'background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);'
+        )}
+        ${timeCard(
+          'details.medium_term_18m',
+          result.scoreMedium,
+          'background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);'
+        )}
+        ${timeCard(
+          'details.long_term_4y',
+          result.scoreLong,
+          'background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);'
+        )}
       </div>
     </div>
+
     <div class="detail-section">
-      <h3>📈 Análisis de Tendencia</h3>
+      <h3>📈 ${i18n.t('details.trend_analysis_title')}</h3>
       <ul>
-        <li>Score posición: <strong>${d.trend.positionScore}</strong></li>
-        <li>Score consistencia: <strong>${d.trend.consistencyScore}</strong></li>
-        <li>Score ADX: <strong>${d.trend.adxScore}</strong></li>
-        <li>EMA50: <strong>${d.trend.ema50}</strong></li>
-        <li>EMA200: <strong>${d.trend.ema200}</strong></li>
+        ${li('details.position_score', d.trend.positionScore)}
+        ${li('details.consistency_score', d.trend.consistencyScore)}
+        ${li('details.adx_score', d.trend.adxScore)}
+        ${li('details.ema50', d.trend.ema50)}
+        ${li('details.ema200', d.trend.ema200)}
       </ul>
     </div>
+
     <div class="detail-section">
-      <h3>🚀 Análisis de Momentum</h3>
+      <h3>🚀 ${i18n.t('details.momentum_analysis_title')}</h3>
       <ul>
-        <li>ROC 6 meses: <strong>${d.momentum.roc6m}%</strong></li>
-        <li>ROC 12 meses: <strong>${d.momentum.roc12m}%</strong></li>
-        <li>Alpha 6m: <strong>${d.momentum.alpha6m}%</strong></li>
-        <li>Alpha 12m: <strong>${d.momentum.alpha12m}%</strong></li>
-        <li>RSI: <strong>${d.momentum.rsi}</strong></li>
+        ${li('details.roc_6m', `${d.momentum.roc6m}%`)}
+        ${li('details.roc_12m', `${d.momentum.roc12m}%`)}
+        ${li('details.alpha_6m', `${d.momentum.alpha6m}%`)}
+        ${li('details.alpha_12m', `${d.momentum.alpha12m}%`)}
+        ${li('details.rsi', d.momentum.rsi)}
       </ul>
     </div>
+
     <div class="detail-section">
-      <h3>⚠️ Análisis de Riesgo</h3>
+      <h3>⚠️ ${i18n.t('details.risk_analysis_title')}</h3>
       <ul>
-        <li>ATR%: <strong>${d.risk.atrPct}%</strong></li>
-        <li>Volatilidad anual: <strong>${d.risk.volatility}%</strong></li>
-        <li>Volatilidad relativa: <strong>${d.risk.relativeVol}</strong></li>
-        <li>Max Drawdown 52w: <strong>${d.risk.maxDrawdown}%</strong></li>
+        ${li('details.atr_pct', `${d.risk.atrPct}%`)}
+        ${li('details.annual_volatility', `${d.risk.volatility}%`)}
+        ${li('details.relative_volatility', d.risk.relativeVol)}
+        ${li('details.max_drawdown_52w', `${d.risk.maxDrawdown}%`)}
       </ul>
     </div>
-    ${result.hasAnomalies ? `
-    <div class="detail-section" style="border-left: 4px solid #f43f5e; background: #450a0a;">
-      <h3 style="color: #f43f5e;">🚨 Detección de Anomalías</h3>
-      <div style="margin-bottom: 10px; color: #fca5a5;">
-        Este activo presenta comportamiento inusual y ha recibido una <strong>penalización de -${result.anomalyPenalty} puntos</strong>.
-      </div>
-      <ul>
-        <li>Tipo: <strong>${result.anomalies.join(', ')}</strong></li>
-        <li>Z-Score Volumen: <strong>${result.anomalyMetrics.volumeZScore}</strong> (Normal < 3.0)</li>
-        <li>Ratio vs Sector: <strong>${result.anomalyMetrics.sectorRelVolume}x</strong> (Normal ~1.0)</li>
-        <li>Retorno 1d: <strong>${result.anomalyMetrics.priceReturn1d}</strong></li>
-      </ul>
-    </div>
-    ` : ''}
+
+    ${anomaliesSection}
+
     <div class="detail-section">
-      <h3>💧 Análisis de Liquidez</h3>
+      <h3>💧 ${i18n.t('details.liquidity_analysis_title')}</h3>
       <ul>
-        <li>Vol. medio 20d: <strong>${d.liquidity.avgVol20}</strong></li>
-        <li>Vol. medio 60d: <strong>${d.liquidity.avgVol60}</strong></li>
-        <li>Ratio volumen: <strong>${d.liquidity.volRatio}</strong></li>
+        ${li('details.avg_vol_20d', d.liquidity.avgVol20)}
+        ${li('details.avg_vol_60d', d.liquidity.avgVol60)}
+        ${li('details.volume_ratio', d.liquidity.volRatio)}
       </ul>
     </div>
+
     <div class="signal-summary" style="background: ${result.signal.color}20; border-left: 4px solid ${result.signal.color}">
-      <h3>Señal: ${result.signal.text}</h3>
-      <p>Confianza: ${result.signal.confidence}%</p>
+      <h3>${i18n.t('details.signal')}: ${result.signal.text}</h3>
+      <p>${i18n.t('details.confidence')}: ${result.signal.confidence}%</p>
     </div>
   `;
 
@@ -1846,7 +1929,7 @@ window.showRegimeDetails = function () {
         <li>${i18n.t('modal.trend')}: <strong>${r.benchmarkAnalysis.details.trendDescription}</strong> (${r.benchmarkAnalysis.signals.trend > 0 ? '🟢' : r.benchmarkAnalysis.signals.trend < 0 ? '🔴' : '🟡'})</li>
         <li>${i18n.t('modal.vol_description')}: <strong>${r.benchmarkAnalysis.details.volDescription}</strong> (${r.benchmarkAnalysis.signals.volatility > 0 ? '🟢' : r.benchmarkAnalysis.signals.volatility < 0 ? '🔴' : '🟡'})</li>
         <li>${i18n.t('modal.momentum')}: <strong>${r.benchmarkAnalysis.details.momentumDescription}</strong> (${r.benchmarkAnalysis.signals.momentum > 0 ? '🟢' : r.benchmarkAnalysis.signals.momentum < 0 ? '🔴' : '🟡'})</li>
-        <li>Score Compuesto: <strong>${r.benchmarkAnalysis.signals.composite}</strong></li>
+        <li>${i18n.t('modal.composite_score')}: <strong>${r.benchmarkAnalysis.signals.composite}</strong></li>
       </ul>
     </div>
 
@@ -1854,9 +1937,9 @@ window.showRegimeDetails = function () {
     <div class="detail-section">
       <h3>${i18n.t('modal.market_breadth')}</h3>
       <ul>
-        <li>Activos alcistas: <strong>${r.breadthAnalysis.bullishCount} / ${r.breadthAnalysis.totalAnalyzed}</strong></li>
-        <li>Porcentaje: <strong>${r.breadthAnalysis.breadth}%</strong></li>
-        <li>Clasificación: <strong>${r.breadthAnalysis.description}</strong></li>
+        <li>${i18n.t('modal.bullish_assets')}: <strong>${r.breadthAnalysis.bullishCount} / ${r.breadthAnalysis.totalAnalyzed}</strong></li>
+        <li>${i18n.t('modal.percentage')}: <strong>${r.breadthAnalysis.breadth}%</strong></li>
+        <li>${i18n.t('modal.description')}: <strong>${r.breadthAnalysis.description}</strong></li>
       </ul>
       <div style="margin-top: 15px; height: 8px; background: #334155; border-radius: 4px; overflow: hidden;">
         <div style="height: 100%; width: ${r.breadthAnalysis.breadth}%; background: ${r.color}; transition: width 0.3s ease;"></div>
@@ -1865,11 +1948,18 @@ window.showRegimeDetails = function () {
     ` : ''}
 
     <div class="detail-section">
-      <h3>⚙️ Ajustes de Estrategia Recomendados</h3>
+      <h3>⚙️ ${i18n.t('modal.strategy_adjustments')}</h3>
       <ul>
-        <li>Peso Momentum: <strong>${(r.strategyAdjustment.momentum_weight * 100).toFixed(0)}%</strong> ${r.strategyAdjustment.momentum_weight > 1 ? '(aumentar)' : r.strategyAdjustment.momentum_weight < 1 ? '(reducir)' : '(mantener)'}</li>
-        <li>Penalización Riesgo: <strong>${(r.strategyAdjustment.risk_penalty * 100).toFixed(0)}%</strong> ${r.strategyAdjustment.risk_penalty > 1 ? '(más estricto)' : r.strategyAdjustment.risk_penalty < 1 ? '(más permisivo)' : '(normal)'}</li>
-        <li>Ajuste Score Mínimo: <strong>${r.strategyAdjustment.min_score > 0 ? '+' : ''}${r.strategyAdjustment.min_score}</strong> puntos</li>
+        <li>${i18n.t('modal.momentum_weight')}: <strong>${(r.strategyAdjustment.momentum_weight * 100).toFixed(0)}%</strong> 
+        ${r.strategyAdjustment.momentum_weight > 1 ? i18n.t('modal.increase')
+      : r.strategyAdjustment.momentum_weight < 1 ? i18n.t('modal.reduce') : i18n.t('modal.maintain')
+    }</li>
+        <li>${i18n.t('modal.risk_penalty')}: <strong>${(r.strategyAdjustment.risk_penalty * 100).toFixed(0)}%</strong> ${r.strategyAdjustment.risk_penalty > 1 ? i18n.t('modal.stricter') :
+      r.strategyAdjustment.risk_penalty < 1 ? i18n.t('modal.more_permissive') : i18n.t('modal.normal')
+    }</li>
+        <li>${i18n.t('modal.min_score_adjustment')}: 
+          <strong>${r.strategyAdjustment.min_score > 0 ? '+' : ''}${r.strategyAdjustment.min_score}</strong> ${i18n.t('modal.points')
+    }</li>
       </ul>
     </div>
 
@@ -1885,20 +1975,11 @@ window.showRegimeDetails = function () {
 };
 
 function getRegimeInterpretation(regimeType) {
-  switch (regimeType) {
-    case 'risk_on':
-      return 'El mercado está en modo alcista con baja volatilidad. Este es un entorno favorable para estrategias de momentum y growth. Se recomienda aumentar la exposición a activos con fuerte impulso y reducir las restricciones por riesgo.';
-
-    case 'risk_off':
-      return 'El mercado está en modo defensivo con alta volatilidad o tendencia bajista. Se recomienda aumentar la calidad de los activos seleccionados, reducir exposición a momentum extremo y priorizar estabilidad. Considera aumentar cash o activos defensivos.';
-
-    case 'neutral':
-      return 'El mercado no muestra una tendencia clara. Este entorno favorece estrategias equilibradas y diversificación. Mantén pesos balanceados entre factores y evita sobre-concentración en momentum o value.';
-
-    default:
-      return 'Régimen no identificado.';
-  }
+  return i18n.t(`regime_indicator.interpretation.${regimeType}`, {
+    defaultValue: i18n.t('regime_indicator.interpretation.unknown')
+  });
 }
+
 
 function closeModal() {
   document.getElementById('detailModal').style.display = 'none';
@@ -1926,11 +2007,78 @@ window.changeLanguage = function (lang) {
   // and will update all elements with data-i18n attributes
 };
 
-// Initialize language selector on page load
+// Function to clear all displayed results
+function clearAllResults() {
+  // Clear table results
+  const tbody = document.getElementById('results');
+  if (tbody) {
+    tbody.innerHTML = `<tr>
+      <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;" data-i18n="table.waiting_data">
+        Esperando datos de análisis...
+      </td>
+    </tr>`;
+  }
+
+  // Clear portfolio section
+  const portfolioSection = document.getElementById('portfolioSection');
+  const portfolioResults = document.getElementById('portfolioResults');
+  if (portfolioSection) portfolioSection.style.display = 'none';
+  if (portfolioResults) {
+    portfolioResults.style.display = 'none';
+    portfolioResults.innerHTML = '';
+  }
+
+  // Clear backtest results
+  const backtestResults = document.getElementById('backtestResults');
+  if (backtestResults) {
+    backtestResults.style.display = 'none';
+    backtestResults.innerHTML = '';
+  }
+
+  // Clear sector summary
+  const sectorSummary = document.getElementById('sectorSummary');
+  if (sectorSummary) sectorSummary.innerHTML = '';
+
+  // Clear regime indicator
+  const regimeIndicator = document.getElementById('regimeIndicator');
+  if (regimeIndicator) {
+    regimeIndicator.style.display = 'none';
+    regimeIndicator.innerHTML = '';
+  }
+
+  // Reset status
+  const status = document.getElementById('status');
+  if (status) {
+    status.innerHTML = `<span data-i18n="info.system_ready">🎯 Sistema listo. Configura parámetros y ejecuta el análisis.</span>`;
+  }
+
+  // Clear filter info
+  const filterInfo = document.getElementById('filterInfo');
+  if (filterInfo) {
+    filterInfo.innerHTML = `<span data-i18n="info.waiting_scan">Esperando escaneo...</span>`;
+  }
+
+  // Clear internal state
+  currentResults = [];
+  currentRegime = null;
+  lastBacktestResults = [];
+  appState.scanResults = [];
+  appState.portfolio = null;
+}
+
+// Initialize language selector and market selector on page load
 document.addEventListener('DOMContentLoaded', () => {
   const selector = document.getElementById('languageSelect');
   if (selector) {
     selector.value = i18n.getCurrentLanguage();
+  }
+
+  // Add event listener to market selector to clear results when changed
+  const marketSelect = document.getElementById('marketSelect');
+  if (marketSelect) {
+    marketSelect.addEventListener('change', () => {
+      clearAllResults();
+    });
   }
 });
 
