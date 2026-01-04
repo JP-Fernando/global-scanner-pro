@@ -4,15 +4,25 @@ Esta carpeta contiene la documentación completa de **Global Quant Scanner Pro**
 
 ## Índice
 
+### Guías de Usuario
 - [Guía para principiantes](guia-principiantes.md)
 - [Interpretación de señales](interpretacion-senales.md)
 - [Construcción de cartera y análisis de riesgo](cartera-riesgo.md)
+- [Dashboard de portfolio tracking](portfolio_dashboard.md)
+- [Sistema de alertas online](alertas-online.md) 🆕
 - [Régimen de mercado](regimen-mercado.md)
+
+### Configuración y Estrategias
 - [Estrategias disponibles](estrategias.md)
 - [Cómo combinar estrategia + vista](combinar-estrategia-vista.md)
 - [Mercados disponibles](mercados-disponibles.md)
 - [Reglas y gobernanza de inversión](gobernanza.md)
 - [Análisis sectorial y detección de anomalías](analisis-sectorial-anomalias.md)
-- [Sección técnica](arquitectura-tecnica.md)
-- [Roadmap](roadmap.md)
+
+### Documentación Técnica
+- [Arquitectura técnica](arquitectura-tecnica.md)
+- [Módulo de reportes avanzados](reports-module.md)
+- [Roadmap del proyecto](roadmap.md)
+
+### Legal
 - [Disclaimer](disclaimer.md)

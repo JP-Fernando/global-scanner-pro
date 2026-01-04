@@ -14,11 +14,12 @@
    - ✅ Resúmenes ejecutivos con principales señales y riesgos.
    - *Implementación: [reports/](../src/reports/) - Excel, PDF, Comparative Analysis, Executive Summary*
 
-3. **Alertas por email/webhook**
-   - Notificación de señales fuertes, rebalanceos y eventos relevantes.
-   - Configuración de umbrales por usuario/estrategia (volatilidad, drawdown, score).
-   - Integración con Slack/Teams/Zapier para flujos automatizados.
-   - Logs de alertas y confirmación de entrega.
+3. ✅ **Alertas por email/webhook** *(Completado)*
+   - ✅ Notificación de señales fuertes, rebalanceos y eventos relevantes.
+   - ✅ Configuración de umbrales por usuario/estrategia (volatilidad, drawdown, score).
+   - ✅ Integración con Slack/Teams/Zapier para flujos automatizados.
+   - ✅ Logs de alertas y confirmación de entrega.
+   - *Implementación: [alert-manager.js](../src/alerts/alert-manager.js), documentación: [alertas-online.md](alertas-online.md)*
 
 4. **Análisis de atribución**
    - Desglose de rendimiento: selección de activos vs. asignación sectorial.

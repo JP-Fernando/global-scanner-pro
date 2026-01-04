@@ -87,7 +87,8 @@ npm config set cache "$env:USERPROFILE\AppData\Local\npm-cache" --global
 5. Haz clic en "Ejecutar Análisis"
 6. Explora los resultados ordenando por *scores* y factores
 7. **Opcional**: Construye una cartera profesional con los mejores activos
-8. Revisa el **régimen de mercado** detectado automáticamente
+8. **Opcional**: Configura alertas automáticas para eventos de riesgo y señales fuertes
+9. Revisa el **régimen de mercado** detectado automáticamente
 
 
 ---
@@ -107,18 +108,34 @@ El sistema traduce:
 
 ---
 
+## ✨ Características Principales
+
+- 📊 **Portfolio Tracking**: Dashboard en tiempo real con curvas de equity, drawdown y métricas de riesgo (VaR, CVaR, Sharpe, Sortino)
+- 🔔 **Alertas Inteligentes**: Notificaciones automáticas por email, Slack, Teams o Zapier para señales fuertes y eventos de riesgo
+- 📈 **Market Scanning**: Análisis cuantitativo de 14 mercados globales con 4 estrategias profesionales
+- 📑 **Reportes Avanzados**: Exportación a Excel/PDF con plantillas para auditoría, comité de inversión y clientes
+- 🎯 **Risk Analytics**: Motor de riesgo con VaR paramétrico, CVaR, matrices de correlación y tests de estrés
+- 🌐 **Multiidioma**: Interfaz completa en español e inglés
+- 🔐 **Gobernanza**: Sistema de reglas de inversión con límites de concentración y compliance automático
+
+---
+
 ## 📚 Documentación
 
 Toda la documentación detallada se encuentra en la carpeta [`docs/`](docs/README.md).
 
-Documentos destacados:
+### Guías de Usuario
 - [Guía para principiantes](docs/guia-principiantes.md)
 - [Interpretación de señales](docs/interpretacion-senales.md)
 - [Construcción de cartera y análisis de riesgo](docs/cartera-riesgo.md)
-- [Sección técnica](docs/arquitectura-tecnica.md)
+- [Dashboard de portfolio tracking](docs/portfolio_dashboard.md)
+- [Sistema de alertas online](docs/alertas-online.md) 🆕
+
+### Documentación Técnica
+- [Arquitectura técnica](docs/arquitectura-tecnica.md)
 - [Sistema de internacionalización (i18n)](src/i18n/README.md)
-- [Módulo de reportes avanzados](docs/reports_module.md) 🆕
-- [Roadmap](docs/roadmap.md)
+- [Módulo de reportes avanzados](docs/reports-module.md)
+- [Roadmap del proyecto](docs/roadmap.md)
 
 ---
 
@@ -146,13 +163,16 @@ global-scanner-pro/
 │   │   ├── README.md            # Documentación completa del sistema i18n
 │   │   └── example-integration.html  # Ejemplo funcional
 │   │
-│   ├── reports/                 # 🆕 Sistema de exportación y reportes
+│   ├── reports/                 # Sistema de exportación y reportes
 │   │   ├── report-generator.js  # Clases base para generación
 │   │   ├── excel-exporter.js    # Exportadores Excel especializados
 │   │   ├── pdf-templates.js     # Templates PDF por audiencia
 │   │   ├── comparative-analysis.js  # Análisis comparativo
 │   │   ├── index.js             # Exports centralizados
 │   │   └── README.md            # Documentación técnica
+│   │
+│   ├── alerts/                  # 🆕 Sistema de alertas online
+│   │   └── alert-manager.js     # Gestión de alertas y notificaciones
 │   │
 │   ├── portfolio/               # Gestión y tracking de portfolios
 │   │   ├── portfolio-manager.js # CRUD de portfolios
@@ -162,7 +182,7 @@ global-scanner-pro/
 │   │   └── portfolio-dashboard.js  # Controller del dashboard
 │   │
 │   ├── storage/                 # Persistencia de datos
-│   │   └── indexed-db-store.js  # IndexedDB wrapper
+│   │   └── indexed-db-store.js  # IndexedDB wrapper (portfolios + alertas)
 │   │
 │   ├── indicators/              # Indicadores técnicos y scoring
 │   ├── allocation/              # Métodos de asignación de capital
@@ -175,12 +195,14 @@ global-scanner-pro/
 │   ├── guia-principiantes.md    # Guía para nuevos usuarios
 │   ├── interpretacion-senales.md  # Cómo interpretar señales
 │   ├── cartera-riesgo.md        # Construcción de cartera
+│   ├── portfolio_dashboard.md   # Dashboard de tracking
+│   ├── alertas-online.md        # 🆕 Sistema de alertas
 │   ├── arquitectura-tecnica.md  # Detalles técnicos
-│   ├── reports_module.md        # 🆕 Módulo de reportes
+│   ├── reports-module.md        # Módulo de reportes
 │   ├── roadmap.md               # Roadmap del proyecto
 │   └── disclaimer.md            # Descargo de responsabilidad
 │
-└── universes/                   # Datos de mercados (18 mercados)
+└── universes/                   # Datos de mercados (14 mercados)
 ```
 
 ### Tecnologías Utilizadas
