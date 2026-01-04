@@ -1141,6 +1141,222 @@ window.runBacktest = async function () {
 // MAIN SCANNING
 // =====================================================
 
+// Show warning dialog for "All Markets" scan
+async function showAllMarketsWarning(marketCount) {
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      padding: 20px;
+    `;
+
+    const content = document.createElement('div');
+    content.style.cssText = `
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 2px solid #fbbf24;
+    `;
+
+    const currentLang = i18n.getCurrentLanguage();
+    const isSpanish = currentLang === 'es';
+
+    content.innerHTML = `
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="font-size: 3em; margin-bottom: 10px;">⚠️</div>
+        <h2 style="color: #fbbf24; margin-bottom: 15px; font-size: 1.5em;">
+          ${isSpanish ? 'Advertencia: Escaneo Completo' : 'Warning: Full Scan'}
+        </h2>
+        <p style="color: #94a3b8; font-size: 1em; line-height: 1.6; margin-bottom: 20px;">
+          ${isSpanish
+            ? `Estás a punto de escanear <strong style="color: #38bdf8;">${marketCount} mercados</strong> diferentes. Este proceso puede tardar <strong style="color: #f87171;">varios minutos</strong> en completarse dependiendo de la cantidad de activos y la velocidad de tu conexión.`
+            : `You are about to scan <strong style="color: #38bdf8;">${marketCount} different markets</strong>. This process may take <strong style="color: #f87171;">several minutes</strong> to complete depending on the number of assets and your connection speed.`
+          }
+        </p>
+        <p style="color: #cbd5e1; font-size: 0.9em; margin-bottom: 25px;">
+          ${isSpanish
+            ? '¿Deseas continuar con el escaneo completo?'
+            : 'Do you want to continue with the full scan?'
+          }
+        </p>
+      </div>
+      <div style="display: flex; gap: 15px; justify-content: center;">
+        <button id="cancelBtn" style="
+          padding: 12px 24px;
+          border-radius: 8px;
+          border: none;
+          background: #64748b;
+          color: white;
+          font-weight: bold;
+          cursor: pointer;
+          font-size: 1em;
+          transition: all 0.3s ease;
+        ">
+          ${isSpanish ? '❌ Cancelar' : '❌ Cancel'}
+        </button>
+        <button id="proceedBtn" style="
+          padding: 12px 24px;
+          border-radius: 8px;
+          border: none;
+          background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+          color: #0f172a;
+          font-weight: bold;
+          cursor: pointer;
+          font-size: 1em;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+        ">
+          ${isSpanish ? '✅ Continuar' : '✅ Proceed'}
+        </button>
+      </div>
+    `;
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    const proceedBtn = content.querySelector('#proceedBtn');
+    const cancelBtn = content.querySelector('#cancelBtn');
+
+    proceedBtn.addEventListener('mouseenter', () => {
+      proceedBtn.style.transform = 'translateY(-2px)';
+      proceedBtn.style.boxShadow = '0 6px 20px rgba(251, 191, 36, 0.6)';
+    });
+
+    proceedBtn.addEventListener('mouseleave', () => {
+      proceedBtn.style.transform = 'translateY(0)';
+      proceedBtn.style.boxShadow = '0 4px 12px rgba(251, 191, 36, 0.4)';
+    });
+
+    cancelBtn.addEventListener('mouseenter', () => {
+      cancelBtn.style.background = '#475569';
+    });
+
+    cancelBtn.addEventListener('mouseleave', () => {
+      cancelBtn.style.background = '#64748b';
+    });
+
+    proceedBtn.addEventListener('click', () => {
+      document.body.removeChild(modal);
+      resolve(true);
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      document.body.removeChild(modal);
+      resolve(false);
+    });
+
+    // Close on background click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal);
+        resolve(false);
+      }
+    });
+  });
+}
+
+// Helper function to get all market options (excluding "ALL_MARKETS")
+function getAllMarketOptions() {
+  const marketSelect = document.getElementById('marketSelect');
+  const markets = [];
+
+  for (const option of marketSelect.options) {
+    if (option.value && option.value !== 'ALL_MARKETS') {
+      const [file, suffix] = option.value.split('|');
+      markets.push({
+        value: option.value,
+        file,
+        suffix,
+        name: option.textContent.trim()
+      });
+    }
+  }
+
+  return markets;
+}
+
+// Helper function to scan a single market
+async function scanSingleMarket(file, suffix, config, status, isPartOfAllMarkets = false) {
+  const tbody = document.getElementById('results');
+  const filterInfo = document.getElementById('filterInfo');
+
+  if (!isPartOfAllMarkets) {
+    // Solo limpiar si NO es parte del escaneo de todos los mercados
+    tbody.innerHTML = '';
+    currentResults = [];
+    filterInfo.innerHTML = '';
+  }
+
+  status.innerText = i18n.t('status.loading_benchmark');
+  benchmarkData = await loadBenchmark(suffix);
+
+  status.innerText = i18n.t('status.loading_universe');
+  const universe = await (await fetch(file)).json();
+
+  let analyzed = 0;
+  let filtered = 0;
+
+  const BATCH_SIZE = 5;
+
+  for (let i = 0; i < universe.length; i += BATCH_SIZE) {
+    const batch = universe.slice(i, i + BATCH_SIZE);
+
+    status.innerText = i18n.t('status.analyzing', {
+      current: i + 1,
+      total: universe.length
+    }) + ` | ✓ ${analyzed} | ✖ ${filtered}`;
+
+    const batchResults = await Promise.all(
+      batch.map(stock =>
+        analyzeStock(stock, suffix, config, benchmarkData?.rocs, benchmarkData?.volatility)
+      )
+    );
+
+    batchResults.forEach((res, idx) => {
+      if (res?.passed) {
+        const originalStockData = batch[idx];
+        const sectorId = getSectorId(originalStockData.sector || originalStockData.industry || 'Unknown');
+        const tempStats = calculateSectorStats(currentResults);
+        const anomalyData = detectAnomalies(res, tempStats);
+        currentResults.push({
+          ...res,
+          vRatio: Number(res.vRatio) || 1.0,
+          sectorId,
+          sectorRaw: originalStockData.sector || originalStockData.industry || 'Unknown',
+          hasAnomalies: anomalyData.hasAnomalies,
+          anomalies: anomalyData.anomalies,
+          anomalyMetrics: anomalyData.metrics || {}
+        });
+        analyzed++;
+      } else {
+        filtered++;
+      }
+    });
+
+    if (i % (BATCH_SIZE * 2) === 0) {
+      const sectorStats = calculateSectorStats(currentResults);
+      renderTable(currentResults);
+      updateSectorUI(sectorStats);
+    }
+
+    await sleep(50);
+  }
+
+  return { analyzed, filtered };
+}
+
 export async function runScan() {
   // 1. Prevent double execution if already running
   if (isScanning) return;
@@ -1157,13 +1373,157 @@ export async function runScan() {
       btnScan.style.cursor = 'wait';
     }
 
-    const [file, suffix] = document.getElementById('marketSelect').value.split('|');
+    const marketValue = document.getElementById('marketSelect').value;
     const strategyKey = document.getElementById('strategySelect').value;
     const config = STRATEGY_PROFILES[strategyKey];
 
     const status = document.getElementById('status');
     const tbody = document.getElementById('results');
     const filterInfo = document.getElementById('filterInfo');
+
+    // Check if "ALL_MARKETS" is selected
+    if (marketValue === 'ALL_MARKETS') {
+      const allMarkets = getAllMarketOptions();
+
+      // Show warning dialog
+      const proceed = await showAllMarketsWarning(allMarkets.length);
+      if (!proceed) {
+        return; // User cancelled
+      }
+
+      // Clear results before starting
+      tbody.innerHTML = '';
+      currentResults = [];
+      filterInfo.innerHTML = '';
+
+      status.innerText = i18n.t('status.initializing');
+
+      let totalAnalyzed = 0;
+      let totalFiltered = 0;
+
+      // Iterate through all markets
+      for (let i = 0; i < allMarkets.length; i++) {
+        const market = allMarkets[i];
+
+        const progressMessage = i18n.t('status.scanning_market', {
+          current: i + 1,
+          total: allMarkets.length,
+          market: market.name
+        });
+
+        status.innerText = progressMessage;
+
+        // Update strategy info with current market being scanned
+        const strategyInfo = document.getElementById('strategyInfo');
+        if (strategyInfo) {
+          strategyInfo.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="font-size: 1.5em;">🌍</div>
+              <div>
+                <div style="font-weight: bold; color: #38bdf8; margin-bottom: 4px;">
+                  ${i18n.getCurrentLanguage() === 'es' ? 'Escaneando Todos los Mercados' : 'Scanning All Markets'}
+                </div>
+                <div style="font-size: 0.9em; color: #94a3b8;">
+                  ${i18n.getCurrentLanguage() === 'es'
+                    ? `Mercado ${i + 1} de ${allMarkets.length}: <strong style="color: #10b981;">${market.name}</strong>`
+                    : `Market ${i + 1} of ${allMarkets.length}: <strong style="color: #10b981;">${market.name}</strong>`
+                  }
+                </div>
+                <div style="margin-top: 8px; background: #0f172a; border-radius: 4px; height: 6px; overflow: hidden;">
+                  <div style="background: linear-gradient(90deg, #38bdf8 0%, #10b981 100%); height: 100%; width: ${((i + 1) / allMarkets.length * 100).toFixed(1)}%; transition: width 0.3s ease;"></div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        const { analyzed, filtered } = await scanSingleMarket(
+          market.file,
+          market.suffix,
+          config,
+          status,
+          true // isPartOfAllMarkets
+        );
+
+        totalAnalyzed += analyzed;
+        totalFiltered += filtered;
+      }
+
+      // Final processing after all markets
+      currentResults.sort((a, b) => b.scoreTotal - a.scoreTotal);
+      const finalStats = calculateSectorStats(currentResults);
+
+      currentResults = currentResults.map(asset => {
+        const anomalyData = detectAnomalies(asset, finalStats);
+
+        let updatedScore = asset.scoreTotal;
+        let penalty = 0;
+
+        if (anomalyData.hasAnomalies) {
+          penalty = Math.min(15, Math.round((anomalyData.metrics?.volumeZScore || 0) * 3));
+          updatedScore = Math.max(0, updatedScore - penalty);
+        }
+
+        return {
+          ...asset,
+          anomalies: anomalyData.anomalies,
+          warnings: [
+            ...(asset.warnings || []),
+            ...(anomalyData.warnings || [])
+          ],
+          hasAnomalies: anomalyData.hasAnomalies,
+          anomalyMetrics: anomalyData.metrics,
+          scoreTotal: updatedScore,
+          anomalyPenalty: penalty
+        };
+      });
+
+      renderTable(currentResults);
+      updateSectorUI(finalStats);
+
+      status.innerText = i18n.t('status.all_markets_complete', { count: totalAnalyzed });
+      filterInfo.innerHTML = i18n.t('filters.info', {
+        approved: totalAnalyzed,
+        filtered: totalFiltered
+      });
+
+      appState.scanResults = currentResults;
+      appState.market = { file: 'ALL_MARKETS', suffix: '' };
+      appState.strategy = strategyKey;
+      appState.scanCompleted = true;
+      updateStrategyInfoDisplay();
+      await notifyStrongSignals(currentResults, strategyKey);
+
+      // Show export button
+      const exportButtons = document.getElementById('scanExportButtons');
+      if (exportButtons && currentResults.length > 0) {
+        exportButtons.style.display = 'block';
+      }
+
+      const canBuildPortfolio =
+        appState.scanResults.filter(
+          r => Array.isArray(r.pricesWithDates) && r.pricesWithDates.length >= 30
+        ).length >= 3;
+
+      const buildBtn = document.querySelector('button[onclick="buildPortfolio()"]');
+      if (buildBtn) {
+        buildBtn.disabled = !canBuildPortfolio;
+      }
+
+      if (!canBuildPortfolio) {
+        showInlineError(i18n.t('errors.insufficient_assets_portfolio'));
+      }
+
+      const portfolioSection = document.getElementById('portfolioSection');
+      if (portfolioSection && currentResults.length > 0) {
+        portfolioSection.style.display = 'block';
+      }
+
+      return; // Exit after processing all markets
+    }
+
+    // Original single market logic
+    const [file, suffix] = marketValue.split('|');
 
     // 3. Limpieza garantizada antes de empezar
     tbody.innerHTML = '';

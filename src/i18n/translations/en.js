@@ -18,6 +18,7 @@ export default {
   // Markets
   markets: {
     label: '📍 Market',
+    all: '🌍 All Markets',
     regions: {
       europe: '🇪🇺 Europe',
       americas: '🌎 Americas',
@@ -116,7 +117,9 @@ export default {
     preparing_backtest: '⏳ Preparing backtest...',
     backtest_strategy: '🧪 Backtest {strategy}...',
     backtest_completed: '✅ Backtest completed',
-    downloading_historical: '🔎 Downloading historical {current}–{end} of {total}'
+    downloading_historical: '🔎 Downloading historical {current}–{end} of {total}',
+    scanning_market: '🌍 Scanning market {current} of {total}: {market}...',
+    all_markets_complete: '✅ All markets scan completed. {count} assets found in total.'
   },
 
   // Filters

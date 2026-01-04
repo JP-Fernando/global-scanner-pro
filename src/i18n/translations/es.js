@@ -18,11 +18,12 @@ export default {
   // Markets
   markets: {
     label: '📍 Mercado',
+    all: '🌍 Todos los Mercados',
     regions: {
       europe: '🇪🇺 Europa',
       americas: '🌎 América',
       asia: '🌏 Asia'
-    }, 
+    },
     spain: 'España (BME)',
     usa: 'Estados Unidos (NYSE/NASDAQ)',
     france: 'Francia (Euronext Paris)',
@@ -114,7 +115,9 @@ export default {
     preparing_backtest: '⏳ Preparando backtest...',
     backtest_strategy: '🧪 Backtest {strategy}...',
     backtest_completed: '✅ Backtest completado',
-    downloading_historical: '🔎 Descargando históricos {current}–{end} de {total}'
+    downloading_historical: '🔎 Descargando históricos {current}–{end} de {total}',
+    scanning_market: '🌍 Escaneando mercado {current} de {total}: {market}...',
+    all_markets_complete: '✅ Escaneo de todos los mercados completado. {count} activos encontrados en total.'
   },
 
   // Filters
