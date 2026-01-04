@@ -439,7 +439,7 @@ export const runWalkForwardTest = ({
   const results = [];
   const dataLength = Math.min(
     ...universeData.map(asset => asset.data.length).filter(Boolean),
-    0
+    Infinity
   );
 
   for (let i = inSamplePeriod; i <= dataLength - outSamplePeriod; i += stepSize) {

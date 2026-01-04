@@ -2,7 +2,14 @@
 // SUITE DE TESTS UNITARIOS
 // =====================================================
 
+import './setup-globals.js';
 import * as ind from '../indicators/indicators.js';
+import { runStrategyBacktest, runWalkForwardTest } from '../analytics/backtesting.js';
+import {
+  calculatePortfolioVaR,
+  calculatePortfolioCVaR,
+  calculateCorrelationMatrix
+} from '../analytics/risk_engine.js';
 
 const assert = (condition, message) => {
   if (!condition) {
@@ -22,6 +29,65 @@ const assertApprox = (actual, expected, tolerance, message) => {
   console.log(`✅ PASS: ${message}`);
   return true;
 };
+
+
+const buildPriceSeries = (startPrice, days, step = 0.4) => {
+  return Array.from({ length: days }, (_, i) => startPrice + i * step);
+};
+
+const buildAssetSeries = (ticker, startPrice, days) => {
+  const prices = buildPriceSeries(startPrice, days);
+  return prices.map((close, i) => ({
+    date: `2023-01-${String(i + 1).padStart(2, '0')}`,
+    close,
+    high: close + 1,
+    low: close - 1,
+    volume: 10000 + i * 50
+  }));
+};
+
+const buildBacktestUniverse = () => ([
+  {
+    ticker: 'AAA',
+    name: 'Asset AAA',
+    data: buildAssetSeries('AAA', 100, 80)
+  },
+  {
+    ticker: 'BBB',
+    name: 'Asset BBB',
+    data: buildAssetSeries('BBB', 120, 80)
+  }
+]);
+
+const buildStrategyConfig = () => ({
+  name: 'Test Strategy',
+  weights: {
+    trend: 0.3,
+    momentum: 0.3,
+    risk: 0.2,
+    liquidity: 0.2
+  },
+  indicators: {
+    ema_short: 5,
+    ema_medium: 8,
+    ema_long: 13,
+    rsi_period: 14,
+    atr_period: 14,
+    bb_period: 20,
+    adx_period: 14,
+    williams_period: 14,
+    roc_short: 10,
+    roc_long: 20
+  },
+  filters: {
+    min_volume_20d: 5000,
+    min_volume_60d: 3000,
+    max_atr_pct: 40,
+    min_days_history: 15,
+    max_drawdown_52w: 90
+  }
+});
+
 
 // =====================================================
 // TESTS DE INDICADORES
@@ -262,6 +328,88 @@ export const testValidation = () => {
   return passed;
 };
 
+
+// =====================================================
+// TESTS DE BACKTESTING Y RIESGO
+// =====================================================
+
+export const testBacktestingEngine = () => {
+  console.log('\n=== Testing Backtesting Engine ===');
+
+  const universeData = buildBacktestUniverse();
+  const strategyConfig = buildStrategyConfig();
+  const benchmarkPrices = universeData[0].data.map(point => point.close);
+
+  const result = runStrategyBacktest({
+    strategyKey: 'test_strategy',
+    strategyConfig,
+    universeData,
+    topN: 1,
+    rebalanceEvery: 5,
+    allocationMethod: 'equal_weight',
+    benchmarkPrices
+  });
+
+  assert(result.metrics !== null, 'Backtest returns metrics');
+  assert(result.sample > 0, 'Backtest produces rebalances');
+  assert(typeof result.metrics.calmarRatio === 'number', 'Calmar ratio computed');
+  return assert(result.metrics.estimatedTaxDrag >= 0, 'Tax drag computed');
+};
+
+export const testWalkForwardBacktest = () => {
+  console.log('\n=== Testing Walk-Forward Backtest ===');
+
+  const universeData = buildBacktestUniverse();
+  const strategyConfig = buildStrategyConfig();
+
+  const results = runWalkForwardTest({
+    universeData,
+    strategyConfig,
+    topN: 1,
+    rebalanceEvery: 5,
+    allocationMethod: 'equal_weight',
+    params: {
+      inSamplePeriod: 40,
+      outSamplePeriod: 30,
+      stepSize: 10
+    }
+  });
+
+  assert(results.length > 0, 'Walk-forward produces windows');
+  const sample = results[0];
+  assert(sample.inSampleResult.metrics !== null, 'In-sample metrics computed');
+  return assert(sample.outSampleResult.metrics !== null, 'Out-sample metrics computed');
+};
+
+export const testRiskEngineMetrics = () => {
+  console.log('\n=== Testing Risk Engine Metrics ===');
+
+  const assetA = buildAssetSeries('AAA', 100, 40).map(point => ({
+    date: point.date,
+    close: point.close
+  }));
+  const assetB = buildAssetSeries('BBB', 120, 40).map(point => ({
+    date: point.date,
+    close: point.close
+  }));
+
+  const assets = [
+    { ticker: 'AAA', weight: 0.6, prices: assetA },
+    { ticker: 'BBB', weight: 0.4, prices: assetB }
+  ];
+
+  const varResult = calculatePortfolioVaR(assets, 10000, 0.95);
+  assert(parseFloat(varResult.diversifiedVaR) > 0, 'Portfolio VaR computed');
+
+  const cvarResult = calculatePortfolioCVaR(assets, 10000, 0.95);
+  assert(parseFloat(cvarResult.cvar) > 0, 'Portfolio CVaR computed');
+
+  const corrResult = calculateCorrelationMatrix(assets);
+  assert(corrResult.matrix.length === 2, 'Correlation matrix has 2 rows');
+  return assert(corrResult.matrix[0].values.length === 2, 'Correlation matrix has 2 columns');
+};
+
+
 // =====================================================
 // EJECUTAR TODOS LOS TESTS
 // =====================================================
@@ -284,7 +432,10 @@ export const runAllTests = () => {
     testMaxDrawdown,
     testDaysAboveEMA,
     testVolumeRatio,
-    testValidation
+    testValidation,
+    testBacktestingEngine,
+    testWalkForwardBacktest,
+    testRiskEngineMetrics
   ];
 
   let passed = 0;
