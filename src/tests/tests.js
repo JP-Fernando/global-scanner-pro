@@ -1,5 +1,5 @@
 // =====================================================
-// SUITE DE TESTS UNITARIOS
+// UNIT TEST SUITE
 // =====================================================
 
 import './setup-globals.js';
@@ -97,49 +97,49 @@ export const testSMA = () => {
   console.log('\n=== Testing SMA ===');
   const prices = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 
-  // SMA(5) de los últimos 5 valores: (16+17+18+19+20)/5 = 18
+  // SMA(5) of the last 5 values: (16+17+18+19+20)/5 = 18
   const sma = ind.SMA(prices, 5);
-  return assertApprox(sma, 18, 0.01, 'SMA cálculo básico');
+  return assertApprox(sma, 18, 0.01, 'Basic SMA calculation');
 };
 
 export const testEMA = () => {
   console.log('\n=== Testing EMA ===');
-  // Secuencia simple para EMA
+  // Simple sequence for EMA
   const prices = Array.from({ length: 150 }, (_, i) => 100 + i * 0.5);
 
-  // EMA debe estar cerca del último valor en tendencia alcista suave
+  // EMA should be near the last value in a gentle uptrend
   const ema = ind.EMA(prices, 20);
-  assert(ema !== null && ema > 100 && ema < prices[prices.length - 1], 'EMA básico en rango esperado');
+  assert(ema !== null && ema > 100 && ema < prices[prices.length - 1], 'Basic EMA within expected range');
 
-  // Test con datos insuficientes
+  // Test with insufficient data
   const shortPrices = [100, 101, 102];
   const emaShort = ind.EMA(shortPrices, 20);
-  return assert(emaShort === null, 'EMA retorna null con datos insuficientes');
+  return assert(emaShort === null, 'EMA returns null with insufficient data');
 };
 
 export const testRSI = () => {
   console.log('\n=== Testing RSI ===');
 
-  // Secuencia alcista fuerte -> RSI alto
+  // Strong uptrend sequence -> high RSI
   const upPrices = Array.from({ length: 50 }, (_, i) => 100 + i * 2);
   const rsiUp = ind.RSI(upPrices, 14);
-  assert(rsiUp > 70, `RSI alto en tendencia alcista (${rsiUp.toFixed(1)})`);
+  assert(rsiUp > 70, `High RSI in uptrend (${rsiUp.toFixed(1)})`);
 
-  // Secuencia bajista fuerte -> RSI bajo
+  // Strong downtrend sequence -> low RSI
   const downPrices = Array.from({ length: 50 }, (_, i) => 200 - i * 2);
   const rsiDown = ind.RSI(downPrices, 14);
-  assert(rsiDown < 30, `RSI bajo en tendencia bajista (${rsiDown.toFixed(1)})`);
+  assert(rsiDown < 30, `Low RSI in downtrend (${rsiDown.toFixed(1)})`);
 
-  // Secuencia lateral -> RSI neutral
+  // Sideways sequence -> neutral RSI
   const flatPrices = Array.from({ length: 50 }, () => 100);
   const rsiFlat = ind.RSI(flatPrices, 14);
-  return assertApprox(rsiFlat, 50, 5, `RSI neutral en tendencia lateral (${rsiFlat.toFixed(1)})`);
+  return assertApprox(rsiFlat, 50, 5, `Neutral RSI in sideways trend (${rsiFlat.toFixed(1)})`);
 };
 
 export const testATR = () => {
   console.log('\n=== Testing ATR ===');
 
-  // Datos con volatilidad conocida
+  // Data with known volatility
   const data = [
     { c: 100, h: 102, l: 98 },
     { c: 101, h: 103, l: 99 },
@@ -159,10 +159,10 @@ export const testATR = () => {
   ];
 
   const atr = ind.ATR(data, 14);
-  assert(atr > 0 && atr < 10, `ATR en rango razonable (${atr.toFixed(2)})`);
+  assert(atr > 0 && atr < 10, `ATR in a reasonable range (${atr.toFixed(2)})`);
 
   const atrPct = ind.ATR_Percent(data, 14);
-  return assert(atrPct > 0 && atrPct < 5, `ATR% en rango razonable (${atrPct.toFixed(2)}%)`);
+  return assert(atrPct > 0 && atrPct < 5, `ATR% in a reasonable range (${atrPct.toFixed(2)}%)`);
 };
 
 export const testBollingerBands = () => {
@@ -173,14 +173,14 @@ export const testBollingerBands = () => {
 
   assert(bb.upper > bb.middle, 'BB upper > middle');
   assert(bb.middle > bb.lower, 'BB middle > lower');
-  assert(bb.bandwidth > 0, 'BB bandwidth positivo');
-  return assert(bb.percentB >= 0 && bb.percentB <= 1, `BB %B en rango [0,1] (${bb.percentB.toFixed(2)})`);
+  assert(bb.bandwidth > 0, 'BB bandwidth is positive');
+  return assert(bb.percentB >= 0 && bb.percentB <= 1, `BB %B in range [0,1] (${bb.percentB.toFixed(2)})`);
 };
 
 export const testADX = () => {
   console.log('\n=== Testing ADX ===');
 
-  // Tendencia fuerte
+  // Strong trend
   const trendData = Array.from({ length: 50 }, (_, i) => ({
     c: 100 + i * 2,
     h: 102 + i * 2,
@@ -188,9 +188,9 @@ export const testADX = () => {
   }));
 
   const adxTrend = ind.ADX(trendData, 14);
-  assert(adxTrend > 20, `ADX alto en tendencia fuerte (${adxTrend.toFixed(1)})`);
+  assert(adxTrend > 20, `High ADX in a strong trend (${adxTrend.toFixed(1)})`);
 
-  // Mercado lateral
+  // Sideways market
   const flatData = Array.from({ length: 50 }, (_, i) => ({
     c: 100 + (i % 2 === 0 ? 1 : -1),
     h: 102,
@@ -198,13 +198,13 @@ export const testADX = () => {
   }));
 
   const adxFlat = ind.ADX(flatData, 14);
-  return assert(adxFlat < 25, `ADX bajo en mercado lateral (${adxFlat.toFixed(1)})`);
+  return assert(adxFlat < 25, `Low ADX in a sideways market (${adxFlat.toFixed(1)})`);
 };
 
 export const testWilliamsR = () => {
   console.log('\n=== Testing Williams %R ===');
 
-  // Precio en máximos -> %R cerca de 0
+  // Price at highs -> %R near 0
   const highData = Array.from({ length: 30 }, (_, i) => ({
     c: 100 + i,
     h: 101 + i,
@@ -212,9 +212,9 @@ export const testWilliamsR = () => {
   }));
 
   const wrHigh = ind.WilliamsR(highData, 14);
-  assert(wrHigh > -20, `Williams %R alto en máximos (${wrHigh.toFixed(1)})`);
+  assert(wrHigh > -20, `Williams %R high at highs (${wrHigh.toFixed(1)})`);
 
-  // Precio en mínimos -> %R cerca de -100
+  // Price at lows -> %R near -100
   const lowData = Array.from({ length: 30 }, (_, i) => ({
     c: 200 - i,
     h: 201 - i,
@@ -222,66 +222,66 @@ export const testWilliamsR = () => {
   }));
 
   const wrLow = ind.WilliamsR(lowData, 14);
-  return assert(wrLow < -80, `Williams %R bajo en mínimos (${wrLow.toFixed(1)})`);
+  return assert(wrLow < -80, `Williams %R low at lows (${wrLow.toFixed(1)})`);
 };
 
 export const testROC = () => {
   console.log('\n=== Testing ROC ===');
 
-  // Subida del 20%
+  // 20% rise
   const prices = [100, 105, 110, 115, 120];
   const roc = ind.ROC(prices, 4);
 
-  return assertApprox(roc, 20, 0.1, `ROC correcto (${roc.toFixed(2)}%)`);
+  return assertApprox(roc, 20, 0.1, `Correct ROC (${roc.toFixed(2)}%)`);
 };
 
 export const testVolatility = () => {
   console.log('\n=== Testing Volatility ===');
 
-  // Serie estable -> volatilidad baja
+  // Stable series -> low volatility
   const stable = Array.from({ length: 300 }, () => 100 + Math.random() * 0.5);
   const volStable = ind.Volatility(stable, 252);
-  assert(volStable < 5, `Volatilidad baja en serie estable (${volStable.toFixed(2)}%)`);
+  assert(volStable < 5, `Low volatility in a stable series (${volStable.toFixed(2)}%)`);
 
-  // Serie volátil -> volatilidad alta
+  // Volatile series -> high volatility
   const volatile = Array.from({ length: 300 }, (_, i) => 100 + Math.sin(i / 3) * 20);
   const volHigh = ind.Volatility(volatile, 252);
-  return assert(volHigh > volStable, `Volatilidad alta en serie volátil (${volHigh.toFixed(2)}%)`);
+  return assert(volHigh > volStable, `High volatility in a volatile series (${volHigh.toFixed(2)}%)`);
 };
 
 export const testMaxDrawdown = () => {
   console.log('\n=== Testing Max Drawdown ===');
 
-  // Caída del 30%
+  // 30% drop
   const prices = [100, 110, 120, 130, 140, 130, 120, 110, 100, 98];
   const dd = ind.MaxDrawdown(prices, prices.length);
 
-  // Desde máximo 140 a mínimo 98 = 30%
-  return assertApprox(dd, 30, 1, `Max Drawdown correcto (${dd.toFixed(2)}%)`);
+  // From 140 high to 98 low = 30%
+  return assertApprox(dd, 30, 1, `Correct max drawdown (${dd.toFixed(2)}%)`);
 };
 
 export const testDaysAboveEMA = () => {
   console.log('\n=== Testing Days Above EMA ===');
 
-  // Serie constantemente por encima
+  // Series consistently above
   const prices = Array.from({ length: 300 }, (_, i) => 100 + i * 0.5);
   const daysAbove = ind.DaysAboveEMA(prices, 50, 200);
 
-  return assert(daysAbove > 80, `Días por encima EMA alto en tendencia alcista (${daysAbove.toFixed(1)}%)`);
+  return assert(daysAbove > 80, `High days above EMA in uptrend (${daysAbove.toFixed(1)}%)`);
 };
 
 export const testVolumeRatio = () => {
   console.log('\n=== Testing Volume Ratio ===');
 
-  // Volumen creciente
+  // Rising volume
   const volumes = Array.from({ length: 100 }, (_, i) => 10000 + i * 100);
   const ratio = ind.VolumeRatio(volumes, 20, 60);
 
-  return assert(ratio > 1, `Volume Ratio > 1 con volumen creciente (${ratio.toFixed(2)})`);
+  return assert(ratio > 1, `Volume Ratio > 1 with rising volume (${ratio.toFixed(2)})`);
 };
 
 // =====================================================
-// TESTS DE VALIDACIÓN
+// VALIDATION TESTS
 // =====================================================
 
 export const testValidation = () => {
@@ -289,40 +289,40 @@ export const testValidation = () => {
 
   let passed = true;
 
-  // Array vacío
+  // Empty array
   try {
     ind.SMA([], 5);
-    console.error('❌ FAIL: Debería rechazar array vacío');
+    console.error('❌ FAIL: Should reject empty array');
     passed = false;
   } catch (e) {
-    console.log('✅ PASS: Rechaza array vacío');
+    console.log('✅ PASS: Rejects empty array');
   }
 
-  // Array con NaN
+  // Array with NaN
   try {
     ind.SMA([1, 2, NaN, 4, 5], 5);
-    console.error('❌ FAIL: Debería rechazar NaN');
+    console.error('❌ FAIL: Should reject NaN');
     passed = false;
   } catch (e) {
-    console.log('✅ PASS: Rechaza valores NaN');
+    console.log('✅ PASS: Rejects NaN values');
   }
 
-  // Array con null
+  // Array with null
   try {
     ind.RSI([100, 101, null, 103], 3);
-    console.error('❌ FAIL: Debería rechazar null');
+    console.error('❌ FAIL: Should reject null');
     passed = false;
   } catch (e) {
-    console.log('✅ PASS: Rechaza valores null');
+    console.log('✅ PASS: Rejects null values');
   }
 
-  // Longitud insuficiente
+  // Insufficient length
   try {
     ind.RSI([100, 101, 102], 14);
-    console.error('❌ FAIL: Debería rechazar longitud insuficiente');
+    console.error('❌ FAIL: Should reject insufficient length');
     passed = false;
   } catch (e) {
-    console.log('✅ PASS: Rechaza longitud insuficiente');
+    console.log('✅ PASS: Rejects insufficient length');
   }
 
   return passed;
@@ -330,7 +330,7 @@ export const testValidation = () => {
 
 
 // =====================================================
-// TESTS DE BACKTESTING Y RIESGO
+// BACKTESTING AND RISK TESTS
 // =====================================================
 
 export const testBacktestingEngine = () => {
@@ -411,12 +411,12 @@ export const testRiskEngineMetrics = () => {
 
 
 // =====================================================
-// EJECUTAR TODOS LOS TESTS
+// RUN ALL TESTS
 // =====================================================
 
 export const runAllTests = () => {
   console.log('╔═══════════════════════════════════════╗');
-  console.log('║   SUITE DE TESTS - GLOBAL SCANNER    ║');
+  console.log('║   TEST SUITE - GLOBAL SCANNER        ║');
   console.log('╚═══════════════════════════════════════╝');
 
   const tests = [
@@ -446,13 +446,13 @@ export const runAllTests = () => {
       if (test()) passed++;
       else failed++;
     } catch (e) {
-      console.error(`❌ ERROR en ${test.name}:`, e.message);
+      console.error(`❌ ERROR in ${test.name}:`, e.message);
       failed++;
     }
   });
 
   console.log('\n╔═══════════════════════════════════════╗');
-  console.log(`║  RESULTADOS: ${passed} ✅  ${failed} ❌`);
+  console.log(`║  RESULTS: ${passed} ✅  ${failed} ❌`);
   console.log('╚═══════════════════════════════════════╝\n');
 
   return { passed, failed };

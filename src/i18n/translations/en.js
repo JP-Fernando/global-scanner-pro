@@ -375,6 +375,7 @@ export default {
   // Info messages
   info: {
     select_strategy_market: 'Select a strategy and market to begin',
+    scan_complete: '✅ Analysis complete for {strategy} in {market}.',
     waiting_scan: 'Awaiting scan...',
     system_ready: '🎯 System ready. Configure parameters and run analysis.'
   },

@@ -28,7 +28,8 @@ const appState = {
   scanResults: [],
   portfolio: null,
   market: null,
-  strategy: null
+  strategy: null,
+  scanCompleted: false
 };
 
 
@@ -1198,6 +1199,8 @@ export async function runScan() {
     appState.scanResults = currentResults;
     appState.market = { file, suffix };
     appState.strategy = strategyKey;
+    appState.scanCompleted = true;
+    updateStrategyInfoDisplay();
 
     const canBuildPortfolio =
       appState.scanResults.filter(
@@ -2003,6 +2006,35 @@ export function updateView() {
   renderTable(currentResults);
 }
 
+
+function getSelectedOptionText(selectId) {
+  const select = document.getElementById(selectId);
+  const option = select?.selectedOptions?.[0];
+  return option ? option.textContent.trim() : '';
+}
+
+function updateStrategyInfoDisplay() {
+  const strategyInfo = document.getElementById('strategyInfo');
+  if (!strategyInfo) return;
+
+  if (appState.scanCompleted) {
+    const marketLabel = getSelectedOptionText('marketSelect');
+    const strategyLabel = getSelectedOptionText('strategySelect');
+    strategyInfo.removeAttribute('data-i18n');
+    strategyInfo.textContent = i18n.t('info.scan_complete', {
+      strategy: strategyLabel,
+      market: marketLabel
+    });
+    return;
+  }
+
+  strategyInfo.setAttribute('data-i18n', 'info.select_strategy_market');
+  strategyInfo.textContent = i18n.t('info.select_strategy_market');
+}
+
+
+
+
 // =====================================================
 // LANGUAGE MANAGEMENT
 // =====================================================
@@ -2070,6 +2102,8 @@ function clearAllResults() {
   lastBacktestResults = [];
   appState.scanResults = [];
   appState.portfolio = null;
+  appState.scanCompleted = false;
+  updateStrategyInfoDisplay();
 }
 
 // Initialize language selector and market selector on page load
@@ -2078,6 +2112,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (selector) {
     selector.value = i18n.getCurrentLanguage();
   }
+
+  updateStrategyInfoDisplay();
+  window.addEventListener('languageChanged', () => {
+    updateStrategyInfoDisplay();
+  });
 
   // Add event listener to market selector to clear results when changed
   const marketSelect = document.getElementById('marketSelect');
