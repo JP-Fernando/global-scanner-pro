@@ -18,6 +18,11 @@ export default {
   // Markets
   markets: {
     label: '📍 Market',
+    regions: {
+      europe: '🇪🇺 Europe',
+      americas: '🌎 Americas',
+      asia: '🌏 Asia'
+    },
     spain: 'Spain (BME)',
     usa: 'United States (NYSE/NASDAQ)',
     france: 'France (Euronext Paris)',

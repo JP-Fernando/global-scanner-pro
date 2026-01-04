@@ -50,6 +50,13 @@ class UITranslator {
       const key = element.getAttribute('data-i18n-title');
       element.title = this.i18n.t(key);
     });
+
+    // Translate all elements with data-i18n-label attribute (e.g. optgroup labels)
+    document.querySelectorAll('[data-i18n-label]').forEach(element => {
+      const key = element.getAttribute('data-i18n-label');
+      element.setAttribute('label', this.i18n.t(key));
+    });
+
   }
 
   setLanguage(lang) {
