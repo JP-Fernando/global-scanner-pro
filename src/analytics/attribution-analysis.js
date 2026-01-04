@@ -10,6 +10,7 @@
  */
 
 import { SECTOR_TAXONOMY } from '../data/sectors.js';
+import { getBenchmarkSectorWeights } from '../data/benchmark-sector-weights.js';
 import i18n from '../i18n/i18n.js';
 
 /**
@@ -93,7 +94,7 @@ export class AttributionAnalyzer {
 
     // Estimate benchmark sector composition (using market cap weights)
     // In a real implementation, this would come from the benchmark index composition
-    const benchmarkSectorWeights = this._estimateBenchmarkSectorWeights();
+    const benchmarkSectorWeights = this._estimateBenchmarkSectorWeights(portfolio?.benchmark);
 
     // Calculate benchmark sector returns (simplified: use overall benchmark return)
     const benchmarkTotalReturn = this._calculateTotalReturn(benchmarkReturns);
@@ -498,9 +499,16 @@ export class AttributionAnalyzer {
    * In production, this should come from actual benchmark composition
    * @private
    */
-  _estimateBenchmarkSectorWeights() {
-    // S&P 500 approximate sector weights (as of 2024)
-    return {
+
+
+  _estimateBenchmarkSectorWeights(benchmark) {
+    const realWeights = getBenchmarkSectorWeights(benchmark);
+    if (realWeights) {
+      return realWeights;
+    }
+
+
+  return {
       100: 0.04,   // Energy
       200: 0.03,   // Materials
       300: 0.08,   // Industrials

@@ -17,12 +17,15 @@ import {
   ComparativeAnalysisGenerator,
   ExecutiveSummaryGenerator
 } from '../reports/report-generator.js';
+import { exportAttributionToExcel } from '../reports/excel-exporter.js';
+import { generateAttributionReport } from '../reports/pdf-templates.js';
 import {
   createAlert,
   notifyStrongSignals,
   getAlertSettings
 } from '../alerts/alert-manager.js';
 import { dbStore } from '../storage/indexed-db-store.js';
+import { attributionAnalyzer } from '../analytics/attribution-analysis.js';
 
 const assert = (condition, message) => {
   if (!condition) {
@@ -71,6 +74,45 @@ const buildBacktestUniverse = () => ([
     data: buildAssetSeries('BBB', 120, 80)
   }
 ]);
+
+const buildAttributionFixtures = () => {
+  const portfolio = {
+    name: 'Attribution Test Portfolio',
+    benchmark: '^GSPC',
+    created_at: '2023-01-01T00:00:00Z',
+    positions: [
+      {
+        ticker: 'AAA',
+        name: 'Asset AAA',
+        sector: 800,
+        entry_price: 100,
+        current_weight: 0.6
+      },
+      {
+        ticker: 'BBB',
+        name: 'Asset BBB',
+        sector: 700,
+        entry_price: 120,
+        current_weight: 0.4
+      }
+    ]
+  };
+
+  const portfolioReturns = [
+    { date: '2023-01-01', value: 100, positions: [{ ticker: 'AAA', price: 100 }, { ticker: 'BBB', price: 120 }] },
+    { date: '2023-01-02', value: 101, positions: [{ ticker: 'AAA', price: 102 }, { ticker: 'BBB', price: 121 }] },
+    { date: '2023-01-03', value: 103, positions: [{ ticker: 'AAA', price: 104 }, { ticker: 'BBB', price: 123 }] }
+  ];
+
+  const benchmarkReturns = [
+    { date: '2023-01-01', value: 100 },
+    { date: '2023-01-02', value: 100.5 },
+    { date: '2023-01-03', value: 101.2 }
+  ];
+
+  return { portfolio, portfolioReturns, benchmarkReturns };
+};
+
 
 const buildStrategyConfig = () => ({
   name: 'Test Strategy',
@@ -686,6 +728,102 @@ const testPDFReportGenerator = () => {
   return true;
 };
 
+
+// =====================================================
+// ATTRIBUTION TESTS
+// =====================================================
+
+const testAttributionAnalyzer = () => {
+  const { portfolio, portfolioReturns, benchmarkReturns } = buildAttributionFixtures();
+  const attribution = attributionAnalyzer.calculateAttribution(
+    portfolio,
+    portfolioReturns,
+    benchmarkReturns
+  );
+
+  assert(!!attribution.summary, 'Attribution summary generated');
+  assert(Array.isArray(attribution.brinson.allocation_effect.by_sector), 'Brinson allocation includes sectors');
+  assert(!!attribution.assets.top_contributors.length, 'Asset contribution calculated');
+  return assert(Array.isArray(attribution.periods.monthly), 'Period attribution calculated');
+};
+
+const testAttributionReportExports = () => {
+  const { portfolio, portfolioReturns, benchmarkReturns } = buildAttributionFixtures();
+  const attributionData = attributionAnalyzer.calculateAttribution(
+    portfolio,
+    portfolioReturns,
+    benchmarkReturns
+  );
+
+  attributionData.events = attributionAnalyzer.calculateEventAttribution(
+    portfolioReturns,
+    benchmarkReturns,
+    [{
+      name: 'Test Event',
+      start_date: '2023-01-01',
+      end_date: '2023-01-03',
+      description: 'Synthetic event for tests.'
+    }]
+  );
+
+  if (typeof window === 'undefined') {
+    global.window = {};
+  }
+
+  window.XLSX = window.XLSX || {
+    utils: {
+      book_new: () => ({ SheetNames: [], Sheets: {} }),
+      aoa_to_sheet: (data) => ({ data }),
+      book_append_sheet: (workbook, worksheet, sheetName) => {
+        workbook.SheetNames.push(sheetName);
+        workbook.Sheets[sheetName] = worksheet;
+      }
+    },
+    writeFile: () => {}
+  };
+
+  class MockJsPDF {
+    constructor(orientation) {
+      this.orientation = orientation;
+      this.lastAutoTable = { finalY: 100 };
+      this._pages = 1;
+    }
+    internal = {
+      pageSize: {
+        getWidth: () => 210,
+        getHeight: () => 297
+      },
+      getNumberOfPages: () => this._pages
+    };
+    setFontSize(size) {}
+    setFont(font, style) {}
+    setTextColor(...args) {}
+    setFillColor(...args) {}
+    text(text, x, y) {}
+    splitTextToSize(text, width) {
+      return [text];
+    }
+    rect(x, y, w, h, style) {}
+    addPage() {
+      this._pages++;
+    }
+    setPage(num) {}
+    autoTable(config) {
+      this.lastAutoTable.finalY = 150;
+    }
+    save(filename) {}
+  }
+
+  window.jspdf = window.jspdf || { jsPDF: MockJsPDF };
+
+  exportAttributionToExcel(portfolio, attributionData);
+  generateAttributionReport(portfolio, attributionData);
+
+  return true;
+};
+
+
+
 const testComparativeAnalysis = () => {
   const dataset1 = {
     strategyName: 'Strategy A',
@@ -966,6 +1104,8 @@ export const runAllTests = () => {
     testReportGeneratorBase,
     testExcelReportGenerator,
     testPDFReportGenerator,
+    testAttributionAnalyzer,
+    testAttributionReportExports,
     testComparativeAnalysis,
     testExecutiveSummary,
     testCompareTwoPeriods,

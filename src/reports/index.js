@@ -13,12 +13,14 @@ export {
 // Excel exports
 export {
   exportBacktestToExcel,
+  exportAttributionToExcel,
   exportPortfolioToExcel,
   exportScanResultsToExcel
 } from './excel-exporter.js';
 // PDF templates
 export {
   generateAuditReport,
+  generateAttributionReport,
   generateInvestmentCommitteeReport,
   generateClientReport,
   generateBacktestPDF

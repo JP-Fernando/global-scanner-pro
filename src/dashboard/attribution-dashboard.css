@@ -510,6 +510,33 @@
   color: #6b7280;
 }
 
+
+/* ==================== EVENT ATTRIBUTION ==================== */
+
+.event-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.summary-pill {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #4338ca;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.summary-pill strong {
+  font-size: 14px;
+}
+
+
 /* ==================== RESPONSIVE ==================== */
 
 @media (max-width: 1024px) {

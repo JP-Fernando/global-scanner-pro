@@ -6,6 +6,7 @@
 import { attributionAnalyzer } from '../analytics/attribution-analysis.js';
 import { performanceTracker } from '../portfolio/performance-tracker.js';
 import i18n from '../i18n/i18n.js';
+import { filterMarketEvents } from '../data/market-events.js';
 
 export class AttributionDashboard {
   constructor(containerId) {
@@ -56,6 +57,19 @@ export class AttributionDashboard {
         benchmarkReturns
       );
 
+
+      const events = filterMarketEvents(fromDate, toDate);
+      const eventAttribution = events.length
+        ? attributionAnalyzer.calculateEventAttribution(
+          portfolioReturns,
+          benchmarkReturns,
+          events
+        )
+        : null;
+
+      this.attributionData.events = eventAttribution;
+
+
       // Render dashboard
       this.render();
     } catch (error) {
@@ -84,6 +98,7 @@ export class AttributionDashboard {
           <button class="tab-btn" data-tab="factors">${i18n.t('attribution.factor_contribution')}</button>
           <button class="tab-btn" data-tab="assets">${i18n.t('attribution.asset_contribution')}</button>
           <button class="tab-btn" data-tab="periods">${i18n.t('attribution.period_attribution')}</button>
+          <button class="tab-btn" data-tab="events">${i18n.t('attribution.event_attribution')}</button>
         </div>
 
         <!-- Tab Content -->
@@ -103,6 +118,11 @@ export class AttributionDashboard {
           <div id="periods-tab" class="tab-content">
             ${this.renderPeriodAnalysis()}
           </div>
+
+          <div id="events-tab" class="tab-content">
+            ${this.renderEventAnalysis()}
+          </div>
+
         </div>
       </div>
     `;
@@ -559,6 +579,88 @@ export class AttributionDashboard {
       </div>
     `;
   }
+
+
+  /**
+   * Render Market Event Attribution Analysis
+   */
+  renderEventAnalysis() {
+    const { events } = this.attributionData;
+
+    if (!events || !events.events || !events.events.length) {
+      return `<div class="no-data">${i18n.t('attribution.no_data')}</div>`;
+    }
+
+    return `
+      <div class="event-analysis">
+        <div class="section-header">
+          <h3>${i18n.t('attribution.event_attribution')}</h3>
+          <p class="section-description">${i18n.t('attribution.event_attribution_description')}</p>
+        </div>
+
+        <div class="event-summary">
+          <div class="summary-pill">
+            <span>${i18n.t('attribution.total_events')}</span>
+            <strong>${events.summary.total_events}</strong>
+          </div>
+          <div class="summary-pill">
+            <span>${i18n.t('attribution.outperformed')}</span>
+            <strong>${events.summary.outperformed}</strong>
+          </div>
+          <div class="summary-pill">
+            <span>${i18n.t('attribution.underperformed')}</span>
+            <strong>${events.summary.underperformed}</strong>
+          </div>
+          <div class="summary-pill">
+            <span>${i18n.t('attribution.avg_excess_return')}</span>
+            <strong>${events.summary.average_excess_return.toFixed(2)}%</strong>
+          </div>
+        </div>
+
+        <table class="attribution-table">
+          <thead>
+            <tr>
+              <th>${i18n.t('attribution.event_name')}</th>
+              <th>${i18n.t('attribution.event_description')}</th>
+              <th>${i18n.t('attribution.start_date')}</th>
+              <th>${i18n.t('attribution.end_date')}</th>
+              <th>${i18n.t('attribution.portfolio_return')}</th>
+              <th>${i18n.t('attribution.benchmark_return')}</th>
+              <th>${i18n.t('attribution.excess_return')}</th>
+              <th>${i18n.t('attribution.max_drawdown')}</th>
+              <th>${i18n.t('attribution.relative_performance')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${events.events.map(event => `
+              <tr>
+                <td><strong>${event.event_name}</strong></td>
+                <td>${event.description}</td>
+                <td>${event.start_date}</td>
+                <td>${event.end_date}</td>
+                <td class="${event.portfolio_return >= 0 ? 'positive' : 'negative'}">
+                  ${event.portfolio_return >= 0 ? '+' : ''}${event.portfolio_return.toFixed(2)}%
+                </td>
+                <td class="${event.benchmark_return >= 0 ? 'positive' : 'negative'}">
+                  ${event.benchmark_return >= 0 ? '+' : ''}${event.benchmark_return.toFixed(2)}%
+                </td>
+                <td class="${event.excess_return >= 0 ? 'positive' : 'negative'}">
+                  ${event.excess_return >= 0 ? '+' : ''}${event.excess_return.toFixed(2)}%
+                </td>
+                <td class="${event.portfolio_max_drawdown >= 0 ? 'positive' : 'negative'}">
+                  ${event.portfolio_max_drawdown.toFixed(2)}%
+                </td>
+                <td class="${event.excess_return >= 0 ? 'positive' : 'negative'}">
+                  ${event.excess_return >= 0 ? i18n.t('attribution.outperformed') : i18n.t('attribution.underperformed')}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
 
   /**
    * Attach event listeners

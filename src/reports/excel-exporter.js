@@ -84,6 +84,48 @@ export function exportPortfolioToExcel(portfolio, performanceData, riskData) {
   generator.download(filename);
 }
 
+
+/**
+ * Export attribution analysis to Excel
+ */
+export function exportAttributionToExcel(portfolio, attributionData) {
+  const generator = new ExcelReportGenerator({ portfolio, attributionData });
+
+  const summaryData = _createAttributionSummarySheet(portfolio, attributionData);
+  generator.addWorksheet('Attribution Summary', summaryData, {
+    columnWidths: [28, 20, 20]
+  });
+
+  const brinsonData = _createBrinsonSheet(attributionData?.brinson);
+  generator.addWorksheet('Brinson Attribution', brinsonData, {
+    columnWidths: [24, 18, 18, 18, 18]
+  });
+
+  const factorData = _createFactorSheet(attributionData?.factors);
+  generator.addWorksheet('Factor Attribution', factorData, {
+    columnWidths: [22, 18, 18, 18, 18]
+  });
+
+  const assetData = _createAssetContributionSheet(attributionData?.assets);
+  generator.addWorksheet('Asset Contribution', assetData, {
+    columnWidths: [12, 28, 18, 14, 16, 16]
+  });
+
+  const periodData = _createPeriodAttributionSheet(attributionData?.periods);
+  generator.addWorksheet('Period Attribution', periodData, {
+    columnWidths: [16, 18, 18, 18]
+  });
+
+  const eventData = _createEventAttributionSheet(attributionData?.events);
+  generator.addWorksheet('Market Events', eventData, {
+    columnWidths: [20, 40, 14, 14, 18, 18, 18, 18]
+  });
+
+  const filename = generator.getFilename(`attribution_${portfolio.name || 'portfolio'}`, 'xlsx');
+  generator.download(filename);
+}
+
+
 /**
  * Export scan results to Excel
  */
@@ -248,6 +290,138 @@ function _createPortfolioOverviewSheet(portfolio, performanceData) {
   ];
 
   return data;
+}
+
+function _createAttributionSummarySheet(portfolio, attributionData) {
+  const summary = attributionData?.summary || {};
+  return [
+    ['Attribution Summary', '', ''],
+    ['', '', ''],
+    ['Portfolio', portfolio.name || ''],
+    ['Benchmark', portfolio.benchmark || '^GSPC'],
+    ['Analysis Period', `${summary.analysis_period?.start || ''} - ${summary.analysis_period?.end || ''}`],
+    ['Active Positions', summary.active_positions ?? ''],
+    ['', '', ''],
+    ['Total Return', summary.total_return != null ? `${(summary.total_return * 100).toFixed(2)}%` : ''],
+    ['Benchmark Return', summary.benchmark_return != null ? `${(summary.benchmark_return * 100).toFixed(2)}%` : ''],
+    ['Excess Return', summary.excess_return != null ? `${(summary.excess_return * 100).toFixed(2)}%` : '']
+  ];
+}
+
+function _createBrinsonSheet(brinson) {
+  if (!brinson) {
+    return [['No Brinson attribution data available']];
+  }
+
+  const headers = [
+    'Sector',
+    'Portfolio Weight',
+    'Benchmark Weight',
+    'Weight Diff',
+    'Contribution'
+  ];
+
+  const rows = (brinson.allocation_effect?.by_sector || []).map(sector => [
+    sector.sector,
+    `${sector.portfolio_weight.toFixed(2)}%`,
+    `${sector.benchmark_weight.toFixed(2)}%`,
+    `${sector.weight_difference.toFixed(2)}%`,
+    `${sector.contribution.toFixed(2)}%`
+  ]);
+
+  return [headers, ...rows];
+}
+
+function _createFactorSheet(factors) {
+  if (!factors) {
+    return [['No factor attribution data available']];
+  }
+
+  const headers = ['Factor', 'Total Contribution', 'Top Ticker', 'Weight', 'Contribution'];
+  const rows = [];
+  const factorMap = [
+    ['Trend', factors.trend],
+    ['Momentum', factors.momentum],
+    ['Risk', factors.risk],
+    ['Liquidity', factors.liquidity]
+  ];
+
+  factorMap.forEach(([label, data]) => {
+    const top = data.top_contributors?.[0];
+    rows.push([
+      label,
+      `${data.total_contribution.toFixed(2)}%`,
+      top?.ticker || '',
+      top ? `${top.weight.toFixed(2)}%` : '',
+      top ? `${top.contribution.toFixed(2)}%` : ''
+    ]);
+  });
+
+  return [headers, ...rows];
+}
+
+function _createAssetContributionSheet(assets) {
+  if (!assets) {
+    return [['No asset contribution data available']];
+  }
+
+  const headers = ['Ticker', 'Name', 'Sector', 'Weight', 'Return', 'Contribution'];
+  const rows = assets.top_contributors.map(asset => [
+    asset.ticker,
+    asset.name,
+    asset.sector,
+    `${asset.weight.toFixed(2)}%`,
+    `${asset.return.toFixed(2)}%`,
+    `${asset.contribution.toFixed(2)}%`
+  ]);
+
+  return [headers, ...rows];
+}
+
+function _createPeriodAttributionSheet(periods) {
+  if (!periods) {
+    return [['No period attribution data available']];
+  }
+
+  const headers = ['Period', 'Portfolio Return', 'Benchmark Return', 'Excess Return'];
+  const rows = periods.monthly.map(period => [
+    period.period,
+    `${period.portfolio_return.toFixed(2)}%`,
+    `${period.benchmark_return.toFixed(2)}%`,
+    `${period.excess_return.toFixed(2)}%`
+  ]);
+
+  return [headers, ...rows];
+}
+
+function _createEventAttributionSheet(events) {
+  if (!events || !events.events) {
+    return [['No market event attribution data available']];
+  }
+
+  const headers = [
+    'Event',
+    'Description',
+    'Start',
+    'End',
+    'Portfolio Return',
+    'Benchmark Return',
+    'Excess Return',
+    'Max Drawdown'
+  ];
+
+  const rows = events.events.map(event => [
+    event.event_name,
+    event.description,
+    event.start_date,
+    event.end_date,
+    `${event.portfolio_return.toFixed(2)}%`,
+    `${event.benchmark_return.toFixed(2)}%`,
+    `${event.excess_return.toFixed(2)}%`,
+    `${event.portfolio_max_drawdown.toFixed(2)}%`
+  ]);
+
+  return [headers, ...rows];
 }
 
 function _createPositionsSheet(portfolio) {

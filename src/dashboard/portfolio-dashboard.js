@@ -6,9 +6,14 @@
 import { portfolioManager } from '../portfolio/portfolio-manager.js';
 import { performanceTracker } from '../portfolio/performance-tracker.js';
 import i18n from '../i18n/i18n.js';
+import { AttributionDashboard } from './attribution-dashboard.js';
+import { attributionAnalyzer } from '../analytics/attribution-analysis.js';
+import { filterMarketEvents } from '../data/market-events.js';
 import {
   exportPortfolioToExcel,
+  exportAttributionToExcel, 
   generateAuditReport,
+  generateAttributionReport,  
   generateInvestmentCommitteeReport,
   generateClientReport
 } from '../reports/index.js';
@@ -23,6 +28,8 @@ import {
 let currentPortfolio = null;
 let currentChartTab = 'equity';
 let portfolioChart = null;
+let attributionDashboard = null;
+let attributionVisible = false;
 
 /**
  * Initialize the dashboard
@@ -48,6 +55,23 @@ function setupEventListeners() {
   if (saveAlertSettingsBtn) {
     saveAlertSettingsBtn.addEventListener('click', handleAlertSettingsSave);
   }
+
+
+  const attributionBtn = document.getElementById('attributionAnalysisBtn');
+  if (attributionBtn) {
+    attributionBtn.addEventListener('click', toggleAttributionDashboard);
+  }
+
+  const exportAttributionPdfBtn = document.getElementById('exportAttributionPdfBtn');
+  if (exportAttributionPdfBtn) {
+    exportAttributionPdfBtn.addEventListener('click', exportAttributionPDF);
+  }
+
+  const exportAttributionExcelBtn = document.getElementById('exportAttributionExcelBtn');
+  if (exportAttributionExcelBtn) {
+    exportAttributionExcelBtn.addEventListener('click', exportAttributionExcel);
+  }
+
 }
 
 /**
@@ -141,6 +165,9 @@ export async function refreshDashboard() {
 
     // Load rebalancing history
     await updateRebalanceHistory();
+    if (attributionVisible) {
+      await initializeAttributionDashboard();
+    }
 
     // Check for alerts
     await checkAlerts(pnlData, perfMetrics, benchmarkComparison);
@@ -150,6 +177,62 @@ export async function refreshDashboard() {
     alert(i18n.t('portfolio_dashboard.error_refreshing'));
   }
 }
+
+
+async function initializeAttributionDashboard() {
+  if (!currentPortfolio) return;
+  const section = document.getElementById('attributionDashboardSection');
+  if (!section) return;
+
+  section.style.display = 'block';
+
+  if (!attributionDashboard) {
+    attributionDashboard = new AttributionDashboard('attribution-container');
+  }
+
+  await attributionDashboard.initialize(currentPortfolio);
+}
+
+async function toggleAttributionDashboard() {
+  if (!currentPortfolio) {
+    alert(i18n.t('portfolio_dashboard.no_portfolio_built'));
+    return;
+  }
+
+  attributionVisible = !attributionVisible;
+  const section = document.getElementById('attributionDashboardSection');
+  if (!section) return;
+
+  if (!attributionVisible) {
+    section.style.display = 'none';
+    return;
+  }
+
+  await initializeAttributionDashboard();
+}
+
+async function buildAttributionData() {
+  const portfolioReturns = await performanceTracker.calculateEquityCurve(currentPortfolio);
+  const benchmark = currentPortfolio.benchmark || '^GSPC';
+  const fromDate = portfolioReturns[0]?.date || currentPortfolio.created_at.split('T')[0];
+  const toDate = portfolioReturns[portfolioReturns.length - 1]?.date || new Date().toISOString().split('T')[0];
+  const benchmarkPrices = await performanceTracker.loadPriceData(benchmark, fromDate, toDate);
+  const benchmarkReturns = benchmarkPrices.map(p => ({ date: p.date, value: p.price }));
+
+  const attributionData = attributionAnalyzer.calculateAttribution(
+    currentPortfolio,
+    portfolioReturns,
+    benchmarkReturns
+  );
+
+  const events = filterMarketEvents(fromDate, toDate);
+  attributionData.events = events.length
+    ? attributionAnalyzer.calculateEventAttribution(portfolioReturns, benchmarkReturns, events)
+    : null;
+
+  return attributionData;
+}
+
 
 /**
  * Update summary cards
@@ -780,6 +863,8 @@ function createAllocationChart(ctx, positions) {
  */
 function clearDashboard() {
   currentPortfolio = null;
+  attributionVisible = false;
+  attributionDashboard = null;
 
   document.getElementById('totalValueCard').textContent = '--';
   document.getElementById('totalReturnCard').textContent = '--';
@@ -796,6 +881,11 @@ function clearDashboard() {
   if (portfolioChart) {
     portfolioChart.destroy();
     portfolioChart = null;
+  }
+
+  const attributionSection = document.getElementById('attributionDashboardSection');
+  if (attributionSection) {
+    attributionSection.style.display = 'none';
   }
 
   document.getElementById('deletePortfolioBtn').style.display = 'none';
@@ -1023,6 +1113,44 @@ async function exportClientReport() {
   }
 }
 
+
+/**
+ * Export attribution analysis to Excel
+ */
+async function exportAttributionExcel() {
+  if (!currentPortfolio) {
+    alert('No portfolio loaded. Please select a portfolio first.');
+    return;
+  }
+
+  try {
+    const attributionData = await buildAttributionData();
+    exportAttributionToExcel(currentPortfolio, attributionData);
+  } catch (error) {
+    console.error('Error exporting attribution analysis:', error);
+    alert('Error exporting attribution analysis. Please try again.');
+  }
+}
+
+/**
+ * Export attribution analysis to PDF
+ */
+async function exportAttributionPDF() {
+  if (!currentPortfolio) {
+    alert('No portfolio loaded. Please select a portfolio first.');
+    return;
+  }
+
+  try {
+    const attributionData = await buildAttributionData();
+    generateAttributionReport(currentPortfolio, attributionData);
+  } catch (error) {
+    console.error('Error exporting attribution report:', error);
+    alert('Error exporting attribution report. Please try again.');
+  }
+}
+
+
 /**
  * Refresh dashboard (global function)
  */
@@ -1040,6 +1168,8 @@ window.exportPortfolioExcel = exportPortfolioExcel;
 window.exportAuditReport = exportAuditReport;
 window.exportInvestmentCommitteeReport = exportInvestmentCommitteeReport;
 window.exportClientReport = exportClientReport;
+window.exportAttributionExcel = exportAttributionExcel;
+window.exportAttributionPDF = exportAttributionPDF;
 
 // Export functions
 export { loadPortfolioList, clearDashboard };

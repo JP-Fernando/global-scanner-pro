@@ -835,7 +835,11 @@ export default {
     save_portfolio: '💾 Save Portfolio',
     delete_portfolio: '🗑️ Delete',
     refresh: '🔄 Refresh',
-
+    attribution_button: '📈 Attribution Analysis',
+    attribution_title: '📈 Attribution Analysis',
+    attribution_export_pdf: '📄 Export PDF',
+    attribution_export_excel: '📊 Export Excel',
+    
     // Summary cards
     total_value: 'Total Value',
     total_return: 'Total Return',
@@ -1117,6 +1121,7 @@ export default {
 
     // Market Events
     event_attribution: 'Market Event Attribution',
+    event_attribution_description: 'Evaluates portfolio performance during key market events.',    
     event_name: 'Event',
     event_description: 'Description',
     start_date: 'Start Date',
@@ -1124,6 +1129,9 @@ export default {
     relative_performance: 'Relative Performance',
     outperformed: 'Outperformed',
     underperformed: 'Underperformed',
+    total_events: 'Total Events',
+    avg_excess_return: 'Avg Excess Return',
+    max_drawdown: 'Max Drawdown',
 
     // Common
     error: 'Error',

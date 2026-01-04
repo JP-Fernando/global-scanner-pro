@@ -834,7 +834,11 @@ export default {
     save_portfolio: '💾 Guardar Portfolio',
     delete_portfolio: '🗑️ Eliminar',
     refresh: '🔄 Actualizar',
-
+    attribution_button: '📈 Análisis de Atribución',
+    attribution_title: '📈 Análisis de Atribución',
+    attribution_export_pdf: '📄 Exportar PDF',
+    attribution_export_excel: '📊 Exportar Excel',
+    
     // Summary cards
     total_value: 'Valor Total',
     total_return: 'Retorno Total',
@@ -1117,6 +1121,7 @@ export default {
 
     // Market Events
     event_attribution: 'Atribución por Eventos de Mercado',
+    event_attribution_description: 'Evalúa el rendimiento del portafolio durante eventos clave del mercado.',
     event_name: 'Evento',
     event_description: 'Descripción',
     start_date: 'Fecha Inicio',
@@ -1124,6 +1129,9 @@ export default {
     relative_performance: 'Rendimiento Relativo',
     outperformed: 'Superó',
     underperformed: 'Quedó por debajo',
+    total_events: 'Total de eventos',
+    avg_excess_return: 'Exceso medio',
+    max_drawdown: 'Máx Drawdown',
 
     // Common
     error: 'Error',

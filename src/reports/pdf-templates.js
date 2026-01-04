@@ -393,6 +393,119 @@ export function generateClientReport(portfolio, performanceData, riskData) {
   pdf.download(filename);
 }
 
+
+
+/**
+ * ATTRIBUTION REPORT TEMPLATE
+ * Performance attribution analysis report for portfolio reviews
+ */
+export function generateAttributionReport(portfolio, attributionData) {
+  const pdf = new PDFReportGenerator({ portfolio, attributionData });
+
+  pdf.addTitle('ATTRIBUTION ANALYSIS REPORT');
+  pdf.addSubtitle(`Portfolio: ${portfolio.name || 'N/A'}`);
+  pdf.addSubtitle(`Benchmark: ${portfolio.benchmark || '^GSPC'}`);
+  pdf.addSubtitle(`Report Date: ${pdf.generatedAt}`);
+  pdf.currentY += 10;
+
+  const summary = attributionData?.summary || {};
+  pdf.addSectionHeader('SUMMARY');
+  const summaryMetrics = [
+    { label: 'Total Return', value: pdf.formatPercent(summary.total_return || 0) },
+    { label: 'Benchmark Return', value: pdf.formatPercent(summary.benchmark_return || 0) },
+    { label: 'Excess Return', value: pdf.formatPercent(summary.excess_return || 0) },
+    { label: 'Active Positions', value: summary.active_positions ?? 0 }
+  ];
+  pdf.addMetricsBox(summaryMetrics, 2);
+
+  pdf.addSectionHeader('BRINSON ATTRIBUTION');
+  if (attributionData?.brinson?.allocation_effect?.by_sector?.length) {
+    const brinsonRows = attributionData.brinson.allocation_effect.by_sector.map(sector => [
+      sector.sector,
+      `${sector.portfolio_weight.toFixed(2)}%`,
+      `${sector.benchmark_weight.toFixed(2)}%`,
+      `${sector.weight_difference.toFixed(2)}%`,
+      `${sector.contribution.toFixed(2)}%`
+    ]);
+
+    pdf.addTable(
+      ['Sector', 'Portfolio W', 'Benchmark W', 'Diff', 'Contribution'],
+      brinsonRows
+    );
+  } else {
+    pdf.addText('No Brinson attribution data available.');
+  }
+
+  pdf.addSectionHeader('FACTOR ATTRIBUTION');
+  if (attributionData?.factors) {
+    const factorRows = [
+      ['Trend', attributionData.factors.trend.total_contribution.toFixed(2) + '%'],
+      ['Momentum', attributionData.factors.momentum.total_contribution.toFixed(2) + '%'],
+      ['Risk', attributionData.factors.risk.total_contribution.toFixed(2) + '%'],
+      ['Liquidity', attributionData.factors.liquidity.total_contribution.toFixed(2) + '%']
+    ];
+    pdf.addTable(['Factor', 'Total Contribution'], factorRows);
+  } else {
+    pdf.addText('No factor attribution data available.');
+  }
+
+  pdf.addSectionHeader('ASSET CONTRIBUTION (TOP 10)');
+  if (attributionData?.assets?.top_contributors?.length) {
+    const assetRows = attributionData.assets.top_contributors.map(asset => [
+      asset.ticker,
+      asset.name,
+      asset.sector,
+      `${asset.weight.toFixed(2)}%`,
+      `${asset.return.toFixed(2)}%`,
+      `${asset.contribution.toFixed(2)}%`
+    ]);
+    pdf.addTable(
+      ['Ticker', 'Name', 'Sector', 'Weight', 'Return', 'Contribution'],
+      assetRows
+    );
+  } else {
+    pdf.addText('No asset contribution data available.');
+  }
+
+  pdf.addSectionHeader('PERIOD ATTRIBUTION (LAST 12 MONTHS)');
+  if (attributionData?.periods?.monthly?.length) {
+    const periodRows = attributionData.periods.monthly.slice(-12).reverse().map(period => [
+      period.period,
+      `${period.portfolio_return.toFixed(2)}%`,
+      `${period.benchmark_return.toFixed(2)}%`,
+      `${period.excess_return.toFixed(2)}%`
+    ]);
+    pdf.addTable(
+      ['Period', 'Portfolio Return', 'Benchmark Return', 'Excess Return'],
+      periodRows
+    );
+  } else {
+    pdf.addText('No period attribution data available.');
+  }
+
+  pdf.addSectionHeader('MARKET EVENT ATTRIBUTION');
+  if (attributionData?.events?.events?.length) {
+    const eventRows = attributionData.events.events.map(event => [
+      event.event_name,
+      `${event.portfolio_return.toFixed(2)}%`,
+      `${event.benchmark_return.toFixed(2)}%`,
+      `${event.excess_return.toFixed(2)}%`,
+      `${event.portfolio_max_drawdown.toFixed(2)}%`
+    ]);
+    pdf.addTable(
+      ['Event', 'Portfolio Return', 'Benchmark Return', 'Excess Return', 'Max Drawdown'],
+      eventRows
+    );
+  } else {
+    pdf.addText('No market event attribution data available.');
+  }
+
+  const filename = pdf.getFilename(`attribution_report_${portfolio.name || 'portfolio'}`, 'pdf');
+  pdf.download(filename);
+}
+
+
+
 /**
  * BACKTEST RESULTS PDF
  * Comprehensive backtest analysis report
