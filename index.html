@@ -471,12 +471,11 @@
               <option value="universes/mexico_universe.json|.MX" data-i18n="markets.mexico">Mexico (BMV)</option>
               <option value="universes/toronto_universe.json|.TO" data-i18n="markets.canada">Canada (TSX)</option>
             </optgroup>
-            <optgroup label="🌏 Asia" data-i18n-label="markets.regions.asia"></optgroup>              
+            <optgroup label="🌏 Asia" data-i18n-label="markets.regions.asia">
               <option value="universes/tokyo_universe.json|.T" data-i18n="markets.japan">Japan (TSE)</option>
-              <option value="universes/china_hongkong.json|.HK" data-i18n="markets.hongkong">Hong Kong (SEHK)</option>
+              <option value="universes/china_hongkong.json|.HK" data-i18n="markets.hongkong">Hong Kong (HKEX)</option>
               <option value="universes/china_shanghai.json|.SS" data-i18n="markets.china_shanghai">China (SSE)</option>
-              <option value="universes/china_shenzhen.json|.SZ" data-i18n="markets.china_shenzhen">China (SZSE)
-              </option>
+              <option value="universes/china_shenzhen.json|.SZ" data-i18n="markets.china_shenzhen">China (SZSE)</option>
               <option value="universes/korea_universe.json|.KS" data-i18n="markets.southkorea">South Korea (KRX)</option>
             </optgroup>
           </select>
@@ -666,8 +665,7 @@
             <button id="refreshDashboardBtn" onclick="refreshDashboard()"
               style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);"
               data-i18n="portfolio_dashboard.refresh">🔄 Actualizar</button>
-            <button id="attributionAnalysisBtn"
-              style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);"
+            <button id="attributionAnalysisBtn" class="btn-attribution-primary"
               data-i18n="portfolio_dashboard.attribution_button">📈 Análisis de Atribución</button>
           </div>
         </div>
@@ -806,11 +804,9 @@
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
             <h4 style="color: #4c1d95; font-size: 1.1em;" data-i18n="portfolio_dashboard.attribution_title">📈 Análisis de Atribución</h4>
             <div style="display: flex; gap: 10px; align-items: center;">
-              <button id="exportAttributionPdfBtn"
-                style="padding: 10px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.4);"
+              <button id="exportAttributionPdfBtn" class="btn-export-pdf"
                 data-i18n="portfolio_dashboard.attribution_export_pdf">📄 Exportar PDF</button>
-              <button id="exportAttributionExcelBtn"
-                style="padding: 10px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.4);"
+              <button id="exportAttributionExcelBtn" class="btn-export-excel"
                 data-i18n="portfolio_dashboard.attribution_export_excel">📊 Exportar Excel</button>
             </div>
           </div>

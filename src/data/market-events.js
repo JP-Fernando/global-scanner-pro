@@ -37,6 +37,12 @@ export const filterMarketEvents = (startDate, endDate) => {
   const start = new Date(startDate);
   const end = new Date(endDate);
 
+  // Validate dates
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    console.warn('Invalid date range provided to filterMarketEvents');
+    return [];
+  }
+
   return MARKET_EVENTS.filter(event => {
     const eventStart = new Date(event.start_date);
     const eventEnd = new Date(event.end_date);

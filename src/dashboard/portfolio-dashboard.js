@@ -184,13 +184,18 @@ async function initializeAttributionDashboard() {
   const section = document.getElementById('attributionDashboardSection');
   if (!section) return;
 
-  section.style.display = 'block';
+  try {
+    section.style.display = 'block';
 
-  if (!attributionDashboard) {
-    attributionDashboard = new AttributionDashboard('attribution-container');
+    if (!attributionDashboard) {
+      attributionDashboard = new AttributionDashboard('attribution-container');
+    }
+
+    await attributionDashboard.initialize(currentPortfolio);
+  } catch (error) {
+    console.error('Error initializing attribution dashboard:', error);
+    section.innerHTML = `<div class="error-message" style="padding: 20px; color: #dc2626; background: #fee2e2; border-radius: 8px; margin: 10px;">Error loading attribution analysis: ${error.message}</div>`;
   }
-
-  await attributionDashboard.initialize(currentPortfolio);
 }
 
 async function toggleAttributionDashboard() {
@@ -212,6 +217,12 @@ async function toggleAttributionDashboard() {
 }
 
 async function buildAttributionData() {
+  // Reuse attribution data if already calculated by the dashboard
+  if (attributionDashboard && attributionDashboard.attributionData) {
+    return attributionDashboard.attributionData;
+  }
+
+  // Otherwise, calculate it fresh
   const portfolioReturns = await performanceTracker.calculateEquityCurve(currentPortfolio);
   const benchmark = currentPortfolio.benchmark || '^GSPC';
   const fromDate = portfolioReturns[0]?.date || currentPortfolio.created_at.split('T')[0];
@@ -1125,6 +1136,13 @@ async function exportAttributionExcel() {
 
   try {
     const attributionData = await buildAttributionData();
+
+    // Validate attribution data before exporting
+    if (!attributionData || !attributionData.summary) {
+      alert('Attribution data is incomplete. Please ensure the portfolio has performance data.');
+      return;
+    }
+
     exportAttributionToExcel(currentPortfolio, attributionData);
   } catch (error) {
     console.error('Error exporting attribution analysis:', error);
@@ -1143,6 +1161,13 @@ async function exportAttributionPDF() {
 
   try {
     const attributionData = await buildAttributionData();
+
+    // Validate attribution data before exporting
+    if (!attributionData || !attributionData.summary) {
+      alert('Attribution data is incomplete. Please ensure the portfolio has performance data.');
+      return;
+    }
+
     generateAttributionReport(currentPortfolio, attributionData);
   } catch (error) {
     console.error('Error exporting attribution report:', error);
