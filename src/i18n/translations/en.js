@@ -464,7 +464,7 @@ export default {
     action_trading: '💰 Trading',
     action_equity: '📈 Equity',
     action_drawdown: '📉 Drawdown',
-    action_export: '⬇️ Export',
+    action_export: 'Export',
     comparative_report: 'Comparative Report',
     interpretation: '💡 Interpretation',
     max_dd_meaning: '• <strong>Max DD:</strong> Maximum loss from previous peak',
