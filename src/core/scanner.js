@@ -21,6 +21,7 @@ import {
   generateComparativePDF,
   generateComparativeExcel
 } from '../reports/index.js';
+import { notifyStrongSignals } from '../alerts/alert-manager.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
@@ -1268,6 +1269,7 @@ export async function runScan() {
     appState.strategy = strategyKey;
     appState.scanCompleted = true;
     updateStrategyInfoDisplay();
+    await notifyStrongSignals(currentResults, strategyKey);
 
     // Show export button when results are available
     const exportButtons = document.getElementById('scanExportButtons');

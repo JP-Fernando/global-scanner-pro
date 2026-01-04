@@ -889,8 +889,28 @@ export default {
     // Alerts
     alerts_title: '⚠️ Alerts and Deviations',
     alert_large_drawdown: 'Significant drawdown detected: {{dd}}%',
+    alert_volatility: 'Volatility threshold exceeded: {{volatility}}%',
     alert_concentration: 'High concentration in {{ticker}}: {{weight}}%',
     alert_underperformance: 'Underperformance vs benchmark: {{excess}}%',
+
+    alerts_config_title: '📨 Alert Configuration',
+    alerts_config_description: 'Define thresholds per strategy and delivery channels.',
+    alerts_volatility_threshold: 'Volatility (%)',
+    alerts_drawdown_threshold: 'Drawdown (%)',
+    alerts_score_threshold: 'Minimum score',
+    alerts_email_label: 'Email',
+    alerts_webhook_label: 'Webhook',
+    alerts_slack_label: 'Slack',
+    alerts_teams_label: 'Teams',
+    alerts_zapier_label: 'Zapier',
+    alerts_notify_signals: 'Notify strong signals',
+    alerts_notify_rebalances: 'Notify rebalances',
+    alerts_notify_risk: 'Notify risk events',
+    alerts_save_settings: '💾 Save configuration',
+    alerts_settings_saved: 'Alert settings saved.',
+    alerts_log_title: '📬 Alerts log',
+    alerts_log_empty: 'No recent alerts',
+    alerts_log_status: 'Delivery status',
 
     // Messages
     enter_name: 'Enter a name for the portfolio:',
@@ -904,6 +924,29 @@ export default {
     error_refreshing: 'Error refreshing data',
     error_saving: 'Error saving portfolio',
     error_deleting: 'Error deleting portfolio'
+  },
+
+  // Alerts
+  alerts: {
+    strong_signals_title: '🔥 Strong signals detected',
+    strong_signals_message: 'Top signals for {{strategy}}: {{signals}}',
+    rebalance_title: '🔄 Rebalance executed',
+    rebalance_message: '{{portfolio}} rebalanced. Reason: {{reason}}. Changes: {{changes}}',
+    rebalance_no_changes: 'No position changes',
+    volatility_title: '⚠️ Volatility threshold exceeded',
+    volatility_message: 'Annualized volatility at {{volatility}}% (threshold {{threshold}}%).',
+    drawdown_title: '⚠️ Drawdown threshold breached',
+    drawdown_message: 'Max drawdown at {{drawdown}}% (threshold {{threshold}}%).',
+    concentration_title: '⚠️ Concentration risk detected',
+    concentration_message: 'High concentration in {{ticker}}: {{weight}}%',
+    underperformance_title: 'ℹ️ Underperformance vs benchmark',
+    underperformance_message: 'Excess return {{excess}}% vs benchmark.',
+    delivery_opened_client: 'Opened email client',
+    status_delivered: 'Delivered',
+    status_failed: 'Failed',
+    status_partial: 'Partially delivered',
+    status_queued: 'Queued',
+    status_skipped: 'Skipped'
   },
 
   // =====================================================

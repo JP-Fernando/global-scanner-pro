@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'GlobalQuantScannerDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export class IndexedDBStore {
   constructor() {
@@ -56,6 +56,23 @@ export class IndexedDBStore {
           priceStore.createIndex('ticker', 'ticker', { unique: false });
           priceStore.createIndex('date', 'date', { unique: false });
         }
+        
+        // Alerts log
+        if (!db.objectStoreNames.contains('alerts')) {
+          const alertStore = db.createObjectStore('alerts', { keyPath: 'id' });
+          alertStore.createIndex('created_at', 'created_at', { unique: false });
+          alertStore.createIndex('strategy', 'strategy', { unique: false });
+          alertStore.createIndex('user_id', 'user_id', { unique: false });
+          alertStore.createIndex('delivery_status', 'delivery_status', { unique: false });
+        }
+
+        // Alert settings
+        if (!db.objectStoreNames.contains('alert_settings')) {
+          const settingsStore = db.createObjectStore('alert_settings', { keyPath: 'id' });
+          settingsStore.createIndex('strategy', 'strategy', { unique: false });
+          settingsStore.createIndex('user_id', 'user_id', { unique: false });
+        }
+
       };
     });
   }
@@ -290,7 +307,7 @@ export class IndexedDBStore {
   async clearAll() {
     if (!this.db) await this.init();
 
-    const stores = ['portfolios', 'snapshots', 'rebalances', 'price_cache'];
+    const stores = ['portfolios', 'snapshots', 'rebalances', 'price_cache', 'alerts', 'alert_settings'];
     const promises = stores.map(storeName => {
       return new Promise((resolve, reject) => {
         const transaction = this.db.transaction([storeName], 'readwrite');
@@ -304,6 +321,93 @@ export class IndexedDBStore {
 
     return Promise.all(promises);
   }
+
+  /**
+   * Save alert log
+   * @param {Object} alert - Alert record
+   * @returns {Promise<string>} Alert ID
+   */
+  async saveAlert(alert) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['alerts'], 'readwrite');
+      const store = transaction.objectStore('alerts');
+      const request = store.put(alert);
+
+      request.onsuccess = () => resolve(alert.id);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Get alert logs
+   * @param {Object} options
+   * @param {string} options.strategy
+   * @param {string} options.userId
+   * @param {number} options.limit
+   * @returns {Promise<Array>}
+   */
+  async getAlerts({ strategy = null, userId = null, limit = 50 } = {}) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['alerts'], 'readonly');
+      const store = transaction.objectStore('alerts');
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        let alerts = request.result || [];
+        if (strategy) {
+          alerts = alerts.filter(a => a.strategy === strategy);
+        }
+        if (userId) {
+          alerts = alerts.filter(a => a.user_id === userId);
+        }
+
+        alerts.sort((a, b) => b.created_at.localeCompare(a.created_at));
+        resolve(alerts.slice(0, limit));
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Save alert settings
+   * @param {Object} settings - Alert settings
+   * @returns {Promise<string>} Settings ID
+   */
+  async saveAlertSettings(settings) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['alert_settings'], 'readwrite');
+      const store = transaction.objectStore('alert_settings');
+      const request = store.put(settings);
+
+      request.onsuccess = () => resolve(settings.id);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Get alert settings by ID
+   * @param {string} id - Settings ID
+   * @returns {Promise<Object|null>}
+   */
+  async getAlertSettings(id) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['alert_settings'], 'readonly');
+      const store = transaction.objectStore('alert_settings');
+      const request = store.get(id);
+
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
 }
 
 // Singleton instance

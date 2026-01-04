@@ -802,6 +802,101 @@
           <div id="alertsContainer" style="background: #0f172a; padding: 20px; border-radius: 8px;">
           </div>
         </div>
+
+
+        <!-- Alert Configuration -->
+        <div style="margin-top: 25px;">
+          <h4 style="color: #38bdf8; margin-bottom: 10px; font-size: 1.1em;"
+            data-i18n="portfolio_dashboard.alerts_config_title">📨 Alert Configuration</h4>
+          <p style="color: #94a3b8; font-size: 0.85em; margin-bottom: 15px;"
+            data-i18n="portfolio_dashboard.alerts_config_description">Define thresholds per strategy and delivery channels.</p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 15px;">
+            <div>
+              <label style="font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px;"
+                data-i18n="portfolio_dashboard.alerts_volatility_threshold">Volatility (%)</label>
+              <input id="alertVolatilityThreshold" type="number" step="0.1"
+                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #334155; color: white;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px;"
+                data-i18n="portfolio_dashboard.alerts_drawdown_threshold">Drawdown (%)</label>
+              <input id="alertDrawdownThreshold" type="number" step="0.1"
+                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #334155; color: white;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px;"
+                data-i18n="portfolio_dashboard.alerts_score_threshold">Minimum score</label>
+              <input id="alertScoreThreshold" type="number" step="1"
+                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #334155; color: white;" />
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 15px;">
+            <div>
+              <label style="font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px;"
+                data-i18n="portfolio_dashboard.alerts_email_label">Email</label>
+              <input id="alertEmail" type="email" placeholder="alerts@your-domain.com"
+                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #334155; color: white;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px;"
+                data-i18n="portfolio_dashboard.alerts_webhook_label">Webhook</label>
+              <input id="alertWebhook" type="url" placeholder="https://hooks.example.com/webhook"
+                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #334155; color: white;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px;"
+                data-i18n="portfolio_dashboard.alerts_slack_label">Slack</label>
+              <input id="alertSlack" type="url" placeholder="https://hooks.slack.com/..."
+                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #334155; color: white;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px;"
+                data-i18n="portfolio_dashboard.alerts_teams_label">Teams</label>
+              <input id="alertTeams" type="url" placeholder="https://outlook.office.com/webhook/..."
+                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #334155; color: white;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px;"
+                data-i18n="portfolio_dashboard.alerts_zapier_label">Zapier</label>
+              <input id="alertZapier" type="url" placeholder="https://hooks.zapier.com/..."
+                style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #334155; color: white;" />
+            </div>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+            <label style="display: flex; align-items: center; gap: 8px; color: #cbd5e1;">
+              <input type="checkbox" id="alertNotifySignals" />
+              <span data-i18n="portfolio_dashboard.alerts_notify_signals">Notify strong signals</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; color: #cbd5e1;">
+              <input type="checkbox" id="alertNotifyRebalances" />
+              <span data-i18n="portfolio_dashboard.alerts_notify_rebalances">Notify rebalances</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; color: #cbd5e1;">
+              <input type="checkbox" id="alertNotifyRisk" />
+              <span data-i18n="portfolio_dashboard.alerts_notify_risk">Notify risk events</span>
+            </label>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <button id="saveAlertSettingsBtn"
+              style="padding: 10px 18px; border-radius: 8px; border: none; background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);"
+              data-i18n="portfolio_dashboard.alerts_save_settings">💾 Save configuration</button>
+            <span id="alertSettingsStatus" style="font-size: 0.85em; color: #94a3b8;"></span>
+          </div>
+        </div>
+
+        <!-- Alerts Log -->
+        <div style="margin-top: 25px;">
+          <h4 style="color: #38bdf8; margin-bottom: 10px; font-size: 1.1em;"
+            data-i18n="portfolio_dashboard.alerts_log_title">📬 Alerts log</h4>
+          <div id="alertsLogContainer" style="background: #0f172a; padding: 20px; border-radius: 8px;">
+            <p style="color: #64748b; text-align: center;" data-i18n="portfolio_dashboard.alerts_log_empty">No recent alerts</p>
+          </div>
+        </div>
+        
       </div>
 
 

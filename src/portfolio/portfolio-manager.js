@@ -4,6 +4,7 @@
  */
 
 import { dbStore } from '../storage/indexed-db-store.js';
+import { notifyRebalance } from '../alerts/alert-manager.js';
 
 export class PortfolioManager {
   constructor() {
@@ -381,6 +382,7 @@ export class PortfolioManager {
 
     // Create snapshot after rebalance
     await this.createSnapshot(portfolio, priceData);
+    await notifyRebalance(portfolio, rebalance);
 
     return rebalance;
   }

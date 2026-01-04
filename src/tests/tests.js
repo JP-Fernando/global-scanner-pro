@@ -17,6 +17,12 @@ import {
   ComparativeAnalysisGenerator,
   ExecutiveSummaryGenerator
 } from '../reports/report-generator.js';
+import {
+  createAlert,
+  notifyStrongSignals,
+  getAlertSettings
+} from '../alerts/alert-manager.js';
+import { dbStore } from '../storage/indexed-db-store.js';
 
 const assert = (condition, message) => {
   if (!condition) {
@@ -94,6 +100,35 @@ const buildStrategyConfig = () => ({
     max_drawdown_52w: 90
   }
 });
+
+// =====================================================
+// ALERT TEST HELPERS
+// =====================================================
+
+const withMockedDbStore = async (mocks, testFn) => {
+  const original = {};
+  Object.keys(mocks).forEach(key => {
+    original[key] = dbStore[key];
+    dbStore[key] = mocks[key];
+  });
+  try {
+    return await testFn();
+  } finally {
+    Object.keys(mocks).forEach(key => {
+      dbStore[key] = original[key];
+    });
+  }
+};
+
+const withMockedFetch = async (mockFn, testFn) => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = mockFn;
+  try {
+    return await testFn();
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+};
 
 
 // =====================================================
@@ -805,6 +840,99 @@ const testCompareTwoPeriods = () => {
   return true;
 };
 
+// =====================================================
+// ALERT TESTS
+// =====================================================
+
+const testAlertSettingsDefaults = async () => {
+  const savedSettings = [];
+
+  return await withMockedDbStore({
+    getAlertSettings: async () => null,
+    saveAlertSettings: async (settings) => {
+      savedSettings.push(settings);
+      return settings.id;
+    }
+  }, async () => {
+    const settings = await getAlertSettings('balanced');
+
+    const hasDefaults = settings.thresholds.volatility_pct === 25
+      && settings.thresholds.drawdown_pct === -15
+      && settings.thresholds.score === 80;
+
+    assert(hasDefaults, 'Default alert thresholds applied');
+    assert(savedSettings.length === 1, 'Default alert settings persisted');
+    return true;
+  });
+};
+
+const testAlertWebhookDelivery = async () => {
+  const savedAlerts = [];
+
+  return await withMockedDbStore({
+    saveAlert: async (alert) => {
+      savedAlerts.push(alert);
+      return alert.id;
+    }
+  }, () => withMockedFetch(async () => ({
+    ok: true,
+    status: 200,
+    text: async () => 'ok'
+  }), async () => {
+    const settingsOverride = {
+      thresholds: { volatility_pct: 25, drawdown_pct: -15, score: 80 },
+      channels: { webhook: 'https://example.com/webhook' },
+      notifyOn: { strongSignals: true, rebalances: true, riskEvents: true }
+    };
+
+    const alert = await createAlert({
+      strategy: 'balanced',
+      type: 'signal',
+      title: 'Test alert',
+      message: 'Alert body',
+      metadata: { test: true }
+    }, settingsOverride);
+
+    assert(alert.delivery_status === 'delivered', 'Webhook delivery marked delivered');
+    assert(alert.delivery_results.length === 1, 'Webhook delivery result stored');
+    assert(savedAlerts.length >= 2, 'Alert saved before and after delivery');
+    return true;
+  }));
+};
+
+const testStrongSignalsAlert = async () => {
+  const savedAlerts = [];
+  const savedSettings = [];
+
+  return await withMockedDbStore({
+    getAlertSettings: async () => ({
+      id: 'default:balanced',
+      strategy: 'balanced',
+      thresholds: { volatility_pct: 25, drawdown_pct: -15, score: 90 },
+      channels: {},
+      notifyOn: { strongSignals: true, rebalances: true, riskEvents: true }
+    }),
+    saveAlertSettings: async (settings) => {
+      savedSettings.push(settings);
+      return settings.id;
+    },
+    saveAlert: async (alert) => {
+      savedAlerts.push(alert);
+      return alert.id;
+    }
+  }, async () => {
+    const results = [
+      { ticker: 'AAA', scoreTotal: 95 },
+      { ticker: 'BBB', scoreTotal: 85 }
+    ];
+
+    const alert = await notifyStrongSignals(results, 'balanced');
+    assert(!!alert, 'Strong signals alert created');
+    assert(alert.metadata.count === 1, 'Strong signals filtered by threshold');
+    assert(savedAlerts.length >= 2, 'Strong signals alert saved');
+    return true;
+  });
+};
 
 // =====================================================
 // RUN ALL TESTS
@@ -840,27 +968,42 @@ export const runAllTests = () => {
     testPDFReportGenerator,
     testComparativeAnalysis,
     testExecutiveSummary,
-    testCompareTwoPeriods
+    testCompareTwoPeriods,
+    testAlertSettingsDefaults,
+    testAlertWebhookDelivery,
+    testStrongSignalsAlert
   ];
 
   let passed = 0;
   let failed = 0;
 
+  let chain = Promise.resolve();
+
   tests.forEach(test => {
-    try {
-      if (test()) passed++;
-      else failed++;
-    } catch (e) {
-      console.error(`❌ ${i18n.t('test.error')} in ${test.name}:`, e.message);
-      failed++;
-    }
+    chain = chain.then(() => {
+      return Promise.resolve()
+        .then(() => test())
+        .then(result => {
+          if (result) {
+            passed++;
+          } else {
+            failed++;
+          }
+        })
+        .catch(e => {
+          console.error(`❌ ${i18n.t('test.error')} in ${test.name}:`, e.message);
+          failed++;
+        });
+    });
   });
 
-  console.log('\n╔═══════════════════════════════════════╗');
-  console.log(`║  ${i18n.t('test.results').toUpperCase()}: ${passed} ✅  ${failed} ❌`);
-  console.log('╚═══════════════════════════════════════╝\n');
+  return chain.then(() => {
+    console.log('\n╔═══════════════════════════════════════╗');
+    console.log(`║  ${i18n.t('test.results').toUpperCase()}: ${passed} ✅  ${failed} ❌`);
+    console.log('╚═══════════════════════════════════════╝\n');
 
-  return { passed, failed };
+    return { passed, failed };
+  });
 };
 
 export default { runAllTests };

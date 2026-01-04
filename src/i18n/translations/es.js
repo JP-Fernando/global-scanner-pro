@@ -888,8 +888,28 @@ export default {
     // Alerts
     alerts_title: '⚠️ Alertas y Desviaciones',
     alert_large_drawdown: 'Drawdown significativo detectado: {{dd}}%',
+    alert_volatility: 'Umbral de volatilidad excedido: {{volatility}}%',
     alert_concentration: 'Alta concentración en {{ticker}}: {{weight}}%',
     alert_underperformance: 'Underperformance vs benchmark: {{excess}}%',
+
+    alerts_config_title: '📨 Configuración de Alertas',
+    alerts_config_description: 'Define umbrales por estrategia y canales de envío.',
+    alerts_volatility_threshold: 'Volatilidad (%)',
+    alerts_drawdown_threshold: 'Drawdown (%)',
+    alerts_score_threshold: 'Score mínimo',
+    alerts_email_label: 'Email',
+    alerts_webhook_label: 'Webhook',
+    alerts_slack_label: 'Slack',
+    alerts_teams_label: 'Teams',
+    alerts_zapier_label: 'Zapier',
+    alerts_notify_signals: 'Notificar señales fuertes',
+    alerts_notify_rebalances: 'Notificar rebalanceos',
+    alerts_notify_risk: 'Notificar eventos de riesgo',
+    alerts_save_settings: '💾 Guardar configuración',
+    alerts_settings_saved: 'Configuración de alertas guardada.',
+    alerts_log_title: '📬 Historial de alertas',
+    alerts_log_empty: 'No hay alertas recientes',
+    alerts_log_status: 'Estado de entrega',
 
     // Messages
     enter_name: 'Ingresa un nombre para el portfolio:',
@@ -904,6 +924,30 @@ export default {
     error_saving: 'Error al guardar el portfolio',
     error_deleting: 'Error al eliminar el portfolio'
   },
+
+    // Alerts
+  alerts: {
+      strong_signals_title: '🔥 Señales fuertes detectadas',
+      strong_signals_message: 'Top señales para {{strategy}}: {{signals}}',
+      rebalance_title: '🔄 Rebalanceo ejecutado',
+      rebalance_message: '{{portfolio}} rebalanceado. Motivo: {{reason}}. Cambios: {{changes}}',
+      rebalance_no_changes: 'Sin cambios de posición',
+      volatility_title: '⚠️ Umbral de volatilidad excedido',
+      volatility_message: 'Volatilidad anualizada en {{volatility}}% (umbral {{threshold}}%).',
+      drawdown_title: '⚠️ Umbral de drawdown excedido',
+      drawdown_message: 'Drawdown máximo en {{drawdown}}% (umbral {{threshold}}%).',
+      concentration_title: '⚠️ Riesgo de concentración detectado',
+      concentration_message: 'Alta concentración en {{ticker}}: {{weight}}%',
+      underperformance_title: 'ℹ️ Underperformance vs benchmark',
+      underperformance_message: 'Exceso de retorno {{excess}}% vs benchmark.',
+      delivery_opened_client: 'Cliente de email abierto',
+      status_delivered: 'Entregado',
+      status_failed: 'Fallido',
+      status_partial: 'Parcialmente entregado',
+      status_queued: 'En cola',
+      status_skipped: 'Omitido'
+    },
+
 
   // =====================================================
   // SUITE DE TESTS (Español Europeo)

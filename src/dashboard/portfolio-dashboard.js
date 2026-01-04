@@ -12,6 +12,12 @@ import {
   generateInvestmentCommitteeReport,
   generateClientReport
 } from '../reports/index.js';
+import {
+  getAlertSettings,
+  saveAlertSettings,
+  getAlertLogs,
+  notifyRiskEvent
+} from '../alerts/alert-manager.js';
 
 // Current state
 let currentPortfolio = null;
@@ -24,6 +30,8 @@ let portfolioChart = null;
 export async function initDashboard() {
   await loadPortfolioList();
   setupEventListeners();
+  await loadAlertSettingsUI();
+  await loadAlertLogsUI();
   console.log('📊 Portfolio Dashboard initialized');
 }
 
@@ -34,6 +42,11 @@ function setupEventListeners() {
   const selector = document.getElementById('portfolioSelector');
   if (selector) {
     selector.addEventListener('change', handlePortfolioSelection);
+  }
+
+  const saveAlertSettingsBtn = document.getElementById('saveAlertSettingsBtn');
+  if (saveAlertSettingsBtn) {
+    saveAlertSettingsBtn.addEventListener('click', handleAlertSettingsSave);
   }
 }
 
@@ -87,6 +100,8 @@ export async function loadPortfolio(portfolioId) {
 
     // Update dashboard
     await refreshDashboard();
+    await loadAlertSettingsUI();
+    await loadAlertLogsUI();
 
   } catch (error) {
     console.error('Error loading portfolio:', error);
@@ -128,7 +143,7 @@ export async function refreshDashboard() {
     await updateRebalanceHistory();
 
     // Check for alerts
-    checkAlerts(pnlData, perfMetrics, benchmarkComparison);
+    await checkAlerts(pnlData, perfMetrics, benchmarkComparison);
 
   } catch (error) {
     console.error('Error refreshing dashboard:', error);
@@ -254,32 +269,100 @@ async function updateRebalanceHistory() {
 /**
  * Check for alerts and deviations
  */
-function checkAlerts(pnlData, perfMetrics, benchmarkComparison) {
+async function checkAlerts(pnlData, perfMetrics, benchmarkComparison) {
   const alerts = [];
+  const strategyKey = currentPortfolio?.strategy || 'balanced';
+  const settings = await getAlertSettings(strategyKey);
+  const thresholds = settings.thresholds || {};
 
   // Check for large drawdown
-  if (perfMetrics && perfMetrics.max_drawdown.max_drawdown_pct < -15) {
+  if (perfMetrics && perfMetrics.max_drawdown.max_drawdown_pct <= thresholds.drawdown_pct) {
     alerts.push({
       type: 'warning',
       message: i18n.t('portfolio_dashboard.alert_large_drawdown', { dd: perfMetrics.max_drawdown.max_drawdown_pct.toFixed(2) })
     });
-  }
-
-  // Check for high concentration
-  const maxWeight = Math.max(...pnlData.positions.map(p => p.weight));
-  if (maxWeight > 25) {
-    const position = pnlData.positions.find(p => p.weight === maxWeight);
-    alerts.push({
-      type: 'warning',
-      message: i18n.t('portfolio_dashboard.alert_concentration', { ticker: position.ticker, weight: maxWeight.toFixed(2) })
+    await notifyRiskEvent({
+      strategy: strategyKey,
+      title: i18n.t('alerts.drawdown_title'),
+      message: i18n.t('alerts.drawdown_message', {
+        drawdown: perfMetrics.max_drawdown.max_drawdown_pct.toFixed(2),
+        threshold: thresholds.drawdown_pct
+      }),
+      metadata: {
+        portfolio_id: currentPortfolio?.id,
+        drawdown_pct: perfMetrics.max_drawdown.max_drawdown_pct
+      },
+      dedupeKey: `portfolio:${currentPortfolio?.id}:drawdown`
     });
   }
+  
+  // Check for high volatility
+  if (perfMetrics && perfMetrics.annualized_volatility_pct >= thresholds.volatility_pct) {
+    alerts.push({
+      type: 'warning',
+      message: i18n.t('portfolio_dashboard.alert_volatility', {
+        volatility: perfMetrics.annualized_volatility_pct.toFixed(2)
+      })
+    });
+    await notifyRiskEvent({
+      strategy: strategyKey,
+      title: i18n.t('alerts.volatility_title'),
+      message: i18n.t('alerts.volatility_message', {
+        volatility: perfMetrics.annualized_volatility_pct.toFixed(2),
+        threshold: thresholds.volatility_pct
+      }),
+      metadata: {
+        portfolio_id: currentPortfolio?.id,
+        volatility_pct: perfMetrics.annualized_volatility_pct
+      },
+      dedupeKey: `portfolio:${currentPortfolio?.id}:volatility`
+    });
+  }
+        
+  // Check for high concentration
+  if (pnlData.positions.length > 0) {
+    const maxWeight = Math.max(...pnlData.positions.map(p => p.weight));
+    if (maxWeight > 25) {
+      const position = pnlData.positions.find(p => p.weight === maxWeight);
+      alerts.push({
+        type: 'warning',
+        message: i18n.t('portfolio_dashboard.alert_concentration', { ticker: position.ticker, weight: maxWeight.toFixed(2) })
+      });
+      await notifyRiskEvent({
+        strategy: strategyKey,
+        title: i18n.t('alerts.concentration_title'),
+        message: i18n.t('alerts.concentration_message', {
+          ticker: position.ticker,
+          weight: maxWeight.toFixed(2)
+        }),
+        metadata: {
+          portfolio_id: currentPortfolio?.id,
+          ticker: position.ticker,
+          weight_pct: maxWeight
+        },
+        dedupeKey: `portfolio:${currentPortfolio?.id}:concentration`
+      });
+    }
+  }
+
 
   // Check for underperformance vs benchmark
   if (benchmarkComparison && benchmarkComparison.excess_return_pct < -5) {
     alerts.push({
       type: 'info',
       message: i18n.t('portfolio_dashboard.alert_underperformance', { excess: benchmarkComparison.excess_return_pct.toFixed(2) })
+    });
+    await notifyRiskEvent({
+      strategy: strategyKey,
+      title: i18n.t('alerts.underperformance_title'),
+      message: i18n.t('alerts.underperformance_message', {
+        excess: benchmarkComparison.excess_return_pct.toFixed(2)
+      }),
+      metadata: {
+        portfolio_id: currentPortfolio?.id,
+        excess_return_pct: benchmarkComparison.excess_return_pct
+      },
+      dedupeKey: `portfolio:${currentPortfolio?.id}:underperformance`
     });
   }
 
@@ -302,6 +385,113 @@ function checkAlerts(pnlData, perfMetrics, benchmarkComparison) {
   } else {
     alertsSection.style.display = 'none';
   }
+
+  await loadAlertLogsUI();
+}
+
+async function loadAlertSettingsUI() {
+  const strategyKey = currentPortfolio?.strategy || document.getElementById('strategySelect')?.value || 'balanced';
+  const settings = await getAlertSettings(strategyKey);
+
+  const volInput = document.getElementById('alertVolatilityThreshold');
+  const ddInput = document.getElementById('alertDrawdownThreshold');
+  const scoreInput = document.getElementById('alertScoreThreshold');
+  const emailInput = document.getElementById('alertEmail');
+  const webhookInput = document.getElementById('alertWebhook');
+  const slackInput = document.getElementById('alertSlack');
+  const teamsInput = document.getElementById('alertTeams');
+  const zapierInput = document.getElementById('alertZapier');
+  const strongSignalsToggle = document.getElementById('alertNotifySignals');
+  const rebalanceToggle = document.getElementById('alertNotifyRebalances');
+  const riskToggle = document.getElementById('alertNotifyRisk');
+
+  if (volInput) volInput.value = settings.thresholds.volatility_pct;
+  if (ddInput) ddInput.value = settings.thresholds.drawdown_pct;
+  if (scoreInput) scoreInput.value = settings.thresholds.score;
+  if (emailInput) emailInput.value = settings.channels.email;
+  if (webhookInput) webhookInput.value = settings.channels.webhook;
+  if (slackInput) slackInput.value = settings.channels.slack;
+  if (teamsInput) teamsInput.value = settings.channels.teams;
+  if (zapierInput) zapierInput.value = settings.channels.zapier;
+  if (strongSignalsToggle) strongSignalsToggle.checked = settings.notifyOn.strongSignals;
+  if (rebalanceToggle) rebalanceToggle.checked = settings.notifyOn.rebalances;
+  if (riskToggle) riskToggle.checked = settings.notifyOn.riskEvents;
+}
+
+async function handleAlertSettingsSave() {
+  const strategyKey = currentPortfolio?.strategy || document.getElementById('strategySelect')?.value || 'balanced';
+  const existingSettings = await getAlertSettings(strategyKey);
+
+  const volValue = Number.parseFloat(document.getElementById('alertVolatilityThreshold')?.value);
+  const ddValue = Number.parseFloat(document.getElementById('alertDrawdownThreshold')?.value);
+  const scoreValue = Number.parseFloat(document.getElementById('alertScoreThreshold')?.value);
+
+  const updatedSettings = await saveAlertSettings({
+    ...existingSettings,
+    strategy: strategyKey,
+    thresholds: {
+      volatility_pct: Number.isNaN(volValue) ? existingSettings.thresholds.volatility_pct : volValue,
+      drawdown_pct: Number.isNaN(ddValue) ? existingSettings.thresholds.drawdown_pct : ddValue,
+      score: Number.isNaN(scoreValue) ? existingSettings.thresholds.score : scoreValue
+    },
+    channels: {
+      email: document.getElementById('alertEmail')?.value || '',
+      webhook: document.getElementById('alertWebhook')?.value || '',
+      slack: document.getElementById('alertSlack')?.value || '',
+      teams: document.getElementById('alertTeams')?.value || '',
+      zapier: document.getElementById('alertZapier')?.value || ''
+    },
+    notifyOn: {
+      strongSignals: document.getElementById('alertNotifySignals')?.checked ?? true,
+      rebalances: document.getElementById('alertNotifyRebalances')?.checked ?? true,
+      riskEvents: document.getElementById('alertNotifyRisk')?.checked ?? true
+    }
+  });
+
+  const status = document.getElementById('alertSettingsStatus');
+  if (status) {
+    status.textContent = i18n.t('portfolio_dashboard.alerts_settings_saved');
+    status.style.color = '#34d399';
+  }
+
+  await loadAlertSettingsUI();
+  await loadAlertLogsUI();
+  return updatedSettings;
+}
+
+async function loadAlertLogsUI() {
+  const container = document.getElementById('alertsLogContainer');
+  if (!container) return;
+
+  const strategyKey = currentPortfolio?.strategy || document.getElementById('strategySelect')?.value || 'balanced';
+  const alerts = await getAlertLogs({ strategy: strategyKey, limit: 20 });
+
+  if (!alerts.length) {
+    container.innerHTML = `<p style="color: #64748b; text-align: center;" data-i18n="portfolio_dashboard.alerts_log_empty">${i18n.t('portfolio_dashboard.alerts_log_empty')}</p>`;
+    return;
+  }
+
+  container.innerHTML = alerts.map(alert => {
+    const statusLabel = i18n.t(`alerts.status_${alert.delivery_status}`) || alert.delivery_status;
+    const timestamp = new Date(alert.created_at).toLocaleString();
+    const channelTags = (alert.delivery_results || [])
+      .map(result => `<span style="padding: 2px 6px; border-radius: 6px; background: #334155; color: #e2e8f0; font-size: 0.75em;">${result.channel}</span>`)
+      .join(' ');
+
+    return `
+      <div style="padding: 12px; margin-bottom: 10px; background: #0f172a; border-radius: 8px; border-left: 3px solid #38bdf8;">
+        <div style="display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+          <strong style="color: #e2e8f0;">${alert.title}</strong>
+          <span style="color: #94a3b8; font-size: 0.8em;">${timestamp}</span>
+        </div>
+        <div style="color: #cbd5e1; font-size: 0.85em; margin-bottom: 8px;">${alert.message}</div>
+        <div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <span style="color: #94a3b8; font-size: 0.75em;">${i18n.t('portfolio_dashboard.alerts_log_status')}: ${statusLabel}</span>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">${channelTags}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 /**
