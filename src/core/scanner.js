@@ -13,6 +13,7 @@ import * as backtesting from '../analytics/backtesting.js';
 import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from '../data/sectors.js';
 import { detectAnomalies } from '../data/anomalies.js';
 import i18n from '../i18n/i18n.js';
+import { initDashboard } from '../dashboard/portfolio-dashboard.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
@@ -2080,8 +2081,14 @@ document.addEventListener('DOMContentLoaded', () => {
       clearAllResults();
     });
   }
+
+  // Initialize Portfolio Dashboard
+  initDashboard().catch(err => {
+    console.error('Error initializing portfolio dashboard:', err);
+  });
 });
 
 window.runScan = runScan;
 window.updateView = updateView;
 window.closeModal = closeModal;
+window.appState = appState;

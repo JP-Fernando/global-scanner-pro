@@ -818,6 +818,85 @@ export default {
 
     // Reason messages
     reason_insufficient_data: "Insufficient data for regime analysis"
+  },
+
+  // Portfolio Dashboard
+  portfolio_dashboard: {
+    title: '📊 Portfolio Tracking Dashboard',
+    select_portfolio: 'Select Portfolio',
+    no_portfolio: '-- Create new portfolio --',
+    save_portfolio: '💾 Save Portfolio',
+    delete_portfolio: '🗑️ Delete',
+    refresh: '🔄 Refresh',
+
+    // Summary cards
+    total_value: 'Total Value',
+    total_return: 'Total Return',
+    sharpe_ratio: 'Sharpe Ratio',
+    max_drawdown: 'Max Drawdown',
+    volatility: 'Volatility',
+    beta: 'Beta',
+
+    // Tabs
+    tab_equity: 'Equity Curve',
+    tab_drawdown: 'Drawdown',
+    tab_benchmark: 'vs Benchmark',
+    tab_allocation: 'Allocation',
+
+    // Chart labels
+    portfolio_value: 'Portfolio Value',
+    drawdown: 'Drawdown',
+    portfolio: 'Portfolio',
+    benchmark: 'Benchmark',
+
+    // Positions table
+    positions_title: '📋 Current Positions',
+    ticker: 'Ticker',
+    name: 'Name',
+    quantity: 'Quantity',
+    entry_price: 'Entry Price',
+    current_price: 'Current Price',
+    value: 'Value',
+    weight: 'Weight %',
+    pnl: 'P&L',
+    pnl_pct: 'P&L %',
+    no_positions: 'No positions to display',
+
+    // Risk metrics
+    risk_metrics_title: '⚠️ Detailed Risk Metrics',
+    var_title: 'Value at Risk (VaR)',
+    var_description: '95% confidence, 1 day',
+    cvar_title: 'Conditional VaR (CVaR)',
+    cvar_description: 'Expected Shortfall',
+    sortino_title: 'Sortino Ratio',
+    sortino_description: 'Downside risk-adjusted',
+    calmar_title: 'Calmar Ratio',
+    calmar_description: 'Return / Max DD',
+
+    // Rebalancing
+    rebalance_history_title: '🔄 Rebalancing History',
+    no_rebalances: 'No rebalances recorded',
+    changes: 'changes',
+    reason: 'Reason',
+
+    // Alerts
+    alerts_title: '⚠️ Alerts and Deviations',
+    alert_large_drawdown: 'Significant drawdown detected: {{dd}}%',
+    alert_concentration: 'High concentration in {{ticker}}: {{weight}}%',
+    alert_underperformance: 'Underperformance vs benchmark: {{excess}}%',
+
+    // Messages
+    enter_name: 'Enter a name for the portfolio:',
+    no_portfolio_built: 'First build a portfolio using the portfolio builder',
+    saved_success: 'Portfolio saved successfully',
+    deleted_success: 'Portfolio deleted',
+    confirm_delete: 'Are you sure you want to delete portfolio "{{name}}"?',
+
+    // Errors
+    error_loading: 'Error loading portfolio',
+    error_refreshing: 'Error refreshing data',
+    error_saving: 'Error saving portfolio',
+    error_deleting: 'Error deleting portfolio'
   }
 
 };

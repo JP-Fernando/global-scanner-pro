@@ -817,6 +817,85 @@ export default {
 
     // Reason messages
     reason_insufficient_data: "Datos insuficientes para análisis de régimen"
+  },
+
+  // Portfolio Dashboard
+  portfolio_dashboard: {
+    title: '📊 Dashboard de Portfolio Tracking',
+    select_portfolio: 'Seleccionar Portfolio',
+    no_portfolio: '-- Crear nuevo portfolio --',
+    save_portfolio: '💾 Guardar Portfolio',
+    delete_portfolio: '🗑️ Eliminar',
+    refresh: '🔄 Actualizar',
+
+    // Summary cards
+    total_value: 'Valor Total',
+    total_return: 'Retorno Total',
+    sharpe_ratio: 'Sharpe Ratio',
+    max_drawdown: 'Max Drawdown',
+    volatility: 'Volatilidad',
+    beta: 'Beta',
+
+    // Tabs
+    tab_equity: 'Curva de Equity',
+    tab_drawdown: 'Drawdown',
+    tab_benchmark: 'vs Benchmark',
+    tab_allocation: 'Asignación',
+
+    // Chart labels
+    portfolio_value: 'Valor del Portfolio',
+    drawdown: 'Drawdown',
+    portfolio: 'Portfolio',
+    benchmark: 'Benchmark',
+
+    // Positions table
+    positions_title: '📋 Posiciones Actuales',
+    ticker: 'Ticker',
+    name: 'Nombre',
+    quantity: 'Cantidad',
+    entry_price: 'Precio Entrada',
+    current_price: 'Precio Actual',
+    value: 'Valor',
+    weight: 'Peso %',
+    pnl: 'P&L',
+    pnl_pct: 'P&L %',
+    no_positions: 'No hay posiciones para mostrar',
+
+    // Risk metrics
+    risk_metrics_title: '⚠️ Métricas de Riesgo Detalladas',
+    var_title: 'Value at Risk (VaR)',
+    var_description: '95% confianza, 1 día',
+    cvar_title: 'Conditional VaR (CVaR)',
+    cvar_description: 'Expected Shortfall',
+    sortino_title: 'Sortino Ratio',
+    sortino_description: 'Ajustado por riesgo a la baja',
+    calmar_title: 'Calmar Ratio',
+    calmar_description: 'Retorno / Max DD',
+
+    // Rebalancing
+    rebalance_history_title: '🔄 Histórico de Rebalanceos',
+    no_rebalances: 'No hay rebalanceos registrados',
+    changes: 'cambios',
+    reason: 'Motivo',
+
+    // Alerts
+    alerts_title: '⚠️ Alertas y Desviaciones',
+    alert_large_drawdown: 'Drawdown significativo detectado: {{dd}}%',
+    alert_concentration: 'Alta concentración en {{ticker}}: {{weight}}%',
+    alert_underperformance: 'Underperformance vs benchmark: {{excess}}%',
+
+    // Messages
+    enter_name: 'Ingresa un nombre para el portfolio:',
+    no_portfolio_built: 'Primero construye un portfolio usando el constructor de carteras',
+    saved_success: 'Portfolio guardado exitosamente',
+    deleted_success: 'Portfolio eliminado',
+    confirm_delete: '¿Estás seguro de eliminar el portfolio "{{name}}"?',
+
+    // Errors
+    error_loading: 'Error al cargar el portfolio',
+    error_refreshing: 'Error al actualizar los datos',
+    error_saving: 'Error al guardar el portfolio',
+    error_deleting: 'Error al eliminar el portfolio'
   }
 
 };

@@ -917,6 +917,138 @@
   </div>
 </div>
 
+<!-- Portfolio Tracking Dashboard -->
+<div id="portfolioDashboardSection" style="background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #10b981; display: none;">
+  <h3 style="color: #6ee7b7; margin-bottom: 20px; font-size: 1.3em;" data-i18n="portfolio_dashboard.title">📊 Portfolio Tracking Dashboard</h3>
+
+  <!-- Portfolio Selector and Actions -->
+  <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 200px;">
+      <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; display: block; margin-bottom: 8px;" data-i18n="portfolio_dashboard.select_portfolio">Seleccionar Portfolio</label>
+      <select id="portfolioSelector" style="width: 100%; padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
+        <option value="" data-i18n="portfolio_dashboard.no_portfolio">-- Crear nuevo portfolio --</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-end;">
+      <button id="savePortfolioBtn" onclick="savePortfolioFromBuilder()" style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);" data-i18n="portfolio_dashboard.save_portfolio">💾 Guardar Portfolio</button>
+      <button id="deletePortfolioBtn" onclick="deleteCurrentPortfolio()" style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); display: none;" data-i18n="portfolio_dashboard.delete_portfolio">🗑️ Eliminar</button>
+      <button id="refreshDashboardBtn" onclick="refreshDashboard()" style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);" data-i18n="portfolio_dashboard.refresh">🔄 Actualizar</button>
+    </div>
+  </div>
+
+  <!-- Portfolio Summary Cards -->
+  <div id="portfolioSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+    <div class="risk-card">
+      <div class="risk-label" data-i18n="portfolio_dashboard.total_value">Valor Total</div>
+      <div id="totalValueCard" class="risk-value">--</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-label" data-i18n="portfolio_dashboard.total_return">Retorno Total</div>
+      <div id="totalReturnCard" class="risk-value">--</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-label" data-i18n="portfolio_dashboard.sharpe_ratio">Sharpe Ratio</div>
+      <div id="sharpeRatioCard" class="risk-value">--</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-label" data-i18n="portfolio_dashboard.max_drawdown">Max Drawdown</div>
+      <div id="maxDrawdownCard" class="risk-value">--</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-label" data-i18n="portfolio_dashboard.volatility">Volatilidad</div>
+      <div id="volatilityCard" class="risk-value">--</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-label" data-i18n="portfolio_dashboard.beta">Beta</div>
+      <div id="betaCard" class="risk-value">--</div>
+    </div>
+  </div>
+
+  <!-- Chart Tabs -->
+  <div style="margin-bottom: 20px;">
+    <div style="display: flex; gap: 10px; border-bottom: 2px solid #334155; padding-bottom: 10px;">
+      <button class="chart-tab active" data-tab="equity" onclick="switchChartTab('equity')" style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #334155; color: white; font-weight: bold; cursor: pointer;" data-i18n="portfolio_dashboard.tab_equity">Equity Curve</button>
+      <button class="chart-tab" data-tab="drawdown" onclick="switchChartTab('drawdown')" style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;" data-i18n="portfolio_dashboard.tab_drawdown">Drawdown</button>
+      <button class="chart-tab" data-tab="benchmark" onclick="switchChartTab('benchmark')" style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;" data-i18n="portfolio_dashboard.tab_benchmark">vs Benchmark</button>
+      <button class="chart-tab" data-tab="allocation" onclick="switchChartTab('allocation')" style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;" data-i18n="portfolio_dashboard.tab_allocation">Asignación</button>
+    </div>
+  </div>
+
+  <!-- Charts Container -->
+  <div id="chartsContainer" style="background: #0f172a; padding: 20px; border-radius: 8px; margin-bottom: 25px; min-height: 400px;">
+    <canvas id="portfolioChart"></canvas>
+  </div>
+
+  <!-- Positions Table -->
+  <div style="margin-bottom: 25px;">
+    <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;" data-i18n="portfolio_dashboard.positions_title">📋 Posiciones Actuales</h4>
+    <div style="overflow-x: auto;">
+      <table id="positionsTable" class="portfolio-table">
+        <thead>
+          <tr>
+            <th data-i18n="portfolio_dashboard.ticker">Ticker</th>
+            <th data-i18n="portfolio_dashboard.name">Nombre</th>
+            <th data-i18n="portfolio_dashboard.quantity">Cantidad</th>
+            <th data-i18n="portfolio_dashboard.entry_price">Precio Entrada</th>
+            <th data-i18n="portfolio_dashboard.current_price">Precio Actual</th>
+            <th data-i18n="portfolio_dashboard.value">Valor</th>
+            <th data-i18n="portfolio_dashboard.weight">Peso %</th>
+            <th data-i18n="portfolio_dashboard.pnl">P&L</th>
+            <th data-i18n="portfolio_dashboard.pnl_pct">P&L %</th>
+          </tr>
+        </thead>
+        <tbody id="positionsTableBody">
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 30px; color: #64748b;" data-i18n="portfolio_dashboard.no_positions">No hay posiciones para mostrar</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Risk Metrics Detail -->
+  <div style="margin-bottom: 25px;">
+    <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;" data-i18n="portfolio_dashboard.risk_metrics_title">⚠️ Métricas de Riesgo Detalladas</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+      <div class="risk-panel-dark">
+        <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;" data-i18n="portfolio_dashboard.var_title">Value at Risk (VaR)</h5>
+        <div id="varMetrics" style="color: #f87171; font-size: 1.2em; font-weight: bold;">--</div>
+        <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;" data-i18n="portfolio_dashboard.var_description">95% confianza, 1 día</p>
+      </div>
+      <div class="risk-panel-dark">
+        <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;" data-i18n="portfolio_dashboard.cvar_title">Conditional VaR (CVaR)</h5>
+        <div id="cvarMetrics" style="color: #f87171; font-size: 1.2em; font-weight: bold;">--</div>
+        <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;" data-i18n="portfolio_dashboard.cvar_description">Expected Shortfall</p>
+      </div>
+      <div class="risk-panel-dark">
+        <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;" data-i18n="portfolio_dashboard.sortino_title">Sortino Ratio</h5>
+        <div id="sortinoMetrics" style="color: #34d399; font-size: 1.2em; font-weight: bold;">--</div>
+        <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;" data-i18n="portfolio_dashboard.sortino_description">Downside risk-adjusted</p>
+      </div>
+      <div class="risk-panel-dark">
+        <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;" data-i18n="portfolio_dashboard.calmar_title">Calmar Ratio</h5>
+        <div id="calmarMetrics" style="color: #34d399; font-size: 1.2em; font-weight: bold;">--</div>
+        <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;" data-i18n="portfolio_dashboard.calmar_description">Return / Max DD</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rebalancing History -->
+  <div style="margin-bottom: 25px;">
+    <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;" data-i18n="portfolio_dashboard.rebalance_history_title">🔄 Histórico de Rebalanceos</h4>
+    <div id="rebalanceHistory" style="background: #0f172a; padding: 20px; border-radius: 8px;">
+      <p style="color: #64748b; text-align: center;" data-i18n="portfolio_dashboard.no_rebalances">No hay rebalanceos registrados</p>
+    </div>
+  </div>
+
+  <!-- Alerts Section -->
+  <div id="portfolioAlerts" style="display: none;">
+    <h4 style="color: #fbbf24; margin-bottom: 15px; font-size: 1.1em;" data-i18n="portfolio_dashboard.alerts_title">⚠️ Alertas y Desviaciones</h4>
+    <div id="alertsContainer" style="background: #0f172a; padding: 20px; border-radius: 8px;">
+    </div>
+  </div>
+</div>
+
 <!-- Details Modal -->
 <div id="detailModal" class="modal" onclick="if(event.target === this) closeModal()">
   <div class="modal-content">
@@ -925,6 +1057,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 <script type="module" src="src/core/scanner.js"></script>
 <script type="module" src="src/i18n/ui-translator.js"></script>
 </body>
