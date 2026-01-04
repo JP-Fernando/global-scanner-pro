@@ -1039,6 +1039,95 @@ export default {
     results: 'RESULTS',
     passed: 'passed',
     failed: 'failed'
+  },
+
+  // Attribution Analysis
+  attribution: {
+    // Dashboard
+    performance_attribution_analysis: 'Performance Attribution Analysis',
+    loading_attribution_analysis: 'Loading attribution analysis...',
+
+    // Tabs
+    allocation_vs_selection: 'Allocation vs Selection',
+    factor_contribution: 'Factor Contribution',
+    asset_contribution: 'Asset Contribution',
+    period_attribution: 'Period Attribution',
+
+    // Summary
+    portfolio_return: 'Portfolio Return',
+    benchmark_return: 'Benchmark Return',
+    excess_return: 'Excess Return',
+    analysis_period: 'Analysis Period',
+    days: 'days',
+
+    // Brinson Attribution
+    brinson_fachler_attribution: 'Brinson-Fachler Model',
+    brinson_description: 'Decomposes active return into sector allocation and stock selection effects',
+    allocation_effect: 'Allocation Effect',
+    selection_effect: 'Selection Effect',
+    interaction_effect: 'Interaction Effect',
+    total_active_return: 'Total Active Return',
+    interpretation: 'Interpretation',
+
+    allocation_effect_by_sector: 'Allocation Effect by Sector',
+    selection_effect_by_sector: 'Selection Effect by Sector',
+
+    sector: 'Sector',
+    portfolio_weight: 'Portfolio Weight',
+    benchmark_weight: 'Benchmark Weight',
+    difference: 'Difference',
+    contribution: 'Contribution',
+    return: 'Return',
+
+    // Factor Attribution
+    factor_contribution_analysis: 'Factor Contribution Analysis',
+    factor_description: 'Identifies which factors (Trend, Momentum, Risk, Liquidity) drove performance',
+    factor_data_not_available: 'Factor data not available for this portfolio',
+
+    trend: 'Trend',
+    momentum: 'Momentum',
+    risk: 'Risk',
+    liquidity: 'Liquidity',
+
+    top_trend_contributors: 'Top Contributors - Trend',
+    top_momentum_contributors: 'Top Contributors - Momentum',
+    top_risk_contributors: 'Top Contributors - Risk',
+    top_liquidity_contributors: 'Top Contributors - Liquidity',
+
+    factor_score: 'Factor Score',
+
+    // Asset Contribution
+    individual_asset_contribution: 'Individual Asset Contribution',
+    asset_contribution_description: 'Shows how much each asset contributed to total portfolio return',
+    top_contributors: 'Top Contributors',
+    top_detractors: 'Top Detractors',
+
+    ticker: 'Ticker',
+    name: 'Name',
+    weight: 'Weight',
+
+    // Period Attribution
+    period_based_attribution: 'Period-Based Attribution',
+    period_attribution_description: 'Breaks down performance by time periods (monthly, quarterly, yearly)',
+    monthly_attribution: 'Monthly Attribution',
+    quarterly_attribution: 'Quarterly Attribution',
+    yearly_attribution: 'Yearly Attribution',
+
+    period: 'Period',
+
+    // Market Events
+    event_attribution: 'Market Event Attribution',
+    event_name: 'Event',
+    event_description: 'Description',
+    start_date: 'Start Date',
+    end_date: 'End Date',
+    relative_performance: 'Relative Performance',
+    outperformed: 'Outperformed',
+    underperformed: 'Underperformed',
+
+    // Common
+    error: 'Error',
+    no_data: 'No data available'
   }
 
 };

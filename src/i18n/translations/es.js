@@ -1039,6 +1039,95 @@ export default {
     results: 'RESULTADOS',
     passed: 'correctos',
     failed: 'fallidos'
+  },
+
+  // Attribution Analysis
+  attribution: {
+    // Dashboard
+    performance_attribution_analysis: 'Análisis de Atribución de Rendimiento',
+    loading_attribution_analysis: 'Cargando análisis de atribución...',
+
+    // Tabs
+    allocation_vs_selection: 'Asignación vs Selección',
+    factor_contribution: 'Contribución por Factor',
+    asset_contribution: 'Contribución por Activo',
+    period_attribution: 'Atribución Temporal',
+
+    // Summary
+    portfolio_return: 'Rendimiento del Portafolio',
+    benchmark_return: 'Rendimiento del Benchmark',
+    excess_return: 'Rendimiento Excedente',
+    analysis_period: 'Periodo de Análisis',
+    days: 'días',
+
+    // Brinson Attribution
+    brinson_fachler_attribution: 'Modelo Brinson-Fachler',
+    brinson_description: 'Descompone el rendimiento activo en efectos de asignación sectorial y selección de activos',
+    allocation_effect: 'Efecto de Asignación',
+    selection_effect: 'Efecto de Selección',
+    interaction_effect: 'Efecto de Interacción',
+    total_active_return: 'Rendimiento Activo Total',
+    interpretation: 'Interpretación',
+
+    allocation_effect_by_sector: 'Efecto de Asignación por Sector',
+    selection_effect_by_sector: 'Efecto de Selección por Sector',
+
+    sector: 'Sector',
+    portfolio_weight: 'Peso Portafolio',
+    benchmark_weight: 'Peso Benchmark',
+    difference: 'Diferencia',
+    contribution: 'Contribución',
+    return: 'Rendimiento',
+
+    // Factor Attribution
+    factor_contribution_analysis: 'Análisis de Contribución por Factor',
+    factor_description: 'Identifica qué factores (Trend, Momentum, Risk, Liquidity) impulsaron el rendimiento',
+    factor_data_not_available: 'Datos de factores no disponibles para este portafolio',
+
+    trend: 'Tendencia',
+    momentum: 'Momentum',
+    risk: 'Riesgo',
+    liquidity: 'Liquidez',
+
+    top_trend_contributors: 'Principales Contribuyentes - Tendencia',
+    top_momentum_contributors: 'Principales Contribuyentes - Momentum',
+    top_risk_contributors: 'Principales Contribuyentes - Riesgo',
+    top_liquidity_contributors: 'Principales Contribuyentes - Liquidez',
+
+    factor_score: 'Score Factor',
+
+    // Asset Contribution
+    individual_asset_contribution: 'Contribución Individual por Activo',
+    asset_contribution_description: 'Muestra cuánto contribuyó cada activo al rendimiento total del portafolio',
+    top_contributors: 'Principales Contribuyentes',
+    top_detractors: 'Principales Detractores',
+
+    ticker: 'Ticker',
+    name: 'Nombre',
+    weight: 'Peso',
+
+    // Period Attribution
+    period_based_attribution: 'Atribución por Periodos',
+    period_attribution_description: 'Desglosa el rendimiento por periodos temporales (mensual, trimestral, anual)',
+    monthly_attribution: 'Atribución Mensual',
+    quarterly_attribution: 'Atribución Trimestral',
+    yearly_attribution: 'Atribución Anual',
+
+    period: 'Periodo',
+
+    // Market Events
+    event_attribution: 'Atribución por Eventos de Mercado',
+    event_name: 'Evento',
+    event_description: 'Descripción',
+    start_date: 'Fecha Inicio',
+    end_date: 'Fecha Fin',
+    relative_performance: 'Rendimiento Relativo',
+    outperformed: 'Superó',
+    underperformed: 'Quedó por debajo',
+
+    // Common
+    error: 'Error',
+    no_data: 'No hay datos disponibles'
   }
 
 };

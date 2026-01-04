@@ -21,11 +21,12 @@
    - ✅ Logs de alertas y confirmación de entrega.
    - *Implementación: [alert-manager.js](../src/alerts/alert-manager.js), documentación: [alertas-online.md](alertas-online.md)*
 
-4. **Análisis de atribución**
-   - Desglose de rendimiento: selección de activos vs. asignación sectorial.
-   - Identificación de contribución por factor (trend, momentum, risk, liquidity).
-   - Atribución por periodos y por eventos de mercado.
-   - Visualizaciones para explicar qué impulsó los resultados.
+4. ✅ **Análisis de atribución** *(Completado)*
+   - ✅ Desglose de rendimiento: selección de activos vs. asignación sectorial (Modelo Brinson-Fachler).
+   - ✅ Identificación de contribución por factor (trend, momentum, risk, liquidity).
+   - ✅ Atribución por periodos (mensual, trimestral, anual) y por eventos de mercado.
+   - ✅ Dashboard interactivo con visualizaciones para explicar qué impulsó los resultados.
+   - *Implementación: [attribution-analysis.js](../src/analytics/attribution-analysis.js), [attribution-dashboard.js](../src/dashboard/attribution-dashboard.js), documentación: [attribution-analysis.md](attribution-analysis.md)*
 
 5. **Optimización avanzada**
    - Machine learning para ponderación dinámica y ajuste de scores.

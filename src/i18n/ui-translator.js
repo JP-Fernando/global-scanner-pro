@@ -75,6 +75,11 @@ class UITranslator {
 // Create singleton instance
 const uiTranslator = new UITranslator();
 
+// Helper function for getting translations directly
+export function getTranslation(key, params = {}) {
+  return i18n.t(key, params);
+}
+
 // Export both the instance and the i18n for direct access
 export default uiTranslator;
 export { i18n };
