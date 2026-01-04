@@ -316,7 +316,7 @@
       border-bottom: none;
     }
 
-    /* Estilos para alertas de la Fase 1 */
+    /* Styles for Phase 1 alerts */
 
 
     @keyframes pulse-red {
@@ -340,7 +340,7 @@
       background: #450a0a;
       color: #fca5a5;
       font-size: 0.65em;
-      /* Ligeramente más pequeño para no romper la tabla */
+      /* Slightly smaller to avoid breaking the table */
       padding: 2px 8px;
       border-radius: 4px;
       border: 1px solid #f87171;
@@ -352,7 +352,7 @@
       animation: pulse-red 2s infinite;
     }
 
-    /* IMPORTANTE: El borde se aplica a la celda, no al TR */
+    /* IMPORTANT: The border applies to the cell, not the TR */
     .row-warning td:first-child {
       border-left: 5px solid #f43f5e !important;
     }
@@ -453,41 +453,41 @@
     <div class="controls">
       <div class="control-row">
         <div class="control-group">
-          <label data-i18n="markets.label">📍 Mercado</label>
+          <label data-i18n="markets.label">📍 Market</label>
           <select id="marketSelect">
-            <optgroup label="🇪🇺 Europa" data-i18n-label="markets.regions.europe"></optgroup>
-              <option value="universes/bme_universe.json|.MC" data-i18n="markets.spain">España (BME)</option>
-              <option value="universes/euronext_universe.json|.PA" data-i18n="markets.france">Francia (Euronext)
+            <optgroup label="🇪🇺 Europe" data-i18n-label="markets.regions.europe">
+              <option value="universes/bme_universe.json|.MC" data-i18n="markets.spain">Spain (BME)</option>
+              <option value="universes/euronext_universe.json|.PA" data-i18n="markets.france">France (Euronext)
               </option>
-              <option value="universes/frankfurt_universe.json|.DE" data-i18n="markets.germany">Alemania (XETRA)
+              <option value="universes/frankfurt_universe.json|.DE" data-i18n="markets.germany">Germany (XETRA)
               </option>
-              <option value="universes/lse_universe.json|.L" data-i18n="markets.uk">Reino Unido (LSE)</option>
-              <option value="universes/milan_universe.json|.MI" data-i18n="markets.italy">Italia (Borsa)</option>
+              <option value="universes/lse_universe.json|.L" data-i18n="markets.uk">United Kingdom (LSE)</option>
+              <option value="universes/milan_universe.json|.MI" data-i18n="markets.italy">Italy (Borsa)</option>
             </optgroup>
-            <optgroup label="🌎 América" data-i18n-label="markets.regions.americas"></optgroup>
-              <option value="universes/us_universe.json|" data-i18n="markets.usa">Estados Unidos (NYSE/NASDAQ)</option>
-              <option value="universes/brazil_universe.json|.SA" data-i18n="markets.brazil">Brasil (B3)</option>
-              <option value="universes/mexico_universe.json|.MX" data-i18n="markets.mexico">México (BMV)</option>
-              <option value="universes/toronto_universe.json|.TO" data-i18n="markets.canada">Canadá (TSX)</option>
+            <optgroup label="🌎 Americas" data-i18n-label="markets.regions.americas">
+              <option value="universes/us_universe.json|" data-i18n="markets.usa">United States (NYSE/NASDAQ)</option>
+              <option value="universes/brazil_universe.json|.SA" data-i18n="markets.brazil">Brazil (B3)</option>
+              <option value="universes/mexico_universe.json|.MX" data-i18n="markets.mexico">Mexico (BMV)</option>
+              <option value="universes/toronto_universe.json|.TO" data-i18n="markets.canada">Canada (TSX)</option>
             </optgroup>
             <optgroup label="🌏 Asia" data-i18n-label="markets.regions.asia"></optgroup>              
-              <option value="universes/tokyo_universe.json|.T" data-i18n="markets.japan">Japón (TSE)</option>
+              <option value="universes/tokyo_universe.json|.T" data-i18n="markets.japan">Japan (TSE)</option>
               <option value="universes/china_hongkong.json|.HK" data-i18n="markets.hongkong">Hong Kong (SEHK)</option>
               <option value="universes/china_shanghai.json|.SS" data-i18n="markets.china_shanghai">China (SSE)</option>
-              <option value="universes/china_shenzhen.json|.SZ" data-i18n="markets.china_shenzhen">Shenzhen (SZSE)
+              <option value="universes/china_shenzhen.json|.SZ" data-i18n="markets.china_shenzhen">China (SZSE)
               </option>
-              <option value="universes/korea_universe.json|.KS" data-i18n="markets.southkorea">Corea (KRX)</option>
+              <option value="universes/korea_universe.json|.KS" data-i18n="markets.southkorea">South Korea (KRX)</option>
             </optgroup>
           </select>
         </div>
 
         <div class="control-group">
-          <label data-i18n="strategies.label">⚙️ Estrategia</label>
+          <label data-i18n="strategies.label">⚙️ Strategy</label>
           <select id="strategySelect">
-            <option value="balanced" data-i18n="strategies.balanced">Equilibrado</option>
-            <option value="momentum_aggressive" data-i18n="strategies.momentum_aggressive">Momentum Agresivo</option>
-            <option value="trend_conservative" data-i18n="strategies.trend_conservative">Trend Conservador</option>
-            <option value="sector_rotation" data-i18n="strategies.sector_rotation">Rotación Sectorial</option>
+            <option value="balanced" data-i18n="strategies.balanced">Balanced</option>
+            <option value="momentum_aggressive" data-i18n="strategies.momentum_aggressive">Aggressive Momentum</option>
+            <option value="trend_conservative" data-i18n="strategies.trend_conservative">Conservative Trend</option>
+            <option value="sector_rotation" data-i18n="strategies.sector_rotation">Sector Rotation</option>
           </select>
         </div>
 
@@ -526,21 +526,21 @@
           <tr>
             <th style="width: 60px;" data-i18n="table.rank">Rank</th>
             <th style="width: 100px;" data-i18n="table.ticker">Ticker</th>
-            <th data-i18n="table.name">Nombre</th>
+            <th data-i18n="table.name">Name</th>
             <th style="width: 200px;">
               <select id="viewMode" class="view-selector" onchange="updateView()">
-                <option value="scoreTotal" data-i18n="view_modes.total_score">📊 Score Total</option>
-                <option value="scoreShort" data-i18n="view_modes.short_term">⚡ Corto Plazo (6m)</option>
-                <option value="scoreMedium" data-i18n="view_modes.medium_term">📈 Medio Plazo (18m)</option>
-                <option value="scoreLong" data-i18n="view_modes.long_term">🎯 Largo Plazo (4a)</option>
-                <option value="scoreTrend" data-i18n="view_modes.trend">📉 Tendencia</option>
+                <option value="scoreTotal" data-i18n="view_modes.total_score">📊 Total Score</option>
+                <option value="scoreShort" data-i18n="view_modes.short_term">⚡ Short Term (6m)</option>
+                <option value="scoreMedium" data-i18n="view_modes.medium_term">📈 Medium Term (18m)</option>
+                <option value="scoreLong" data-i18n="view_modes.long_term">🎯 Long Term (4y)</option>
+                <option value="scoreTrend" data-i18n="view_modes.trend">📉 Trend</option>
                 <option value="scoreMomentum" data-i18n="view_modes.momentum">🚀 Momentum</option>
-                <option value="scoreRisk" data-i18n="view_modes.risk">⚠️ Riesgo</option>
-                <option value="scoreLiquidity" data-i18n="view_modes.liquidity">💧 Liquidez</option>
+                <option value="scoreRisk" data-i18n="view_modes.risk">⚠️ Risk</option>
+                <option value="scoreLiquidity" data-i18n="view_modes.liquidity">💧 Liquidity</option>
               </select>
             </th>
-            <th style="width: 100px;" data-i18n="table.volume">Volumen</th>
-            <th style="width: 180px;" data-i18n="table.signal">Señal</th>
+            <th style="width: 100px;" data-i18n="table.volume">Volume</th>
+            <th style="width: 180px;" data-i18n="table.signal">Signal</th>
           </tr>
         </thead>
         <tbody id="results">
@@ -563,7 +563,7 @@
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label
               style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
-              data-i18n="portfolio_section.allocation_method">Método de Asignación</label>
+              data-i18n="portfolio_section.allocation_method">Allocation Method</label>
             <select id="allocationMethod"
               style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
               <option value="hybrid" data-i18n="allocation.hybrid">Hybrid (ERC + Score)</option>
@@ -600,12 +600,12 @@
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label
               style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
-              data-i18n="portfolio_section.risk_profile">Perfil de Riesgo</label>
+              data-i18n="portfolio_section.risk_profile">Risk Profile</label>
             <select id="riskProfile"
               style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
-              <option value="conservative" data-i18n="risk.conservative">Conservador</option>
-              <option value="moderate" selected data-i18n="risk.moderate">Moderado</option>
-              <option value="aggressive" data-i18n="risk.aggressive">Agresivo</option>
+              <option value="conservative" data-i18n="risk.conservative">Conservative</option>
+              <option value="moderate" selected data-i18n="risk.moderate">Moderate</option>
+              <option value="aggressive" data-i18n="risk.aggressive">Aggressive</option>
             </select>
           </div>
           <div id="regimeAdjustmentOption"
@@ -667,11 +667,11 @@
         <div id="portfolioSummary"
           style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
           <div class="risk-card">
-            <div class="risk-label" data-i18n="portfolio_dashboard.total_value">Valor Total</div>
+            <div class="risk-label" data-i18n="portfolio_dashboard.total_value">Total Value</div>
             <div id="totalValueCard" class="risk-value">--</div>
           </div>
           <div class="risk-card">
-            <div class="risk-label" data-i18n="portfolio_dashboard.total_return">Retorno Total</div>
+            <div class="risk-label" data-i18n="portfolio_dashboard.total_return">Total Return</div>
             <div id="totalReturnCard" class="risk-value">--</div>
           </div>
           <div class="risk-card">
@@ -683,7 +683,7 @@
             <div id="maxDrawdownCard" class="risk-value">--</div>
           </div>
           <div class="risk-card">
-            <div class="risk-label" data-i18n="portfolio_dashboard.volatility">Volatilidad</div>
+            <div class="risk-label" data-i18n="portfolio_dashboard.volatility">Volatility</div>
             <div id="volatilityCard" class="risk-value">--</div>
           </div>
           <div class="risk-card">
@@ -706,7 +706,7 @@
               data-i18n="portfolio_dashboard.tab_benchmark">vs Benchmark</button>
             <button class="chart-tab" data-tab="allocation" onclick="switchChartTab('allocation')"
               style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;"
-              data-i18n="portfolio_dashboard.tab_allocation">Asignación</button>
+              data-i18n="portfolio_dashboard.tab_allocation">Allocation</button>
           </div>
         </div>
 
@@ -719,18 +719,18 @@
         <!-- Positions Table -->
         <div style="margin-bottom: 25px;">
           <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;"
-            data-i18n="portfolio_dashboard.positions_title">📋 Posiciones Actuales</h4>
+            data-i18n="portfolio_dashboard.positions_title">📋 Current Positions</h4>
           <div style="overflow-x: auto;">
             <table id="positionsTable" class="portfolio-table">
               <thead>
                 <tr>
                   <th data-i18n="portfolio_dashboard.ticker">Ticker</th>
-                  <th data-i18n="portfolio_dashboard.name">Nombre</th>
-                  <th data-i18n="portfolio_dashboard.quantity"></th>
-                  <th data-i18n="portfolio_dashboard.entry_price">Precio Entrada</th>
-                  <th data-i18n="portfolio_dashboard.current_price">Precio Actual</th>
-                  <th data-i18n="portfolio_dashboard.value">Valor</th>
-                  <th data-i18n="portfolio_dashboard.weight">Peso %</th>
+                  <th data-i18n="portfolio_dashboard.name">Name</th>
+                  <th data-i18n="portfolio_dashboard.quantity">Quantity</th>
+                  <th data-i18n="portfolio_dashboard.entry_price">Entry Price</th>
+                  <th data-i18n="portfolio_dashboard.current_price">Current Price</th>
+                  <th data-i18n="portfolio_dashboard.value">Value</th>
+                  <th data-i18n="portfolio_dashboard.weight">Weight %</th>
                   <th data-i18n="portfolio_dashboard.pnl">P&L</th>
                   <th data-i18n="portfolio_dashboard.pnl_pct">P&L %</th>
                 </tr>
@@ -748,7 +748,7 @@
         <!-- Risk Metrics Detail -->
         <div style="margin-bottom: 25px;">
           <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;"
-            data-i18n="portfolio_dashboard.risk_metrics_title">⚠️ Métricas de Riesgo Detalladas</h4>
+            data-i18n="portfolio_dashboard.risk_metrics_title">⚠️ Detailed Risk Metrics</h4>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
             <div class="risk-panel-dark">
               <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;"
@@ -784,17 +784,16 @@
         <!-- Rebalancing History -->
         <div style="margin-bottom: 25px;">
           <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;"
-            data-i18n="portfolio_dashboard.rebalance_history_title">🔄 Histórico de Rebalanceos</h4>
+            data-i18n="portfolio_dashboard.rebalance_history_title">🔄 Rebalancing History</h4>
           <div id="rebalanceHistory" style="background: #0f172a; padding: 20px; border-radius: 8px;">
-            <p style="color: #64748b; text-align: center;" data-i18n="portfolio_dashboard.no_rebalances">No hay
-              rebalanceos registrados</p>
+            <p style="color: #64748b; text-align: center;" data-i18n="portfolio_dashboard.no_rebalances">No rebalances recorded</p>
           </div>
         </div>
 
         <!-- Alerts Section -->
         <div id="portfolioAlerts" style="display: none;">
           <h4 style="color: #fbbf24; margin-bottom: 15px; font-size: 1.1em;"
-            data-i18n="portfolio_dashboard.alerts_title">⚠️ Alertas y Desviaciones</h4>
+            data-i18n="portfolio_dashboard.alerts_title">⚠️ Alerts and Deviations</h4>
           <div id="alertsContainer" style="background: #0f172a; padding: 20px; border-radius: 8px;">
           </div>
         </div>
@@ -827,7 +826,7 @@
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <label
               style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
-              data-i18n="backtest_section.allocation_method">Método de Asignación</label>
+              data-i18n="backtest_section.allocation_method">Allocation Method</label>
             <select id="backtestAllocationMethod"
               style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
               <option value="hybrid" data-i18n="allocation.hybrid">Hybrid (ERC + Score)</option>
@@ -861,7 +860,7 @@
       </div>
 
       <style>
-        /* Estilos adicionales para la sección de cartera */
+        /* Additional styles for portfolio section */
         .portfolio-summary {
           margin-bottom: 30px;
         }
@@ -899,14 +898,14 @@
           font-weight: bold;
         }
 
-        /* Nuevo bloque de estilos para Risk Dashboard */
+        /* New style block for Risk Dashboard */
         .risk-dashboard-container {
           background: #1e293b;
           padding: 25px;
           border-radius: 12px;
           margin-bottom: 30px;
           border-left: 4px solid #f43f5e;
-          /* Rosa/Rojo para riesgo */
+          /* Pink/Red for risk */
         }
 
         .risk-dashboard-container h3 {
@@ -988,7 +987,7 @@
             font-size: 0.6em;
           }
 
-          /* Letra más pequeña en móvil */
+          /* Smaller font on mobile */
         }
 
         .portfolio-table-container {
@@ -1125,7 +1124,7 @@
           border: 1px solid #334155;
           background: #0f172a;
           color: #64748b;
-          /* Grisáceo por defecto (apagado) */
+          /* Greyish by default (off) */
           font-size: 0.85em;
           cursor: pointer;
           transition: all 0.2s ease;
@@ -1136,7 +1135,7 @@
           color: #94a3b8;
         }
 
-        /* Estado Activo (Encendido - Blanco Brillante) */
+        /* Active State (On - Bright White) */
         .backtest-action.active {
           border-color: #818cf8;
           color: #ffffff;

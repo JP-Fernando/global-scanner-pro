@@ -1,6 +1,7 @@
 // =====================================================
 // GLOBAL TEST SETUP (Node-friendly browser mocks)
 // =====================================================
+// IMPORTANT: Browser globals must be set up BEFORE importing i18n
 
 if (!globalThis.localStorage) {
   const store = new Map();
@@ -32,3 +33,17 @@ if (!globalThis.CustomEvent) {
     }
   };
 }
+
+// =====================================================
+// I18N TEST CONFIGURATION
+// =====================================================
+// Force British English for all test outputs
+
+// Import i18n AFTER setting up browser globals
+const i18nModule = await import('../i18n/i18n.js');
+const i18n = i18nModule.default;
+
+// Set testing language to British English
+i18n.setLanguage('en');
+
+export { i18n };

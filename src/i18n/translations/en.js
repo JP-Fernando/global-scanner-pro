@@ -903,6 +903,98 @@ export default {
     error_refreshing: 'Error refreshing data',
     error_saving: 'Error saving portfolio',
     error_deleting: 'Error deleting portfolio'
+  },
+
+  // =====================================================
+  // TEST SUITE (British English)
+  // =====================================================
+  test: {
+    // Test environment
+    environment_initialized: 'Test environment initialised (British English)',
+
+    // Test status
+    pass: 'PASS',
+    fail: 'FAIL',
+    error: 'ERROR',
+    expected: 'expected',
+    got: 'got',
+    diff: 'diff',
+
+    // Test suite header
+    suite_title: 'TEST SUITE - GLOBAL SCANNER',
+
+    // Test categories
+    testing_sma: 'Testing SMA',
+    testing_ema: 'Testing EMA',
+    testing_rsi: 'Testing RSI',
+    testing_atr: 'Testing ATR',
+    testing_bollinger_bands: 'Testing Bollinger Bands',
+    testing_adx: 'Testing ADX',
+    testing_williams_r: 'Testing Williams %R',
+    testing_roc: 'Testing ROC',
+    testing_volatility: 'Testing Volatility',
+    testing_max_drawdown: 'Testing Max Drawdown',
+    testing_days_above_ema: 'Testing Days Above EMA',
+    testing_volume_ratio: 'Testing Volume Ratio',
+    testing_validation: 'Testing Validation',
+    testing_backtesting_engine: 'Testing Backtesting Engine',
+    testing_walk_forward: 'Testing Walk-Forward Backtest',
+    testing_risk_engine: 'Testing Risk Engine Metrics',
+    testing_risk_edge_cases: 'Testing Risk Engine Edge Cases',
+    testing_correlation_symmetry: 'Testing Correlation Matrix Symmetry',
+    testing_shrinkage: 'Testing Shrinkage Activation',
+
+    // Test descriptions
+    basic_sma: 'Basic SMA calculation',
+    basic_ema_range: 'Basic EMA within expected range',
+    ema_insufficient_data: 'EMA returns null with insufficient data',
+    high_rsi_uptrend: 'High RSI in uptrend',
+    low_rsi_downtrend: 'Low RSI in downtrend',
+    neutral_rsi_sideways: 'Neutral RSI in sideways trend',
+    atr_reasonable_range: 'ATR in a reasonable range',
+    atr_pct_reasonable_range: 'ATR% in a reasonable range',
+    bb_upper_middle: 'BB upper > middle',
+    bb_middle_lower: 'BB middle > lower',
+    bb_bandwidth_positive: 'BB bandwidth is positive',
+    bb_percent_b_range: 'BB %B in range [0,1]',
+    high_adx_trend: 'High ADX in a strong trend',
+    low_adx_sideways: 'Low ADX in a sideways market',
+    williams_r_high: 'Williams %R high at highs',
+    williams_r_low: 'Williams %R low at lows',
+    correct_roc: 'Correct ROC',
+    low_volatility_stable: 'Low volatility in a stable series',
+    high_volatility_volatile: 'High volatility in a volatile series',
+    correct_max_drawdown: 'Correct max drawdown',
+    high_days_above_ema: 'High days above EMA in uptrend',
+    volume_ratio_rising: 'Volume Ratio > 1 with rising volume',
+    rejects_empty_array: 'Rejects empty array',
+    rejects_nan: 'Rejects NaN values',
+    rejects_null: 'Rejects null values',
+    rejects_insufficient_length: 'Rejects insufficient length',
+    backtest_returns_metrics: 'Backtest returns metrics',
+    backtest_produces_rebalances: 'Backtest produces rebalances',
+    calmar_ratio_computed: 'Calmar ratio computed',
+    tax_drag_computed: 'Tax drag computed',
+    walk_forward_produces_windows: 'Walk-forward produces windows',
+    in_sample_metrics: 'In-sample metrics computed',
+    out_sample_metrics: 'Out-sample metrics computed',
+    portfolio_var_computed: 'Portfolio VaR computed',
+    portfolio_cvar_computed: 'Portfolio CVaR computed',
+    correlation_matrix_rows: 'Correlation matrix has {{n}} rows',
+    correlation_matrix_cols: 'Correlation matrix has {{n}} columns',
+    single_asset_error: 'Single asset triggers error as expected',
+    single_asset_rejected: 'Single asset rejected properly',
+    insufficient_data_rejected: 'Should reject insufficient data',
+    insufficient_data_error: 'Insufficient data error triggered',
+    correlation_symmetric: 'Correlation matrix symmetric at ({{i}},{{j}})',
+    diagonal_equals_one: 'Diagonal element {{i}} equals 1.0',
+    small_sample_detected: 'Small sample detected',
+    var_computed_small_sample: 'VaR computed despite small sample',
+
+    // Results summary
+    results: 'RESULTS',
+    passed: 'passed',
+    failed: 'failed'
   }
 
 };

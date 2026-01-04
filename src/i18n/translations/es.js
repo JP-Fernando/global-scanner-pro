@@ -902,6 +902,98 @@ export default {
     error_refreshing: 'Error al actualizar los datos',
     error_saving: 'Error al guardar el portfolio',
     error_deleting: 'Error al eliminar el portfolio'
+  },
+
+  // =====================================================
+  // SUITE DE TESTS (Español Europeo)
+  // =====================================================
+  test: {
+    // Test environment
+    environment_initialized: 'Entorno de tests inicializado (Inglés Británico)',
+
+    // Test status
+    pass: 'CORRECTO',
+    fail: 'FALLO',
+    error: 'ERROR',
+    expected: 'esperado',
+    got: 'obtenido',
+    diff: 'diferencia',
+
+    // Test suite header
+    suite_title: 'SUITE DE TESTS - GLOBAL SCANNER',
+
+    // Test categories
+    testing_sma: 'Probando SMA',
+    testing_ema: 'Probando EMA',
+    testing_rsi: 'Probando RSI',
+    testing_atr: 'Probando ATR',
+    testing_bollinger_bands: 'Probando Bandas de Bollinger',
+    testing_adx: 'Probando ADX',
+    testing_williams_r: 'Probando Williams %R',
+    testing_roc: 'Probando ROC',
+    testing_volatility: 'Probando Volatilidad',
+    testing_max_drawdown: 'Probando Drawdown Máximo',
+    testing_days_above_ema: 'Probando Días sobre EMA',
+    testing_volume_ratio: 'Probando Ratio de Volumen',
+    testing_validation: 'Probando Validación',
+    testing_backtesting_engine: 'Probando Motor de Backtesting',
+    testing_walk_forward: 'Probando Backtest Walk-Forward',
+    testing_risk_engine: 'Probando Métricas del Risk Engine',
+    testing_risk_edge_cases: 'Probando Casos Límite del Risk Engine',
+    testing_correlation_symmetry: 'Probando Simetría de Matriz de Correlación',
+    testing_shrinkage: 'Probando Activación de Shrinkage',
+
+    // Test descriptions
+    basic_sma: 'Cálculo básico de SMA',
+    basic_ema_range: 'EMA básico dentro del rango esperado',
+    ema_insufficient_data: 'EMA devuelve null con datos insuficientes',
+    high_rsi_uptrend: 'RSI alto en tendencia alcista',
+    low_rsi_downtrend: 'RSI bajo en tendencia bajista',
+    neutral_rsi_sideways: 'RSI neutral en tendencia lateral',
+    atr_reasonable_range: 'ATR en un rango razonable',
+    atr_pct_reasonable_range: 'ATR% en un rango razonable',
+    bb_upper_middle: 'BB superior > medio',
+    bb_middle_lower: 'BB medio > inferior',
+    bb_bandwidth_positive: 'Ancho de banda BB es positivo',
+    bb_percent_b_range: 'BB %B en rango [0,1]',
+    high_adx_trend: 'ADX alto en tendencia fuerte',
+    low_adx_sideways: 'ADX bajo en mercado lateral',
+    williams_r_high: 'Williams %R alto en máximos',
+    williams_r_low: 'Williams %R bajo en mínimos',
+    correct_roc: 'ROC correcto',
+    low_volatility_stable: 'Baja volatilidad en serie estable',
+    high_volatility_volatile: 'Alta volatilidad en serie volátil',
+    correct_max_drawdown: 'Drawdown máximo correcto',
+    high_days_above_ema: 'Muchos días sobre EMA en tendencia alcista',
+    volume_ratio_rising: 'Ratio de Volumen > 1 con volumen creciente',
+    rejects_empty_array: 'Rechaza array vacío',
+    rejects_nan: 'Rechaza valores NaN',
+    rejects_null: 'Rechaza valores null',
+    rejects_insufficient_length: 'Rechaza longitud insuficiente',
+    backtest_returns_metrics: 'Backtest devuelve métricas',
+    backtest_produces_rebalances: 'Backtest produce rebalanceos',
+    calmar_ratio_computed: 'Ratio de Calmar calculado',
+    tax_drag_computed: 'Arrastre fiscal calculado',
+    walk_forward_produces_windows: 'Walk-forward produce ventanas',
+    in_sample_metrics: 'Métricas in-sample calculadas',
+    out_sample_metrics: 'Métricas out-sample calculadas',
+    portfolio_var_computed: 'VaR de cartera calculado',
+    portfolio_cvar_computed: 'CVaR de cartera calculado',
+    correlation_matrix_rows: 'Matriz de correlación tiene {{n}} filas',
+    correlation_matrix_cols: 'Matriz de correlación tiene {{n}} columnas',
+    single_asset_error: 'Activo único dispara error como se esperaba',
+    single_asset_rejected: 'Activo único rechazado correctamente',
+    insufficient_data_rejected: 'Debería rechazar datos insuficientes',
+    insufficient_data_error: 'Error de datos insuficientes activado',
+    correlation_symmetric: 'Matriz de correlación simétrica en ({{i}},{{j}})',
+    diagonal_equals_one: 'Elemento diagonal {{i}} igual a 1.0',
+    small_sample_detected: 'Muestra pequeña detectada',
+    var_computed_small_sample: 'VaR calculado a pesar de muestra pequeña',
+
+    // Results summary
+    results: 'RESULTADOS',
+    passed: 'correctos',
+    failed: 'fallidos'
   }
 
 };
