@@ -51,6 +51,31 @@ node server.js
 
 4. Abre la interfaz en tu navegador: `http://localhost:3000/index.html`.
 
+#### Solución de problemas de permisos en Windows
+
+En algunos entornos, **Windows puede bloquear la instalación global o la ejecución de scripts**. Si te ocurre, prueba lo siguiente:
+
+1. **Ejecuta PowerShell como Administrador** (clic derecho → "Ejecutar como administrador").
+2. **Permite scripts en la sesión actual** (solo para esa terminal):
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+3. **Evita instalaciones globales** y fuerza dependencias en el proyecto:
+
+```powershell
+npm install --no-audit --no-fund
+```
+
+4. Si recibes errores de permisos con npm, usa una **carpeta de usuario** para el caché:
+
+```powershell
+npm config set cache "$env:USERPROFILE\AppData\Local\npm-cache" --global
+```
+
+5. Como alternativa, puedes usar **Windows Terminal + Git Bash** y repetir los pasos de instalación.
+
 ---
 
 ### Uso Básico
