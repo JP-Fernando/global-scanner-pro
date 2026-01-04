@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Global Quant Scanner Pro</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -72,7 +77,8 @@
       font-weight: 600;
     }
 
-    select, button {
+    select,
+    button {
       padding: 12px 16px;
       border-radius: 8px;
       border: none;
@@ -313,33 +319,42 @@
     /* Estilos para alertas de la Fase 1 */
 
 
-      @keyframes pulse-red {
-        0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
-        70% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+    @keyframes pulse-red {
+      0% {
+        box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
       }
 
+      70% {
+        box-shadow: 0 0 0 6px rgba(244, 63, 94, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+      }
+    }
+
     .anomaly-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        background: #450a0a;
-        color: #fca5a5;
-        font-size: 0.65em; /* Ligeramente más pequeño para no romper la tabla */
-        padding: 2px 8px;
-        border-radius: 4px;
-        border: 1px solid #f87171;
-        margin-top: 5px;
-        font-weight: 800;
-        cursor: help;
-        white-space: nowrap;
-        text-transform: uppercase;
-        animation: pulse-red 2s infinite;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #450a0a;
+      color: #fca5a5;
+      font-size: 0.65em;
+      /* Ligeramente más pequeño para no romper la tabla */
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #f87171;
+      margin-top: 5px;
+      font-weight: 800;
+      cursor: help;
+      white-space: nowrap;
+      text-transform: uppercase;
+      animation: pulse-red 2s infinite;
     }
 
     /* IMPORTANTE: El borde se aplica a la celda, no al TR */
     .row-warning td:first-child {
-        border-left: 5px solid #f43f5e !important;
+      border-left: 5px solid #f43f5e !important;
     }
 
     .row-warning {
@@ -351,7 +366,7 @@
       transition: background 0.2s ease;
     }
 
-    #sectorSummary > div:hover {
+    #sectorSummary>div:hover {
       transform: translateY(-3px);
       background: #242f42 !important;
       border-color: #475569 !important;
@@ -413,652 +428,787 @@
         font-size: 0.85em;
       }
 
-      td, th {
+      td,
+      th {
         padding: 10px;
       }
     }
   </style>
 </head>
+
 <body>
-<div class="container">
-  <div class="header">
-    <div style="position: absolute; top: 20px; right: 20px;">
-      <select id="languageSelect" onchange="changeLanguage(this.value)" style="padding: 8px 12px; border-radius: 6px; border: 2px solid #334155; background: #334155; color: white; font-size: 14px; cursor: pointer; transition: all 0.3s;">
-        <option value="es">🇪🇸 Español</option>
-        <option value="en">🇬🇧 English</option>
-      </select>
-    </div>
-    <h1>🎯 Global Quant Scanner Pro</h1>
-    <p data-i18n="app.subtitle">Sistema cuantitativo avanzado con análisis multi-factor y benchmarking</p>
-  </div>
-
-  <div class="controls">
-    <div class="control-row">
-      <div class="control-group">
-        <label data-i18n="markets.label">📍 Mercado</label>
-        <select id="marketSelect">
-          <optgroup label="🇪🇺 Europa">
-            <option value="universes/bme_universe.json|.MC" data-i18n="markets.spain">España (BME)</option>
-            <option value="universes/euronext_universe.json|.PA" data-i18n="markets.france">Francia (Euronext)</option>
-            <option value="universes/frankfurt_universe.json|.DE" data-i18n="markets.germany">Alemania (XETRA)</option>
-            <option value="universes/lse_universe.json|.L" data-i18n="markets.uk">Reino Unido (LSE)</option>
-            <option value="universes/milan_universe.json|.MI" data-i18n="markets.italy">Italia (Borsa)</option>
-          </optgroup>
-          <optgroup label="🌎 América">
-            <option value="universes/us_universe.json|" data-i18n="markets.usa">Estados Unidos (NYSE/NASDAQ)</option>
-            <option value="universes/brazil_universe.json|.SA" data-i18n="markets.brazil">Brasil (B3)</option>
-            <option value="universes/mexico_universe.json|.MX" data-i18n="markets.mexico">México (BMV)</option>
-            <option value="universes/toronto_universe.json|.TO" data-i18n="markets.canada">Canadá (TSX)</option>
-          </optgroup>
-          <optgroup label="🌏 Asia">
-            <option value="universes/tokyo_universe.json|.T" data-i18n="markets.japan">Japón (TSE)</option>
-            <option value="universes/china_hongkong.json|.HK" data-i18n="markets.hongkong">Hong Kong (SEHK)</option>
-            <option value="universes/china_shanghai.json|.SS" data-i18n="markets.china_shanghai">China (SSE)</option>
-            <option value="universes/china_shenzhen.json|.SZ" data-i18n="markets.china_shenzhen">Shenzhen (SZSE)</option>
-            <option value="universes/korea_universe.json|.KS" data-i18n="markets.southkorea">Corea (KRX)</option>
-          </optgroup>
+  <div class="container">
+    <div class="header">
+      <div style="position: absolute; top: 20px; right: 20px;">
+        <select id="languageSelect" onchange="changeLanguage(this.value)"
+          style="padding: 8px 12px; border-radius: 6px; border: 2px solid #334155; background: #334155; color: white; font-size: 14px; cursor: pointer; transition: all 0.3s;">
+          <option value="es">🇪🇸 Español</option>
+          <option value="en">🇬🇧 English</option>
         </select>
       </div>
-
-      <div class="control-group">
-        <label data-i18n="strategies.label">⚙️ Estrategia</label>
-        <select id="strategySelect">
-          <option value="balanced" data-i18n="strategies.balanced">Equilibrado</option>
-          <option value="momentum_aggressive" data-i18n="strategies.momentum_aggressive">Momentum Agresivo</option>
-          <option value="trend_conservative" data-i18n="strategies.trend_conservative">Trend Conservador</option>
-          <option value="sector_rotation" data-i18n="strategies.sector_rotation">Rotación Sectorial</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <label>&nbsp;</label>
-        <button id="btnRunScan" onclick="runScan()" data-i18n="buttons.runScan">🚀 Ejecutar Análisis</button>
-      </div>
-    </div>
-  </div>
-
-
-
-  <div class="info-bar">
-    <div class="info-card strategy">
-      <div id="strategyInfo" data-i18n="info.select_strategy_market">Selecciona una estrategia y mercado para comenzar</div>
-    </div>
-    <div class="info-card">
-      <div id="filterInfo" data-i18n="info.waiting_scan">Esperando escaneo...</div>
-    </div>
-  </div>
-
-  <div id="status" class="status">
-    <!-- Market Regime Indicator -->
-    <div id="regimeIndicator" style="display: none; margin-bottom: 20px;"></div>
-    <span data-i18n="info.system_ready">🎯 Sistema listo. Configura parámetros y ejecuta el análisis.</span>
-  </div>
-
-  <div id="sectorSummary" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:15px; margin-bottom:25px;">
-  </div>
-
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 60px;" data-i18n="table.rank">Rank</th>
-          <th style="width: 100px;" data-i18n="table.ticker">Ticker</th>
-          <th data-i18n="table.name">Nombre</th>
-          <th style="width: 200px;">
-            <select id="viewMode" class="view-selector" onchange="updateView()">
-              <option value="scoreTotal" data-i18n="view_modes.total_score">📊 Score Total</option>
-              <option value="scoreShort" data-i18n="view_modes.short_term">⚡ Corto Plazo (6m)</option>
-              <option value="scoreMedium" data-i18n="view_modes.medium_term">📈 Medio Plazo (18m)</option>
-              <option value="scoreLong" data-i18n="view_modes.long_term">🎯 Largo Plazo (4a)</option>
-              <option value="scoreTrend" data-i18n="view_modes.trend">📉 Tendencia</option>
-              <option value="scoreMomentum" data-i18n="view_modes.momentum">🚀 Momentum</option>
-              <option value="scoreRisk" data-i18n="view_modes.risk">⚠️ Riesgo</option>
-              <option value="scoreLiquidity" data-i18n="view_modes.liquidity">💧 Liquidez</option>
-            </select>
-          </th>
-          <th style="width: 100px;" data-i18n="table.volume">Volumen</th>
-          <th style="width: 180px;" data-i18n="table.signal">Señal</th>
-        </tr>
-      </thead>
-      <tbody id="results">
-        <tr>
-          <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;" data-i18n="table.waiting_data">
-            Esperando datos de análisis...
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- ADD THIS HTML JUST BEFORE THE </div> THAT CLOSES .container IN index.html -->
-<!-- After the results table -->
-
-  <!-- New Section: Portfolio Construction -->
-  <div id="portfolioSection" style="display: none; background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #10b981;">
-    <h3 style="color: #10b981; margin-bottom: 20px; font-size: 1.3em;" data-i18n="portfolio_section.title">💼 Construcción de Cartera</h3>
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="portfolio_section.allocation_method">Método de Asignación</label>
-        <select id="allocationMethod" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
-          <option value="hybrid" data-i18n="allocation.hybrid">Hybrid (ERC + Score)</option>
-          <option value="erc" data-i18n="allocation.erc">Equal Risk Contribution</option>
-          <option value="score_weighted" data-i18n="allocation.score_weighted">Score-Weighted</option>
-          <option value="volatility_target" data-i18n="allocation.volatility_target">Volatility Targeting</option>
-          <option value="equal_weight" data-i18n="allocation.equal_weight">Equal Weight</option>
-        </select>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="portfolio_section.top_n_assets">Top N Activos</label>
-        <input type="number" id="topNAssets" value="10" min="1" max="30" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="portfolio_section.total_capital">Capital Total (€)</label>
-        <input type="number" id="totalCapital" value="20000" min="500" step="500" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8;">&nbsp;</label>
-        <button onclick="buildPortfolio()" style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);" data-i18n="portfolio_section.build_button">📊 Construir Cartera</button>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="portfolio_section.risk_profile">Perfil de Riesgo</label>
-        <select id="riskProfile" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
-          <option value="conservative" data-i18n="risk.conservative">Conservador</option>
-          <option value="moderate" selected data-i18n="risk.moderate">Moderado</option>
-          <option value="aggressive" data-i18n="risk.aggressive">Agresivo</option>
-        </select>
-      </div>
-      <div id="regimeAdjustmentOption" style="display: none; margin-top: 15px; padding: 12px; background: #0f172a; border-radius: 6px; border-left: 3px solid #38bdf8;">
-        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9em; color: #94a3b8;">
-          <input type="checkbox" id="applyRegimeAdjustment" checked style="width: auto; cursor: pointer; margin: 0;" />
-          <span style="flex: 1;">
-            <strong style="color: #38bdf8;" data-i18n="portfolio_section.regime_adjustment">Aplicar ajustes automáticos según régimen de mercado</strong>
-            <div style="font-size: 0.85em; color: #64748b; margin-top: 3px;" data-i18n="portfolio_section.regime_adjustment_desc">
-              Ajusta scores y filtros según condiciones actuales del mercado
-            </div>
-          </span>
-        </label>
-      </div>
-
+      <h1>🎯 Global Quant Scanner Pro</h1>
+      <p data-i18n="app.subtitle">Sistema cuantitativo avanzado con análisis multi-factor y benchmarking</p>
     </div>
 
+    <div class="controls">
+      <div class="control-row">
+        <div class="control-group">
+          <label data-i18n="markets.label">📍 Mercado</label>
+          <select id="marketSelect">
+            <optgroup label="🇪🇺 Europa">
+              <option value="universes/bme_universe.json|.MC" data-i18n="markets.spain">España (BME)</option>
+              <option value="universes/euronext_universe.json|.PA" data-i18n="markets.france">Francia (Euronext)
+              </option>
+              <option value="universes/frankfurt_universe.json|.DE" data-i18n="markets.germany">Alemania (XETRA)
+              </option>
+              <option value="universes/lse_universe.json|.L" data-i18n="markets.uk">Reino Unido (LSE)</option>
+              <option value="universes/milan_universe.json|.MI" data-i18n="markets.italy">Italia (Borsa)</option>
+            </optgroup>
+            <optgroup label="🌎 América">
+              <option value="universes/us_universe.json|" data-i18n="markets.usa">Estados Unidos (NYSE/NASDAQ)</option>
+              <option value="universes/brazil_universe.json|.SA" data-i18n="markets.brazil">Brasil (B3)</option>
+              <option value="universes/mexico_universe.json|.MX" data-i18n="markets.mexico">México (BMV)</option>
+              <option value="universes/toronto_universe.json|.TO" data-i18n="markets.canada">Canadá (TSX)</option>
+            </optgroup>
+            <optgroup label="🌏 Asia">
+              <option value="universes/tokyo_universe.json|.T" data-i18n="markets.japan">Japón (TSE)</option>
+              <option value="universes/china_hongkong.json|.HK" data-i18n="markets.hongkong">Hong Kong (SEHK)</option>
+              <option value="universes/china_shanghai.json|.SS" data-i18n="markets.china_shanghai">China (SSE)</option>
+              <option value="universes/china_shenzhen.json|.SZ" data-i18n="markets.china_shenzhen">Shenzhen (SZSE)
+              </option>
+              <option value="universes/korea_universe.json|.KS" data-i18n="markets.southkorea">Corea (KRX)</option>
+            </optgroup>
+          </select>
+        </div>
 
-  </div>
+        <div class="control-group">
+          <label data-i18n="strategies.label">⚙️ Estrategia</label>
+          <select id="strategySelect">
+            <option value="balanced" data-i18n="strategies.balanced">Equilibrado</option>
+            <option value="momentum_aggressive" data-i18n="strategies.momentum_aggressive">Momentum Agresivo</option>
+            <option value="trend_conservative" data-i18n="strategies.trend_conservative">Trend Conservador</option>
+            <option value="sector_rotation" data-i18n="strategies.sector_rotation">Rotación Sectorial</option>
+          </select>
+        </div>
 
-  <!-- Portfolio Results -->
-  <div id="portfolioResults" style="display: none;"></div>
-
-  <!-- Strategy Backtesting -->
-  <div id="backtestSection" style="background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #6366f1;">
-    <h3 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.3em;" data-i18n="backtest_section.title">🧪 Backtesting de Estrategias</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="backtest_section.top_n_assets">Top N Activos</label>
-        <input type="number" id="backtestTopN" value="10" min="3" max="30" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="backtest_section.rebalance_days">Rebalanceo (días)</label>
-        <input type="number" id="backtestRebalance" value="21" min="5" max="126" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="backtest_section.allocation_method">Método de Asignación</label>
-        <select id="backtestAllocationMethod" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
-          <option value="hybrid" data-i18n="allocation.hybrid">Hybrid (ERC + Score)</option>
-          <option value="erc" data-i18n="allocation.erc">Equal Risk Contribution</option>
-          <option value="score_weighted" data-i18n="allocation.score_weighted">Score-Weighted</option>
-          <option value="volatility_target" data-i18n="allocation.volatility_target">Volatility Targeting</option>
-          <option value="equal_weight" data-i18n="allocation.equal_weight">Equal Weight</option>
-        </select>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;" data-i18n="backtest_section.initial_capital">Capital Inicial</label>
-        <input type="number" id="backtestInitialCapital" value="10000" min="1000" step="500" style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="font-size: 0.85em; color: #94a3b8;">&nbsp;</label>
-        <button onclick="runBacktest()" style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);" data-i18n="backtest_section.run_button">📈 Ejecutar Backtest</button>
+        <div class="control-group">
+          <label>&nbsp;</label>
+          <button id="btnRunScan" onclick="runScan()" data-i18n="buttons.runScan">🚀 Ejecutar Análisis</button>
+        </div>
       </div>
     </div>
 
-    <div id="backtestStatus" class="small-text" style="color:#94a3b8; margin-bottom: 15px;" data-i18n="backtest_section.status_waiting">Selecciona un mercado y ejecuta el backtest para comparar estrategias.</div>
-    <div id="backtestResults" style="display: none;"></div>
-  </div>
-
-<style>
-  /* Estilos adicionales para la sección de cartera */
-  .portfolio-summary {
-    margin-bottom: 30px;
-  }
-
-  .portfolio-summary h3 {
-    color: #10b981;
-    margin-bottom: 20px;
-  }
-
-  .risk-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-  }
-
-  .risk-card {
-    background: #0f172a;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-    border: 2px solid #334155;
-  }
-
-  .risk-label {
-    color: #94a3b8;
-    font-size: 0.85em;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .risk-value {
-    color: #10b981;
-    font-size: 1.8em;
-    font-weight: bold;
-  }
-
-  /* Nuevo bloque de estilos para Risk Dashboard */
-  .risk-dashboard-container {
-    background: #1e293b;
-    padding: 25px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-    border-left: 4px solid #f43f5e; /* Rosa/Rojo para riesgo */
-  }
-
-  .risk-dashboard-container h3 { color: #f43f5e; margin-bottom: 20px; }
-
-  .risk-grid-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-
-  .risk-panel-dark {
-    background: #0f172a;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #334155;
-  }
-
-  .risk-panel-dark h4 { color: #cbd5e1; margin-bottom: 15px; font-size: 0.9em; text-transform: uppercase; }
-
-  /* Heatmap */
-  .heatmap-table { width: 100%; font-size: 0.75em; border-collapse: collapse; }
-  .heatmap-table th { text-align: center; padding: 4px; color: #94a3b8; }
-  .heatmap-table td { text-align: center; padding: 6px; border: 1px solid #1e293b; border-radius: 4px; }
-
-  /* Stress Table */
-  .stress-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-  .stress-table th { text-align: left; padding: 8px; border-bottom: 1px solid #334155; color: #94a3b8; }
-  .stress-table td { padding: 10px 8px; border-bottom: 1px solid #1e293b; }
-
-  .small-text { font-size: 0.75em; color: #64748b; margin-top: 8px; }
-
-  @media (max-width: 1024px) {
-    .risk-grid-layout { grid-template-columns: 1fr; }
-    .heatmap-table { font-size: 0.6em; } /* Letra más pequeña en móvil */
-  }
-
-  .portfolio-table-container {
-    margin: 30px 0;
-    background: #1e293b;
-    padding: 25px;
-    border-radius: 12px;
-  }
-
-  .portfolio-table-container h3 {
-    color: #38bdf8;
-    margin-bottom: 15px;
-  }
-
-  .portfolio-table {
-    width: 100%;
-    background: #0f172a;
-    border-radius: 8px;
-    overflow: hidden;
-    border-collapse: collapse;
-  }
-
-  .portfolio-table thead {
-    background: #334155;
-  }
-
-  .portfolio-table th {
-    color: #10b981;
-    padding: 12px;
-    text-align: left;
-    font-size: 0.85em;
-    text-transform: uppercase;
-  }
-
-  .portfolio-table td {
-    padding: 12px;
-    border-bottom: 1px solid #334155;
-    color: #f8fafc;
-  }
-
-  .portfolio-chart {
-    margin-top: 30px;
-    background: #1e293b;
-    padding: 25px;
-    border-radius: 12px;
-  }
-
-  .portfolio-chart h3 {
-    color: #818cf8;
-    margin-bottom: 20px;
-  }
-
-  .weight-bars {
-    background: #0f172a;
-    padding: 20px;
-    border-radius: 8px;
-  }
-
-  .weight-bar-container {
-    margin-bottom: 15px;
-  }
-
-  .weight-bar-label {
-    color: #94a3b8;
-    font-size: 0.9em;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-
-  .weight-bar-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .weight-bar {
-    height: 30px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-radius: 4px;
-    transition: width 0.3s ease;
-    min-width: 2px;
-  }
-
-  .weight-bar-value {
-    color: #10b981;
-    font-weight: bold;
-    min-width: 50px;
-  }
 
 
-  .backtest-summary {
-    margin-bottom: 15px;
-  }
-
-  .backtest-summary h3 {
-    color: #c7d2fe;
-    margin-bottom: 5px;
-  }
-
-  .backtest-table-container {
-    background: #0f172a;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #334155;
-  }
-
-  .backtest-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9em;
-  }
-
-  .backtest-table th,
-  .backtest-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #334155;
-    text-align: left;
-  }
-
-  .backtest-table th {
-    color: #cbd5f5;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-size: 0.75em;
-  }
-
-  .backtest-table td {
-    color: #e2e8f0;
-  }
-
-  .backtest-action {
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      background: #0f172a;
-      color: #64748b; /* Grisáceo por defecto (apagado) */
-      font-size: 0.85em;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .backtest-action:hover {
-      border-color: #475569;
-      color: #94a3b8;
-    }
-
-    /* Estado Activo (Encendido - Blanco Brillante) */
-    .backtest-action.active {
-      border-color: #818cf8;
-      color: #ffffff;
-      background: #1e293b;
-      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
-    }
-
-    .backtest-action.active:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
-    }
-
-  .equity-chart {
-    transition: transform 0.3s ease;
-  }
-
-  .equity-chart:hover {
-    transform: scale(1.02);
-  }
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .backtest-summary,
-  .backtest-table-container {
-    animation: slideIn 0.5s ease-out;
-  }
-
-  [data-tooltip] {
-    position: relative;
-    cursor: help;
-  }
-
-  [data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #0f172a;
-    color: #f8fafc;
-    padding: 8px 12px;
-    border-radius: 6px;
-    white-space: nowrap;
-    font-size: 0.85em;
-    z-index: 1000;
-    border: 1px solid #334155;
-  }
-
-</style>
-  </div>
-</div>
-
-<!-- Portfolio Tracking Dashboard -->
-<div id="portfolioDashboardSection" style="background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #10b981; display: none;">
-  <h3 style="color: #6ee7b7; margin-bottom: 20px; font-size: 1.3em;" data-i18n="portfolio_dashboard.title">📊 Portfolio Tracking Dashboard</h3>
-
-  <!-- Portfolio Selector and Actions -->
-  <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 200px;">
-      <label style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; display: block; margin-bottom: 8px;" data-i18n="portfolio_dashboard.select_portfolio">Seleccionar Portfolio</label>
-      <select id="portfolioSelector" style="width: 100%; padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
-        <option value="" data-i18n="portfolio_dashboard.no_portfolio">-- Crear nuevo portfolio --</option>
-      </select>
+    <div class="info-bar">
+      <div class="info-card strategy">
+        <div id="strategyInfo" data-i18n="info.select_strategy_market">Selecciona una estrategia y mercado para comenzar
+        </div>
+      </div>
+      <div class="info-card">
+        <div id="filterInfo" data-i18n="info.waiting_scan">Esperando escaneo...</div>
+      </div>
     </div>
-    <div style="display: flex; gap: 10px; align-items: flex-end;">
-      <button id="savePortfolioBtn" onclick="savePortfolioFromBuilder()" style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);" data-i18n="portfolio_dashboard.save_portfolio">💾 Guardar Portfolio</button>
-      <button id="deletePortfolioBtn" onclick="deleteCurrentPortfolio()" style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); display: none;" data-i18n="portfolio_dashboard.delete_portfolio">🗑️ Eliminar</button>
-      <button id="refreshDashboardBtn" onclick="refreshDashboard()" style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);" data-i18n="portfolio_dashboard.refresh">🔄 Actualizar</button>
-    </div>
-  </div>
 
-  <!-- Portfolio Summary Cards -->
-  <div id="portfolioSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
-    <div class="risk-card">
-      <div class="risk-label" data-i18n="portfolio_dashboard.total_value">Valor Total</div>
-      <div id="totalValueCard" class="risk-value">--</div>
+    <div id="status" class="status">
+      <!-- Market Regime Indicator -->
+      <div id="regimeIndicator" style="display: none; margin-bottom: 20px;"></div>
+      <span data-i18n="info.system_ready">🎯 Sistema listo. Configura parámetros y ejecuta el análisis.</span>
     </div>
-    <div class="risk-card">
-      <div class="risk-label" data-i18n="portfolio_dashboard.total_return">Retorno Total</div>
-      <div id="totalReturnCard" class="risk-value">--</div>
-    </div>
-    <div class="risk-card">
-      <div class="risk-label" data-i18n="portfolio_dashboard.sharpe_ratio">Sharpe Ratio</div>
-      <div id="sharpeRatioCard" class="risk-value">--</div>
-    </div>
-    <div class="risk-card">
-      <div class="risk-label" data-i18n="portfolio_dashboard.max_drawdown">Max Drawdown</div>
-      <div id="maxDrawdownCard" class="risk-value">--</div>
-    </div>
-    <div class="risk-card">
-      <div class="risk-label" data-i18n="portfolio_dashboard.volatility">Volatilidad</div>
-      <div id="volatilityCard" class="risk-value">--</div>
-    </div>
-    <div class="risk-card">
-      <div class="risk-label" data-i18n="portfolio_dashboard.beta">Beta</div>
-      <div id="betaCard" class="risk-value">--</div>
-    </div>
-  </div>
 
-  <!-- Chart Tabs -->
-  <div style="margin-bottom: 20px;">
-    <div style="display: flex; gap: 10px; border-bottom: 2px solid #334155; padding-bottom: 10px;">
-      <button class="chart-tab active" data-tab="equity" onclick="switchChartTab('equity')" style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #334155; color: white; font-weight: bold; cursor: pointer;" data-i18n="portfolio_dashboard.tab_equity">Equity Curve</button>
-      <button class="chart-tab" data-tab="drawdown" onclick="switchChartTab('drawdown')" style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;" data-i18n="portfolio_dashboard.tab_drawdown">Drawdown</button>
-      <button class="chart-tab" data-tab="benchmark" onclick="switchChartTab('benchmark')" style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;" data-i18n="portfolio_dashboard.tab_benchmark">vs Benchmark</button>
-      <button class="chart-tab" data-tab="allocation" onclick="switchChartTab('allocation')" style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;" data-i18n="portfolio_dashboard.tab_allocation">Asignación</button>
+    <div id="sectorSummary"
+      style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:15px; margin-bottom:25px;">
     </div>
-  </div>
 
-  <!-- Charts Container -->
-  <div id="chartsContainer" style="background: #0f172a; padding: 20px; border-radius: 8px; margin-bottom: 25px; min-height: 400px;">
-    <canvas id="portfolioChart"></canvas>
-  </div>
-
-  <!-- Positions Table -->
-  <div style="margin-bottom: 25px;">
-    <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;" data-i18n="portfolio_dashboard.positions_title">📋 Posiciones Actuales</h4>
-    <div style="overflow-x: auto;">
-      <table id="positionsTable" class="portfolio-table">
+    <div class="table-container">
+      <table>
         <thead>
           <tr>
-            <th data-i18n="portfolio_dashboard.ticker">Ticker</th>
-            <th data-i18n="portfolio_dashboard.name">Nombre</th>
-            <th data-i18n="portfolio_dashboard.quantity">Cantidad</th>
-            <th data-i18n="portfolio_dashboard.entry_price">Precio Entrada</th>
-            <th data-i18n="portfolio_dashboard.current_price">Precio Actual</th>
-            <th data-i18n="portfolio_dashboard.value">Valor</th>
-            <th data-i18n="portfolio_dashboard.weight">Peso %</th>
-            <th data-i18n="portfolio_dashboard.pnl">P&L</th>
-            <th data-i18n="portfolio_dashboard.pnl_pct">P&L %</th>
+            <th style="width: 60px;" data-i18n="table.rank">Rank</th>
+            <th style="width: 100px;" data-i18n="table.ticker">Ticker</th>
+            <th data-i18n="table.name">Nombre</th>
+            <th style="width: 200px;">
+              <select id="viewMode" class="view-selector" onchange="updateView()">
+                <option value="scoreTotal" data-i18n="view_modes.total_score">📊 Score Total</option>
+                <option value="scoreShort" data-i18n="view_modes.short_term">⚡ Corto Plazo (6m)</option>
+                <option value="scoreMedium" data-i18n="view_modes.medium_term">📈 Medio Plazo (18m)</option>
+                <option value="scoreLong" data-i18n="view_modes.long_term">🎯 Largo Plazo (4a)</option>
+                <option value="scoreTrend" data-i18n="view_modes.trend">📉 Tendencia</option>
+                <option value="scoreMomentum" data-i18n="view_modes.momentum">🚀 Momentum</option>
+                <option value="scoreRisk" data-i18n="view_modes.risk">⚠️ Riesgo</option>
+                <option value="scoreLiquidity" data-i18n="view_modes.liquidity">💧 Liquidez</option>
+              </select>
+            </th>
+            <th style="width: 100px;" data-i18n="table.volume">Volumen</th>
+            <th style="width: 180px;" data-i18n="table.signal">Señal</th>
           </tr>
         </thead>
-        <tbody id="positionsTableBody">
+        <tbody id="results">
           <tr>
-            <td colspan="9" style="text-align: center; padding: 30px; color: #64748b;" data-i18n="portfolio_dashboard.no_positions">No hay posiciones para mostrar</td>
+            <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;" data-i18n="table.waiting_data">
+              Esperando datos de análisis...
+            </td>
           </tr>
         </tbody>
       </table>
+      <!-- ADD THIS HTML JUST BEFORE THE </div> THAT CLOSES .container IN index.html -->
+      <!-- After the results table -->
+
+      <!-- New Section: Portfolio Construction -->
+      <div id="portfolioSection"
+        style="display: none; background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #10b981;">
+        <h3 style="color: #10b981; margin-bottom: 20px; font-size: 1.3em;" data-i18n="portfolio_section.title">💼
+          Construcción de Cartera</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label
+              style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
+              data-i18n="portfolio_section.allocation_method">Método de Asignación</label>
+            <select id="allocationMethod"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
+              <option value="hybrid" data-i18n="allocation.hybrid">Hybrid (ERC + Score)</option>
+              <option value="erc" data-i18n="allocation.erc">Equal Risk Contribution</option>
+              <option value="score_weighted" data-i18n="allocation.score_weighted">Score-Weighted</option>
+              <option value="volatility_target" data-i18n="allocation.volatility_target">Volatility Targeting</option>
+              <option value="equal_weight" data-i18n="allocation.equal_weight">Equal Weight</option>
+            </select>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label
+              style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
+              data-i18n="portfolio_section.top_n_assets">Top N Activos</label>
+            <input type="number" id="topNAssets" value="10" min="1" max="30"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label
+              style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
+              data-i18n="portfolio_section.total_capital">Capital Total (€)</label>
+            <input type="number" id="totalCapital" value="20000" min="500" step="500"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-size: 0.85em; color: #94a3b8;">&nbsp;</label>
+            <button onclick="buildPortfolio()"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);"
+              data-i18n="portfolio_section.build_button">📊 Construir Cartera</button>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label
+              style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
+              data-i18n="portfolio_section.risk_profile">Perfil de Riesgo</label>
+            <select id="riskProfile"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
+              <option value="conservative" data-i18n="risk.conservative">Conservador</option>
+              <option value="moderate" selected data-i18n="risk.moderate">Moderado</option>
+              <option value="aggressive" data-i18n="risk.aggressive">Agresivo</option>
+            </select>
+          </div>
+          <div id="regimeAdjustmentOption"
+            style="display: none; margin-top: 15px; padding: 12px; background: #0f172a; border-radius: 6px; border-left: 3px solid #38bdf8;">
+            <label
+              style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9em; color: #94a3b8;">
+              <input type="checkbox" id="applyRegimeAdjustment" checked
+                style="width: auto; cursor: pointer; margin: 0;" />
+              <span style="flex: 1;">
+                <strong style="color: #38bdf8;" data-i18n="portfolio_section.regime_adjustment">Aplicar ajustes
+                  automáticos según régimen de mercado</strong>
+                <div style="font-size: 0.85em; color: #64748b; margin-top: 3px;"
+                  data-i18n="portfolio_section.regime_adjustment_desc">
+                  Ajusta scores y filtros según condiciones actuales del mercado
+                </div>
+              </span>
+            </label>
+          </div>
+
+        </div>
+
+
+      </div>
+
+      <!-- Portfolio Results -->
+      <div id="portfolioResults" style="display: none;"></div>
+
+      <!-- Portfolio Tracking Dashboard -->
+      <div id="portfolioDashboardSection"
+        style="background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #10b981; display: none;">
+        <h3 style="color: #6ee7b7; margin-bottom: 20px; font-size: 1.3em;" data-i18n="portfolio_dashboard.title">📊
+          Portfolio Tracking Dashboard</h3>
+
+        <!-- Portfolio Selector and Actions -->
+        <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 200px;">
+            <label
+              style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; display: block; margin-bottom: 8px;"
+              data-i18n="portfolio_dashboard.select_portfolio">Seleccionar Portfolio</label>
+            <select id="portfolioSelector"
+              style="width: 100%; padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
+              <option value="" data-i18n="portfolio_dashboard.no_portfolio">-- Crear nuevo portfolio --</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: flex-end;">
+            <button id="savePortfolioBtn" onclick="savePortfolioFromBuilder()"
+              style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);"
+              data-i18n="portfolio_dashboard.save_portfolio">💾 Guardar Portfolio</button>
+            <button id="deletePortfolioBtn" onclick="deleteCurrentPortfolio()"
+              style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); display: none;"
+              data-i18n="portfolio_dashboard.delete_portfolio">🗑️ Eliminar</button>
+            <button id="refreshDashboardBtn" onclick="refreshDashboard()"
+              style="padding: 12px 20px; border-radius: 8px; border: none; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);"
+              data-i18n="portfolio_dashboard.refresh">🔄 Actualizar</button>
+          </div>
+        </div>
+
+        <!-- Portfolio Summary Cards -->
+        <div id="portfolioSummary"
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+          <div class="risk-card">
+            <div class="risk-label" data-i18n="portfolio_dashboard.total_value">Valor Total</div>
+            <div id="totalValueCard" class="risk-value">--</div>
+          </div>
+          <div class="risk-card">
+            <div class="risk-label" data-i18n="portfolio_dashboard.total_return">Retorno Total</div>
+            <div id="totalReturnCard" class="risk-value">--</div>
+          </div>
+          <div class="risk-card">
+            <div class="risk-label" data-i18n="portfolio_dashboard.sharpe_ratio">Sharpe Ratio</div>
+            <div id="sharpeRatioCard" class="risk-value">--</div>
+          </div>
+          <div class="risk-card">
+            <div class="risk-label" data-i18n="portfolio_dashboard.max_drawdown">Max Drawdown</div>
+            <div id="maxDrawdownCard" class="risk-value">--</div>
+          </div>
+          <div class="risk-card">
+            <div class="risk-label" data-i18n="portfolio_dashboard.volatility">Volatilidad</div>
+            <div id="volatilityCard" class="risk-value">--</div>
+          </div>
+          <div class="risk-card">
+            <div class="risk-label" data-i18n="portfolio_dashboard.beta">Beta</div>
+            <div id="betaCard" class="risk-value">--</div>
+          </div>
+        </div>
+
+        <!-- Chart Tabs -->
+        <div style="margin-bottom: 20px;">
+          <div style="display: flex; gap: 10px; border-bottom: 2px solid #334155; padding-bottom: 10px;">
+            <button class="chart-tab active" data-tab="equity" onclick="switchChartTab('equity')"
+              style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #334155; color: white; font-weight: bold; cursor: pointer;"
+              data-i18n="portfolio_dashboard.tab_equity">Equity Curve</button>
+            <button class="chart-tab" data-tab="drawdown" onclick="switchChartTab('drawdown')"
+              style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;"
+              data-i18n="portfolio_dashboard.tab_drawdown">Drawdown</button>
+            <button class="chart-tab" data-tab="benchmark" onclick="switchChartTab('benchmark')"
+              style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;"
+              data-i18n="portfolio_dashboard.tab_benchmark">vs Benchmark</button>
+            <button class="chart-tab" data-tab="allocation" onclick="switchChartTab('allocation')"
+              style="padding: 10px 20px; border-radius: 8px 8px 0 0; border: none; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer;"
+              data-i18n="portfolio_dashboard.tab_allocation">Asignación</button>
+          </div>
+        </div>
+
+        <!-- Charts Container -->
+        <div id="chartsContainer"
+          style="background: #0f172a; padding: 20px; border-radius: 8px; margin-bottom: 25px; min-height: 400px;">
+          <canvas id="portfolioChart"></canvas>
+        </div>
+
+        <!-- Positions Table -->
+        <div style="margin-bottom: 25px;">
+          <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;"
+            data-i18n="portfolio_dashboard.positions_title">📋 Posiciones Actuales</h4>
+          <div style="overflow-x: auto;">
+            <table id="positionsTable" class="portfolio-table">
+              <thead>
+                <tr>
+                  <th data-i18n="portfolio_dashboard.ticker">Ticker</th>
+                  <th data-i18n="portfolio_dashboard.name">Nombre</th>
+                  <th data-i18n="portfolio_dashboard.quantity"></th>
+                  <th data-i18n="portfolio_dashboard.entry_price">Precio Entrada</th>
+                  <th data-i18n="portfolio_dashboard.current_price">Precio Actual</th>
+                  <th data-i18n="portfolio_dashboard.value">Valor</th>
+                  <th data-i18n="portfolio_dashboard.weight">Peso %</th>
+                  <th data-i18n="portfolio_dashboard.pnl">P&L</th>
+                  <th data-i18n="portfolio_dashboard.pnl_pct">P&L %</th>
+                </tr>
+              </thead>
+              <tbody id="positionsTableBody">
+                <tr>
+                  <td colspan="9" style="text-align: center; padding: 30px; color: #64748b;"
+                    data-i18n="portfolio_dashboard.no_positions">No hay posiciones para mostrar</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Risk Metrics Detail -->
+        <div style="margin-bottom: 25px;">
+          <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;"
+            data-i18n="portfolio_dashboard.risk_metrics_title">⚠️ Métricas de Riesgo Detalladas</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+            <div class="risk-panel-dark">
+              <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;"
+                data-i18n="portfolio_dashboard.var_title">Value at Risk (VaR)</h5>
+              <div id="varMetrics" style="color: #f87171; font-size: 1.2em; font-weight: bold;">--</div>
+              <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;"
+                data-i18n="portfolio_dashboard.var_description"></p>
+            </div>
+            <div class="risk-panel-dark">
+              <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;"
+                data-i18n="portfolio_dashboard.cvar_title">Conditional VaR (CVaR)</h5>
+              <div id="cvarMetrics" style="color: #f87171; font-size: 1.2em; font-weight: bold;">--</div>
+              <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;"
+                data-i18n="portfolio_dashboard.cvar_description">Expected Shortfall</p>
+            </div>
+            <div class="risk-panel-dark">
+              <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;"
+                data-i18n="portfolio_dashboard.sortino_title">Sortino Ratio</h5>
+              <div id="sortinoMetrics" style="color: #34d399; font-size: 1.2em; font-weight: bold;">--</div>
+              <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;"
+                data-i18n="portfolio_dashboard.sortino_description">Downside risk-adjusted</p>
+            </div>
+            <div class="risk-panel-dark">
+              <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;"
+                data-i18n="portfolio_dashboard.calmar_title">Calmar Ratio</h5>
+              <div id="calmarMetrics" style="color: #34d399; font-size: 1.2em; font-weight: bold;">--</div>
+              <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;"
+                data-i18n="portfolio_dashboard.calmar_description">Return / Max DD</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rebalancing History -->
+        <div style="margin-bottom: 25px;">
+          <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;"
+            data-i18n="portfolio_dashboard.rebalance_history_title">🔄 Histórico de Rebalanceos</h4>
+          <div id="rebalanceHistory" style="background: #0f172a; padding: 20px; border-radius: 8px;">
+            <p style="color: #64748b; text-align: center;" data-i18n="portfolio_dashboard.no_rebalances">No hay
+              rebalanceos registrados</p>
+          </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div id="portfolioAlerts" style="display: none;">
+          <h4 style="color: #fbbf24; margin-bottom: 15px; font-size: 1.1em;"
+            data-i18n="portfolio_dashboard.alerts_title">⚠️ Alertas y Desviaciones</h4>
+          <div id="alertsContainer" style="background: #0f172a; padding: 20px; border-radius: 8px;">
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Strategy Backtesting -->
+      <div id="backtestSection"
+        style="background: #1e293b; padding: 25px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-left: 4px solid #6366f1;">
+        <h3 style="color: #c7d2fe; margin-bottom: 20px; font-size: 1.3em;" data-i18n="backtest_section.title">🧪
+          Backtesting de Estrategias</h3>
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label
+              style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
+              data-i18n="backtest_section.top_n_assets">Top N Activos</label>
+            <input type="number" id="backtestTopN" value="10" min="3" max="30"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label
+              style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
+              data-i18n="backtest_section.rebalance_days">Rebalanceo (días)</label>
+            <input type="number" id="backtestRebalance" value="21" min="5" max="126"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label
+              style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
+              data-i18n="backtest_section.allocation_method">Método de Asignación</label>
+            <select id="backtestAllocationMethod"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white; cursor: pointer;">
+              <option value="hybrid" data-i18n="allocation.hybrid">Hybrid (ERC + Score)</option>
+              <option value="erc" data-i18n="allocation.erc">Equal Risk Contribution</option>
+              <option value="score_weighted" data-i18n="allocation.score_weighted">Score-Weighted</option>
+              <option value="volatility_target" data-i18n="allocation.volatility_target">Volatility Targeting</option>
+              <option value="equal_weight" data-i18n="allocation.equal_weight">Equal Weight</option>
+            </select>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label
+              style="font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;"
+              data-i18n="backtest_section.initial_capital">Capital Inicial</label>
+            <input type="number" id="backtestInitialCapital" value="10000" min="1000" step="500"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: #334155; color: white;" />
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="font-size: 0.85em; color: #94a3b8;">&nbsp;</label>
+            <button onclick="runBacktest()"
+              style="padding: 12px 16px; border-radius: 8px; border: none; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);"
+              data-i18n="backtest_section.run_button">📈 Ejecutar Backtest</button>
+          </div>
+        </div>
+
+        <div id="backtestStatus" class="small-text" style="color:#94a3b8; margin-bottom: 15px;"
+          data-i18n="backtest_section.status_waiting">Selecciona un mercado y ejecuta el backtest para comparar
+          estrategias.</div>
+        <div id="backtestResults" style="display: none;"></div>
+      </div>
+
+      <style>
+        /* Estilos adicionales para la sección de cartera */
+        .portfolio-summary {
+          margin-bottom: 30px;
+        }
+
+        .portfolio-summary h3 {
+          color: #10b981;
+          margin-bottom: 20px;
+        }
+
+        .risk-metrics {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 15px;
+        }
+
+        .risk-card {
+          background: #0f172a;
+          padding: 20px;
+          border-radius: 8px;
+          text-align: center;
+          border: 2px solid #334155;
+        }
+
+        .risk-label {
+          color: #94a3b8;
+          font-size: 0.85em;
+          margin-bottom: 8px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .risk-value {
+          color: #10b981;
+          font-size: 1.8em;
+          font-weight: bold;
+        }
+
+        /* Nuevo bloque de estilos para Risk Dashboard */
+        .risk-dashboard-container {
+          background: #1e293b;
+          padding: 25px;
+          border-radius: 12px;
+          margin-bottom: 30px;
+          border-left: 4px solid #f43f5e;
+          /* Rosa/Rojo para riesgo */
+        }
+
+        .risk-dashboard-container h3 {
+          color: #f43f5e;
+          margin-bottom: 20px;
+        }
+
+        .risk-grid-layout {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+
+        .risk-panel-dark {
+          background: #0f172a;
+          padding: 15px;
+          border-radius: 8px;
+          border: 1px solid #334155;
+        }
+
+        .risk-panel-dark h4 {
+          color: #cbd5e1;
+          margin-bottom: 15px;
+          font-size: 0.9em;
+          text-transform: uppercase;
+        }
+
+        /* Heatmap */
+        .heatmap-table {
+          width: 100%;
+          font-size: 0.75em;
+          border-collapse: collapse;
+        }
+
+        .heatmap-table th {
+          text-align: center;
+          padding: 4px;
+          color: #94a3b8;
+        }
+
+        .heatmap-table td {
+          text-align: center;
+          padding: 6px;
+          border: 1px solid #1e293b;
+          border-radius: 4px;
+        }
+
+        /* Stress Table */
+        .stress-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.9em;
+        }
+
+        .stress-table th {
+          text-align: left;
+          padding: 8px;
+          border-bottom: 1px solid #334155;
+          color: #94a3b8;
+        }
+
+        .stress-table td {
+          padding: 10px 8px;
+          border-bottom: 1px solid #1e293b;
+        }
+
+        .small-text {
+          font-size: 0.75em;
+          color: #64748b;
+          margin-top: 8px;
+        }
+
+        @media (max-width: 1024px) {
+          .risk-grid-layout {
+            grid-template-columns: 1fr;
+          }
+
+          .heatmap-table {
+            font-size: 0.6em;
+          }
+
+          /* Letra más pequeña en móvil */
+        }
+
+        .portfolio-table-container {
+          margin: 30px 0;
+          background: #1e293b;
+          padding: 25px;
+          border-radius: 12px;
+        }
+
+        .portfolio-table-container h3 {
+          color: #38bdf8;
+          margin-bottom: 15px;
+        }
+
+        .portfolio-table {
+          width: 100%;
+          background: #0f172a;
+          border-radius: 8px;
+          overflow: hidden;
+          border-collapse: collapse;
+        }
+
+        .portfolio-table thead {
+          background: #334155;
+        }
+
+        .portfolio-table th {
+          color: #10b981;
+          padding: 12px;
+          text-align: left;
+          font-size: 0.85em;
+          text-transform: uppercase;
+        }
+
+        .portfolio-table td {
+          padding: 12px;
+          border-bottom: 1px solid #334155;
+          color: #f8fafc;
+        }
+
+        .portfolio-chart {
+          margin-top: 30px;
+          background: #1e293b;
+          padding: 25px;
+          border-radius: 12px;
+        }
+
+        .portfolio-chart h3 {
+          color: #818cf8;
+          margin-bottom: 20px;
+        }
+
+        .weight-bars {
+          background: #0f172a;
+          padding: 20px;
+          border-radius: 8px;
+        }
+
+        .weight-bar-container {
+          margin-bottom: 15px;
+        }
+
+        .weight-bar-label {
+          color: #94a3b8;
+          font-size: 0.9em;
+          margin-bottom: 5px;
+          font-weight: bold;
+        }
+
+        .weight-bar-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .weight-bar {
+          height: 30px;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          border-radius: 4px;
+          transition: width 0.3s ease;
+          min-width: 2px;
+        }
+
+        .weight-bar-value {
+          color: #10b981;
+          font-weight: bold;
+          min-width: 50px;
+        }
+
+
+        .backtest-summary {
+          margin-bottom: 15px;
+        }
+
+        .backtest-summary h3 {
+          color: #c7d2fe;
+          margin-bottom: 5px;
+        }
+
+        .backtest-table-container {
+          background: #0f172a;
+          padding: 15px;
+          border-radius: 8px;
+          border: 1px solid #334155;
+        }
+
+        .backtest-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.9em;
+        }
+
+        .backtest-table th,
+        .backtest-table td {
+          padding: 10px 12px;
+          border-bottom: 1px solid #334155;
+          text-align: left;
+        }
+
+        .backtest-table th {
+          color: #cbd5f5;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-size: 0.75em;
+        }
+
+        .backtest-table td {
+          color: #e2e8f0;
+        }
+
+        .backtest-action {
+          padding: 8px 14px;
+          border-radius: 8px;
+          border: 1px solid #334155;
+          background: #0f172a;
+          color: #64748b;
+          /* Grisáceo por defecto (apagado) */
+          font-size: 0.85em;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .backtest-action:hover {
+          border-color: #475569;
+          color: #94a3b8;
+        }
+
+        /* Estado Activo (Encendido - Blanco Brillante) */
+        .backtest-action.active {
+          border-color: #818cf8;
+          color: #ffffff;
+          background: #1e293b;
+          box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+        }
+
+        .backtest-action.active:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .equity-chart {
+          transition: transform 0.3s ease;
+        }
+
+        .equity-chart:hover {
+          transform: scale(1.02);
+        }
+
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .backtest-summary,
+        .backtest-table-container {
+          animation: slideIn 0.5s ease-out;
+        }
+
+        [data-tooltip] {
+          position: relative;
+          cursor: help;
+        }
+
+        [data-tooltip]:hover::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #0f172a;
+          color: #f8fafc;
+          padding: 8px 12px;
+          border-radius: 6px;
+          white-space: nowrap;
+          font-size: 0.85em;
+          z-index: 1000;
+          border: 1px solid #334155;
+        }
+      </style>
     </div>
   </div>
 
-  <!-- Risk Metrics Detail -->
-  <div style="margin-bottom: 25px;">
-    <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;" data-i18n="portfolio_dashboard.risk_metrics_title">⚠️ Métricas de Riesgo Detalladas</h4>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-      <div class="risk-panel-dark">
-        <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;" data-i18n="portfolio_dashboard.var_title">Value at Risk (VaR)</h5>
-        <div id="varMetrics" style="color: #f87171; font-size: 1.2em; font-weight: bold;">--</div>
-        <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;" data-i18n="portfolio_dashboard.var_description">95% confianza, 1 día</p>
-      </div>
-      <div class="risk-panel-dark">
-        <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;" data-i18n="portfolio_dashboard.cvar_title">Conditional VaR (CVaR)</h5>
-        <div id="cvarMetrics" style="color: #f87171; font-size: 1.2em; font-weight: bold;">--</div>
-        <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;" data-i18n="portfolio_dashboard.cvar_description">Expected Shortfall</p>
-      </div>
-      <div class="risk-panel-dark">
-        <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;" data-i18n="portfolio_dashboard.sortino_title">Sortino Ratio</h5>
-        <div id="sortinoMetrics" style="color: #34d399; font-size: 1.2em; font-weight: bold;">--</div>
-        <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;" data-i18n="portfolio_dashboard.sortino_description">Downside risk-adjusted</p>
-      </div>
-      <div class="risk-panel-dark">
-        <h5 style="color: #cbd5e1; margin-bottom: 10px; font-size: 0.9em;" data-i18n="portfolio_dashboard.calmar_title">Calmar Ratio</h5>
-        <div id="calmarMetrics" style="color: #34d399; font-size: 1.2em; font-weight: bold;">--</div>
-        <p style="font-size: 0.75em; color: #64748b; margin-top: 5px;" data-i18n="portfolio_dashboard.calmar_description">Return / Max DD</p>
-      </div>
+  <!-- Details Modal -->
+  <div id="detailModal" class="modal" onclick="if(event.target === this) closeModal()">
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeModal()">×</button>
+      <div id="modalContent"></div>
     </div>
   </div>
 
-  <!-- Rebalancing History -->
-  <div style="margin-bottom: 25px;">
-    <h4 style="color: #94a3b8; margin-bottom: 15px; font-size: 1.1em;" data-i18n="portfolio_dashboard.rebalance_history_title">🔄 Histórico de Rebalanceos</h4>
-    <div id="rebalanceHistory" style="background: #0f172a; padding: 20px; border-radius: 8px;">
-      <p style="color: #64748b; text-align: center;" data-i18n="portfolio_dashboard.no_rebalances">No hay rebalanceos registrados</p>
-    </div>
-  </div>
-
-  <!-- Alerts Section -->
-  <div id="portfolioAlerts" style="display: none;">
-    <h4 style="color: #fbbf24; margin-bottom: 15px; font-size: 1.1em;" data-i18n="portfolio_dashboard.alerts_title">⚠️ Alertas y Desviaciones</h4>
-    <div id="alertsContainer" style="background: #0f172a; padding: 20px; border-radius: 8px;">
-    </div>
-  </div>
-</div>
-
-<!-- Details Modal -->
-<div id="detailModal" class="modal" onclick="if(event.target === this) closeModal()">
-  <div class="modal-content">
-    <button class="close-modal" onclick="closeModal()">×</button>
-    <div id="modalContent"></div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
-<script type="module" src="src/core/scanner.js"></script>
-<script type="module" src="src/i18n/ui-translator.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+  <script type="module" src="src/core/scanner.js"></script>
+  <script type="module" src="src/i18n/ui-translator.js"></script>
 </body>
+
 </html>

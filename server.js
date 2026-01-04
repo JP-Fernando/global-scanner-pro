@@ -65,24 +65,44 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '0.0.2'
+    version: '0.0.4'
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const BASE_PORT = Number(process.env.PORT) || 3000;
+const MAX_PORT_ATTEMPTS = 10;
 
-
-app.listen(PORT, () => {
-  console.log('\n╔════════════════════════════════════════════════════════════╗');
-  console.log('║   🎯 GLOBAL QUANT SCANNER PRO                             ║');
+const logServerStart = (port) => {
+console.log('\n╔════════════════════════════════════════════════════════════╗');
+  console.log('║   🎯 GLOBAL QUANT SCANNER PRO                              ║');
   console.log('║   Professional Edition                                     ║');
   console.log('╚════════════════════════════════════════════════════════════╝\n');
   console.log('  ✅ Scanner iniciado correctamente\n');
   console.log('  📊 Interfaz principal:');
-  console.log(`     → http://localhost:${PORT}/index.html\n`);
+  console.log(`     → http://localhost:${port}/index.html\n`);
   console.log('  🧪 Ejecutar tests:');
-  console.log(`     → http://localhost:${PORT}/api/run-tests\n`);
+  console.log(`     → http://localhost:${port}/api/run-tests\n`);
   console.log('  💡 Tip: Ctrl+Click en las URLs para abrirlas\n');
-});
+};
+
+const startServer = (port, attempt = 0) => {
+  const server = app.listen(port, () => logServerStart(port));
+
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE' && attempt < MAX_PORT_ATTEMPTS - 1) {
+      const nextPort = port + 1;
+      console.warn(
+        `⚠️  Puerto ${port} en uso. Intentando iniciar en el puerto ${nextPort}...`
+      );
+      startServer(nextPort, attempt + 1);
+      return;
+    }
+
+    console.error('❌ No se pudo iniciar el servidor:', error.message);
+    process.exit(1);
+  });
+};
+
+startServer(BASE_PORT);
 
 export default app;

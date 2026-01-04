@@ -345,7 +345,8 @@ export class PerformanceTracker {
     }
 
     // Use existing risk engine to calculate portfolio metrics
-    const riskMetrics = calculatePortfolioMetrics(historicalData);
+    const totalCapital = portfolio.current_value || portfolio.initial_capital || 10000;
+    const riskMetrics = calculatePortfolioMetrics(historicalData, totalCapital);
 
     return riskMetrics;
   }

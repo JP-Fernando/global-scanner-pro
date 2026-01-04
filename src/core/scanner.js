@@ -1378,6 +1378,11 @@ window.buildPortfolio = function () {
 
     // 8. Renderizar
     renderPortfolio(appState.portfolio);
+    
+    const portfolioDashboard = document.getElementById('portfolioDashboardSection');
+    if (portfolioDashboard) {
+      portfolioDashboard.style.display = 'block';
+    }
 
     document.getElementById('portfolioResults').scrollIntoView({ behavior: 'smooth' });
 
