@@ -92,6 +92,7 @@ Documentos destacados:
 - [Construcción de cartera y análisis de riesgo](docs/cartera-riesgo.md)
 - [Sección técnica](docs/arquitectura-tecnica.md)
 - [Sistema de internacionalización (i18n)](src/i18n/README.md)
+- [Módulo de reportes avanzados](docs/reports_module.md) 🆕
 - [Roadmap](docs/roadmap.md)
 
 ---
@@ -111,7 +112,7 @@ global-scanner-pro/
 │   │   ├── scanner.js           # Motor principal (con i18n integrado)
 │   │   └── config.js            # Configuración (con traducciones dinámicas)
 │   │
-│   ├── i18n/                    # 🆕 Sistema de internacionalización
+│   ├── i18n/                    # Sistema de internacionalización
 │   │   ├── i18n.js              # Motor de traducciones
 │   │   ├── ui-translator.js     # Helper para actualización automática del DOM
 │   │   ├── translations/
@@ -120,10 +121,39 @@ global-scanner-pro/
 │   │   ├── README.md            # Documentación completa del sistema i18n
 │   │   └── example-integration.html  # Ejemplo funcional
 │   │
+│   ├── reports/                 # 🆕 Sistema de exportación y reportes
+│   │   ├── report-generator.js  # Clases base para generación
+│   │   ├── excel-exporter.js    # Exportadores Excel especializados
+│   │   ├── pdf-templates.js     # Templates PDF por audiencia
+│   │   ├── comparative-analysis.js  # Análisis comparativo
+│   │   ├── index.js             # Exports centralizados
+│   │   └── README.md            # Documentación técnica
+│   │
+│   ├── portfolio/               # Gestión y tracking de portfolios
+│   │   ├── portfolio-manager.js # CRUD de portfolios
+│   │   └── performance-tracker.js  # Métricas y análisis
+│   │
+│   ├── dashboard/               # Dashboard interactivo
+│   │   └── portfolio-dashboard.js  # Controller del dashboard
+│   │
+│   ├── storage/                 # Persistencia de datos
+│   │   └── indexed-db-store.js  # IndexedDB wrapper
+│   │
 │   ├── indicators/              # Indicadores técnicos y scoring
 │   ├── allocation/              # Métodos de asignación de capital
 │   ├── analytics/               # Backtesting, risk, governance, regime
-│   └── data/                    # Sectores y anomalías
+│   ├── data/                    # Sectores y anomalías
+│   └── tests/                   # Suite de testing
+│
+├── docs/                        # Documentación completa
+│   ├── README.md                # Índice de documentación
+│   ├── guia-principiantes.md    # Guía para nuevos usuarios
+│   ├── interpretacion-senales.md  # Cómo interpretar señales
+│   ├── cartera-riesgo.md        # Construcción de cartera
+│   ├── arquitectura-tecnica.md  # Detalles técnicos
+│   ├── reports_module.md        # 🆕 Módulo de reportes
+│   ├── roadmap.md               # Roadmap del proyecto
+│   └── disclaimer.md            # Descargo de responsabilidad
 │
 └── universes/                   # Datos de mercados (18 mercados)
 ```
@@ -133,6 +163,9 @@ global-scanner-pro/
 - **Frontend**: Vanilla JavaScript (ES6 Modules)
 - **Backend**: Node.js + Express
 - **Datos**: Yahoo Finance API
+- **Exportación**: xlsx, jsPDF, jsPDF-AutoTable
+- **Persistencia**: IndexedDB (client-side)
+- **Charts**: Chart.js
 
 ---
 

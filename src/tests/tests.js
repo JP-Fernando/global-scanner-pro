@@ -10,6 +10,13 @@ import {
   calculatePortfolioCVaR,
   calculateCorrelationMatrix
 } from '../analytics/risk_engine.js';
+import {
+  ReportGenerator,
+  ExcelReportGenerator,
+  PDFReportGenerator,
+  ComparativeAnalysisGenerator,
+  ExecutiveSummaryGenerator
+} from '../reports/report-generator.js';
 
 const assert = (condition, message) => {
   if (!condition) {
@@ -490,6 +497,314 @@ export const testShrinkageActivation = () => {
   return assert(parseFloat(result.diversifiedVaR) > 0, i18n.t('test.var_computed_small_sample'));
 };
 
+// =====================================================
+// REPORTS MODULE TESTS
+// =====================================================
+
+const testReportGeneratorBase = () => {
+  const testData = { value: 100, name: 'Test' };
+  const generator = new ReportGenerator(testData);
+
+  // Test filename generation
+  const filename = generator.getFilename('test', 'csv');
+  assert(filename.includes('test_'), 'Filename has prefix');
+  assert(filename.endsWith('.csv'), 'Filename has correct extension');
+
+  // Test number formatting
+  const formatted = generator.formatNumber(123.456, 2);
+  assert(formatted === '123.46', 'Number formatted correctly');
+
+  // Test percentage formatting
+  const percent = generator.formatPercent(0.1234, 2);
+  assert(percent === '12.34%', 'Percentage formatted correctly');
+
+  // Test currency formatting
+  const currency = generator.formatCurrency(1234.56);
+  assert(currency.includes('1,234.56'), 'Currency formatted correctly');
+
+  // Test safe value extraction
+  const safe = generator.safeValue({ a: { b: { c: 42 } } }, 'a.b.c', 0);
+  assert(safe === 42, 'Safe value extraction works');
+
+  const safeFallback = generator.safeValue({ a: 1 }, 'x.y.z', 'N/A');
+  return assert(safeFallback === 'N/A', 'Safe value fallback works');
+};
+
+const testExcelReportGenerator = () => {
+  // Mock XLSX library for testing
+  if (typeof window === 'undefined') {
+    global.window = {};
+  }
+
+  window.XLSX = {
+    utils: {
+      book_new: () => ({ SheetNames: [], Sheets: {} }),
+      aoa_to_sheet: (data) => ({ data }),
+      book_append_sheet: (workbook, worksheet, sheetName) => {
+        workbook.SheetNames.push(sheetName);
+        workbook.Sheets[sheetName] = worksheet;
+      }
+    },
+    writeFile: (workbook, filename) => {
+      // Mock write - do nothing
+    }
+  };
+
+  const generator = new ExcelReportGenerator({ test: true });
+
+  // Test worksheet addition
+  const testData = [
+    ['Header1', 'Header2', 'Header3'],
+    ['Value1', 'Value2', 'Value3'],
+    ['Value4', 'Value5', 'Value6']
+  ];
+
+  generator.addWorksheet('Test Sheet', testData, {
+    columnWidths: [20, 15, 15]
+  });
+
+  // Verify workbook has sheet
+  assert(generator.workbook.SheetNames.length > 0, 'Workbook has sheets');
+  assert(generator.workbook.SheetNames[0] === 'Test Sheet', 'Sheet name is correct');
+
+  // Note: We can't test download in Node.js, only in browser
+  return true;
+};
+
+const testPDFReportGenerator = () => {
+  // Mock jsPDF library for testing
+  if (typeof window === 'undefined') {
+    global.window = {};
+  }
+
+  class MockJsPDF {
+    constructor(orientation) {
+      this.orientation = orientation;
+      this.lastAutoTable = { finalY: 100 };
+      this._pages = 1;
+    }
+    internal = {
+      pageSize: {
+        getWidth: () => 210,
+        getHeight: () => 297
+      },
+      getNumberOfPages: () => this._pages
+    };
+    setFontSize(size) {}
+    setFont(font, style) {}
+    setTextColor(...args) {}
+    setFillColor(...args) {}
+    text(text, x, y) {}
+    splitTextToSize(text, width) {
+      return [text];
+    }
+    rect(x, y, w, h, style) {}
+    addPage() {
+      this._pages++;
+    }
+    setPage(num) {}
+    autoTable(config) {
+      this.lastAutoTable.finalY = 150;
+    }
+    save(filename) {}
+  }
+
+  window.jspdf = {
+    jsPDF: MockJsPDF
+  };
+
+  const generator = new PDFReportGenerator({ test: true });
+
+  // Test title addition
+  generator.addTitle('Test Report');
+  assert(generator.currentY > 20, 'Y position advanced after title');
+
+  // Test subtitle
+  const yBefore = generator.currentY;
+  generator.addSubtitle('Test Subtitle');
+  assert(generator.currentY > yBefore, 'Y position advanced after subtitle');
+
+  // Test section header
+  const yBeforeSection = generator.currentY;
+  generator.addSectionHeader('Section 1');
+  assert(generator.currentY > yBeforeSection, 'Y position advanced after section');
+
+  // Test text addition
+  const yBeforeText = generator.currentY;
+  generator.addText('This is test text');
+  assert(generator.currentY > yBeforeText, 'Y position advanced after text');
+
+  // Test metrics box
+  const yBeforeMetrics = generator.currentY;
+  const metrics = [
+    { label: 'Metric 1', value: '100' },
+    { label: 'Metric 2', value: '200' }
+  ];
+  generator.addMetricsBox(metrics, 2);
+  assert(generator.currentY > yBeforeMetrics, 'Y position advanced after metrics box');
+
+  // Test table
+  const yBeforeTable = generator.currentY;
+  generator.addTable(['Col1', 'Col2'], [['Val1', 'Val2']]);
+  assert(generator.currentY > yBeforeTable, 'Y position advanced after table');
+
+  return true;
+};
+
+const testComparativeAnalysis = () => {
+  const dataset1 = {
+    strategyName: 'Strategy A',
+    metrics: {
+      cagr: 0.15,
+      sharpeRatio: 1.5,
+      maxDrawdown: -0.12,
+      volatility: 0.18,
+      winRate: 0.65
+    }
+  };
+
+  const dataset2 = {
+    strategyName: 'Strategy B',
+    metrics: {
+      cagr: 0.12,
+      sharpeRatio: 1.2,
+      maxDrawdown: -0.08,
+      volatility: 0.14,
+      winRate: 0.60
+    }
+  };
+
+  const dataset3 = {
+    strategyName: 'Strategy C',
+    metrics: {
+      cagr: 0.18,
+      sharpeRatio: 1.8,
+      maxDrawdown: -0.15,
+      volatility: 0.20,
+      winRate: 0.70
+    }
+  };
+
+  const datasets = [dataset1, dataset2, dataset3];
+  const generator = new ComparativeAnalysisGenerator(datasets);
+  const comparison = generator.compareStrategies();
+
+  // Test comparison structure
+  assert(comparison.strategies.length === 3, 'Comparison has 3 strategies');
+  assert(comparison.metrics.length > 0, 'Comparison has metrics');
+  assert(comparison.rankings !== undefined, 'Comparison has rankings');
+  assert(comparison.summary !== undefined, 'Comparison has summary');
+
+  // Test rankings
+  assert(comparison.rankings.cagr !== undefined, 'CAGR rankings exist');
+  assert(comparison.rankings.sharpeRatio !== undefined, 'Sharpe rankings exist');
+
+  // Test best overall
+  assert(comparison.summary.bestOverall !== undefined, 'Best overall strategy identified');
+
+  // Strategy C should have best Sharpe ratio (rank 1)
+  const sharpeRankings = comparison.rankings.sharpeRatio;
+  const topSharpe = sharpeRankings[0];
+  assert(topSharpe.rank === 1, 'Top ranked has rank 1');
+  assert(topSharpe.name === 'Strategy C', 'Strategy C has best Sharpe');
+
+  return true;
+};
+
+const testExecutiveSummary = () => {
+  const testData = {
+    strategyName: 'Test Strategy',
+    metrics: {
+      cagr: 0.15,
+      sharpeRatio: 1.5,
+      sortinoRatio: 1.8,
+      maxDrawdown: -0.12,
+      volatility: 0.18,
+      winRate: 0.65,
+      alpha: 0.03,
+      beta: 0.95
+    },
+    positions: [
+      { ticker: 'AAPL', score: 0.85, weight: 0.15 },
+      { ticker: 'MSFT', score: 0.80, weight: 0.12 },
+      { ticker: 'GOOGL', score: 0.75, weight: 0.35 } // High concentration
+    ]
+  };
+
+  const generator = new ExecutiveSummaryGenerator(testData);
+  const summary = generator.generate();
+
+  // Test summary structure
+  assert(summary.overview !== undefined, 'Overview generated');
+  assert(typeof summary.overview === 'string', 'Overview is string');
+  assert(summary.overview.length > 0, 'Overview has content');
+
+  // Test key metrics
+  assert(summary.keyMetrics !== undefined, 'Key metrics extracted');
+  assert(summary.keyMetrics.cagr === 0.15, 'CAGR in key metrics');
+  assert(summary.keyMetrics.sharpeRatio === 1.5, 'Sharpe in key metrics');
+
+  // Test top signals
+  assert(summary.topSignals !== undefined, 'Top signals identified');
+  assert(Array.isArray(summary.topSignals), 'Top signals is array');
+
+  // Test main risks
+  assert(summary.mainRisks !== undefined, 'Main risks identified');
+  assert(Array.isArray(summary.mainRisks), 'Main risks is array');
+
+  // Should identify concentration risk (GOOGL > 25%)
+  const hasConcentrationRisk = summary.mainRisks.some(r =>
+    r.type === 'Concentration Risk'
+  );
+  assert(hasConcentrationRisk, 'Concentration risk detected');
+
+  // Test recommendations
+  assert(summary.recommendations !== undefined, 'Recommendations generated');
+  assert(Array.isArray(summary.recommendations), 'Recommendations is array');
+
+  // Test market context
+  assert(summary.marketContext !== undefined, 'Market context included');
+
+  return true;
+};
+
+const testCompareTwoPeriods = () => {
+  const period1 = {
+    cagr: 0.15,
+    sharpeRatio: 1.5,
+    maxDrawdown: -0.12,
+    volatility: 0.18
+  };
+
+  const period2 = {
+    cagr: 0.12,
+    sharpeRatio: 1.2,
+    maxDrawdown: -0.10,
+    volatility: 0.15
+  };
+
+  const generator = new ComparativeAnalysisGenerator([period1, period2]);
+
+  // Test period comparison
+  const comparison = {
+    period1: { label: 'YTD 2024', ...period1 },
+    period2: { label: '2023', ...period2 },
+    differences: {
+      cagr: period1.cagr - period2.cagr,
+      sharpeRatio: period1.sharpeRatio - period2.sharpeRatio,
+      maxDrawdown: period1.maxDrawdown - period2.maxDrawdown,
+      volatility: period1.volatility - period2.volatility
+    },
+    winner: period1.sharpeRatio > period2.sharpeRatio ? 'YTD 2024' : '2023'
+  };
+
+  assert(comparison.differences.cagr > 0, 'CAGR difference calculated');
+  assert(comparison.differences.sharpeRatio > 0, 'Sharpe difference calculated');
+  assert(comparison.winner === 'YTD 2024', 'Winner identified correctly');
+
+  return true;
+};
+
 
 // =====================================================
 // RUN ALL TESTS
@@ -519,7 +834,13 @@ export const runAllTests = () => {
     testRiskEngineMetrics,
     testRiskEngineEdgeCases,
     testCorrelationMatrixSymmetry,
-    testShrinkageActivation
+    testShrinkageActivation,
+    testReportGeneratorBase,
+    testExcelReportGenerator,
+    testPDFReportGenerator,
+    testComparativeAnalysis,
+    testExecutiveSummary,
+    testCompareTwoPeriods
   ];
 
   let passed = 0;

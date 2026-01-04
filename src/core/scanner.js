@@ -14,6 +14,13 @@ import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from '../data/sect
 import { detectAnomalies } from '../data/anomalies.js';
 import i18n from '../i18n/i18n.js';
 import { initDashboard } from '../dashboard/portfolio-dashboard.js';
+import {
+  exportBacktestToExcel,
+  exportScanResultsToExcel,
+  generateBacktestPDF,
+  generateComparativePDF,
+  generateComparativeExcel
+} from '../reports/index.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
@@ -455,7 +462,16 @@ function renderBacktestActions() {
       <button class="backtest-action active" onclick="toggleSection('backtest-equity', this)">${i18n.t('backtest_section.action_equity')}</button>
       <button class="backtest-action active" onclick="toggleSection('backtest-drawdown', this)">${i18n.t('backtest_section.action_drawdown')}</button>
       <button class="backtest-action active" onclick="exportBacktestToCSV()">
-      ${i18n.t('backtest_section.action_export')}
+      📄 ${i18n.t('backtest_section.action_export')} CSV
+      </button>
+      <button class="backtest-action active" onclick="exportBacktestToExcelAdvanced()" style="background: #059669;">
+      📊 ${i18n.t('backtest_section.action_export')} Excel
+      </button>
+      <button class="backtest-action active" onclick="exportBacktestToPDFAdvanced()" style="background: #dc2626;">
+      📑 ${i18n.t('backtest_section.action_export')} PDF
+      </button>
+      <button class="backtest-action active" onclick="exportBacktestComparative()" style="background: #7c3aed;">
+      📈 ${i18n.t('backtest_section.comparative_report')}
       </button>
     </div>
   `;
@@ -1011,9 +1027,60 @@ function renderDrawdownAnalysis(results) {
   `;
 }
 
+// =====================================================
+// ADVANCED EXPORT FUNCTIONS
+// =====================================================
+
+function exportBacktestToExcelAdvanced() {
+  if (!lastBacktestResults || lastBacktestResults.length === 0) {
+    alert('No backtest results available. Please run a backtest first.');
+    return;
+  }
+  exportBacktestToExcel(lastBacktestResults);
+}
+
+function exportBacktestToPDFAdvanced() {
+  if (!lastBacktestResults || lastBacktestResults.length === 0) {
+    alert('No backtest results available. Please run a backtest first.');
+    return;
+  }
+  generateBacktestPDF(lastBacktestResults);
+}
+
+function exportBacktestComparative() {
+  if (!lastBacktestResults || lastBacktestResults.length === 0) {
+    alert('No backtest results available. Please run a backtest first.');
+    return;
+  }
+
+  // Ask user for format preference
+  const format = confirm('Click OK for PDF, Cancel for Excel');
+  if (format) {
+    generateComparativePDF(lastBacktestResults, 'Backtest Strategy Comparison');
+  } else {
+    generateComparativeExcel(lastBacktestResults, 'Backtest Strategy Comparison');
+  }
+}
+
+function exportScanResults() {
+  if (!currentResults || currentResults.length === 0) {
+    alert('No scan results available. Please run a scan first.');
+    return;
+  }
+
+  const allocation = appState.portfolio;
+  const riskMetrics = appState.market;
+
+  exportScanResultsToExcel(currentResults, allocation, riskMetrics);
+}
+
 window.renderBacktestResults = renderBacktestResults;
 window.toggleSection = toggleSection;
 window.exportBacktestToCSV = exportBacktestToCSV;
+window.exportBacktestToExcelAdvanced = exportBacktestToExcelAdvanced;
+window.exportBacktestToPDFAdvanced = exportBacktestToPDFAdvanced;
+window.exportBacktestComparative = exportBacktestComparative;
+window.exportScanResults = exportScanResults;
 
 window.runBacktest = async function () {
   const [file, suffix] = document.getElementById('marketSelect').value.split('|');
@@ -1201,6 +1268,12 @@ export async function runScan() {
     appState.strategy = strategyKey;
     appState.scanCompleted = true;
     updateStrategyInfoDisplay();
+
+    // Show export button when results are available
+    const exportButtons = document.getElementById('scanExportButtons');
+    if (exportButtons && currentResults.length > 0) {
+      exportButtons.style.display = 'block';
+    }
 
     const canBuildPortfolio =
       appState.scanResults.filter(

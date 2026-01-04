@@ -551,8 +551,13 @@
           </tr>
         </tbody>
       </table>
-      <!-- ADD THIS HTML JUST BEFORE THE </div> THAT CLOSES .container IN index.html -->
-      <!-- After the results table -->
+
+      <!-- Export buttons for scan results -->
+      <div id="scanExportButtons" style="display: none; margin-top: 15px; text-align: center;">
+        <button onclick="exportScanResults()" style="background: #059669; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
+          📊 Export Results to Excel
+        </button>
+      </div>
 
       <!-- New Section: Portfolio Construction -->
       <div id="portfolioSection"
@@ -1205,7 +1210,13 @@
     </div>
   </div>
 
+  <!-- Load external libraries via CDN (must be loaded before modules that use them) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Load application modules -->
   <script type="module" src="src/core/scanner.js"></script>
   <script type="module" src="src/i18n/ui-translator.js"></script>
 </body>

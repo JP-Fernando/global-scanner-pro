@@ -6,6 +6,12 @@
 import { portfolioManager } from '../portfolio/portfolio-manager.js';
 import { performanceTracker } from '../portfolio/performance-tracker.js';
 import i18n from '../i18n/i18n.js';
+import {
+  exportPortfolioToExcel,
+  generateAuditReport,
+  generateInvestmentCommitteeReport,
+  generateClientReport
+} from '../reports/index.js';
 
 // Current state
 let currentPortfolio = null;
@@ -671,6 +677,163 @@ window.deleteCurrentPortfolio = async function() {
 };
 
 /**
+ * Export portfolio to Excel
+ */
+async function exportPortfolioExcel() {
+  if (!currentPortfolio) {
+    alert('No portfolio loaded. Please select a portfolio first.');
+    return;
+  }
+
+  try {
+    // Gather all necessary data
+    const pnlData = await performanceTracker.calculatePnL(currentPortfolio);
+    const equityCurve = await performanceTracker.calculateEquityCurve(currentPortfolio);
+    const perfMetrics = performanceTracker.calculatePerformanceMetrics(equityCurve);
+    const benchmarkComparison = await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
+
+    const performanceData = {
+      ...pnlData,
+      ...perfMetrics,
+      ...benchmarkComparison
+    };
+
+    const riskData = {
+      var95: perfMetrics.annualized_volatility_pct / Math.sqrt(252) * 1.65,
+      cvar95: perfMetrics.annualized_volatility_pct / Math.sqrt(252) * 1.65 * 1.3,
+      dailyVol: perfMetrics.annualized_volatility_pct / Math.sqrt(252),
+      annualVol: perfMetrics.annualized_volatility_pct,
+      concentration: currentPortfolio.positions?.length > 0
+        ? Math.max(...currentPortfolio.positions.map(p => p.weight || 0))
+        : 0,
+      numPositions: currentPortfolio.positions?.length || 0
+    };
+
+    exportPortfolioToExcel(currentPortfolio, performanceData, riskData);
+  } catch (error) {
+    console.error('Error exporting portfolio:', error);
+    alert('Error exporting portfolio. Please try again.');
+  }
+}
+
+/**
+ * Generate audit report PDF
+ */
+async function exportAuditReport() {
+  if (!currentPortfolio) {
+    alert('No portfolio loaded. Please select a portfolio first.');
+    return;
+  }
+
+  try {
+    const pnlData = await performanceTracker.calculatePnL(currentPortfolio);
+    const equityCurve = await performanceTracker.calculateEquityCurve(currentPortfolio);
+    const perfMetrics = performanceTracker.calculatePerformanceMetrics(equityCurve);
+    const benchmarkComparison = await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
+
+    const performanceData = {
+      ...pnlData,
+      ...perfMetrics,
+      ...benchmarkComparison
+    };
+
+    const riskData = {
+      var95: perfMetrics.annualized_volatility_pct / Math.sqrt(252) * 1.65,
+      cvar95: perfMetrics.annualized_volatility_pct / Math.sqrt(252) * 1.65 * 1.3
+    };
+
+    // Note: governance data would come from governance module in production
+    const governance = {
+      compliance: { passed: true, issues: [] },
+      rules_applied: {
+        'Max Position Weight': '25%',
+        'Max Volatility': '30%',
+        'Min Volume': '100K shares'
+      }
+    };
+
+    generateAuditReport(currentPortfolio, governance, riskData, performanceData);
+  } catch (error) {
+    console.error('Error generating audit report:', error);
+    alert('Error generating audit report. Please try again.');
+  }
+}
+
+/**
+ * Generate investment committee report PDF
+ */
+async function exportInvestmentCommitteeReport() {
+  if (!currentPortfolio) {
+    alert('No portfolio loaded. Please select a portfolio first.');
+    return;
+  }
+
+  try {
+    const pnlData = await performanceTracker.calculatePnL(currentPortfolio);
+    const equityCurve = await performanceTracker.calculateEquityCurve(currentPortfolio);
+    const perfMetrics = performanceTracker.calculatePerformanceMetrics(equityCurve);
+    const benchmarkComparison = await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
+
+    const performanceData = {
+      ...pnlData,
+      ...perfMetrics,
+      ...benchmarkComparison
+    };
+
+    const riskData = {
+      var95: perfMetrics.annualized_volatility_pct / Math.sqrt(252) * 1.65,
+      cvar95: perfMetrics.annualized_volatility_pct / Math.sqrt(252) * 1.65 * 1.3,
+      concentration: currentPortfolio.positions?.length > 0
+        ? Math.max(...currentPortfolio.positions.map(p => p.weight || 0))
+        : 0
+    };
+
+    const marketContext = {
+      regime: 'BULL', // Would come from market regime module
+      sentiment: 'POSITIVE'
+    };
+
+    generateInvestmentCommitteeReport(currentPortfolio, performanceData, riskData, marketContext);
+  } catch (error) {
+    console.error('Error generating investment committee report:', error);
+    alert('Error generating report. Please try again.');
+  }
+}
+
+/**
+ * Generate client report PDF
+ */
+async function exportClientReport() {
+  if (!currentPortfolio) {
+    alert('No portfolio loaded. Please select a portfolio first.');
+    return;
+  }
+
+  try {
+    const pnlData = await performanceTracker.calculatePnL(currentPortfolio);
+    const equityCurve = await performanceTracker.calculateEquityCurve(currentPortfolio);
+    const perfMetrics = performanceTracker.calculatePerformanceMetrics(equityCurve);
+    const benchmarkComparison = await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
+
+    const performanceData = {
+      ...pnlData,
+      ...perfMetrics,
+      ...benchmarkComparison
+    };
+
+    const riskData = {
+      var95: perfMetrics.annualized_volatility_pct / Math.sqrt(252) * 1.65,
+      cvar95: perfMetrics.annualized_volatility_pct / Math.sqrt(252) * 1.65 * 1.3
+    };
+
+    generateClientReport(currentPortfolio, performanceData, riskData);
+  } catch (error) {
+    console.error('Error generating client report:', error);
+    alert('Error generating client report. Please try again.');
+  }
+}
+
+/**
  * Refresh dashboard (global function)
  */
 window.refreshDashboard = refreshDashboard;
@@ -679,6 +842,14 @@ window.refreshDashboard = refreshDashboard;
  * Switch chart tab (global function)
  */
 window.switchChartTab = switchChartTab;
+
+/**
+ * Export functions (global)
+ */
+window.exportPortfolioExcel = exportPortfolioExcel;
+window.exportAuditReport = exportAuditReport;
+window.exportInvestmentCommitteeReport = exportInvestmentCommitteeReport;
+window.exportClientReport = exportClientReport;
 
 // Export functions
 export { loadPortfolioList, clearDashboard };

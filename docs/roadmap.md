@@ -1,16 +1,18 @@
 # 📅 Roadmap de Futuras Mejoras
 
-1. **Dashboard de portfolio tracking**
-   - Visualización en tiempo real de carteras construidas, valor y P&L.
-   - Curva de equity, drawdowns y métricas de riesgo (VaR, CVaR, beta, volatilidad).
-   - Comparación con benchmark y alertas de desviación de objetivo.
-   - Histórico de rebalanceos con justificación y trazabilidad de cambios.
+1. ✅ **Dashboard de portfolio tracking** *(Completado)*
+   - ✅ Visualización en tiempo real de carteras construidas, valor y P&L.
+   - ✅ Curva de equity, drawdowns y métricas de riesgo (VaR, CVaR, beta, volatilidad).
+   - ✅ Comparación con benchmark y alertas de desviación de objetivo.
+   - ✅ Histórico de rebalanceos con justificación y trazabilidad de cambios.
+   - *Implementación: [portfolio-dashboard.js](../src/dashboard/portfolio-dashboard.js), [performance-tracker.js](../src/portfolio/performance-tracker.js), [risk_engine.js](../src/analytics/risk_engine.js)*
 
-2. **Exportación avanzada de reportes**
-   - Exportación a Excel/CSV con métricas de riesgo, scores, asignación y pesos.
-   - Plantillas listas para auditoría, comité de inversión y clientes.
-   - Reportes comparativos entre estrategias y periodos.
-   - Resúmenes ejecutivos con principales señales y riesgos.
+2. ✅ **Exportación avanzada de reportes** *(Completado)*
+   - ✅ Exportación a Excel/CSV con métricas de riesgo, scores, asignación y pesos.
+   - ✅ Plantillas listas para auditoría, comité de inversión y clientes.
+   - ✅ Reportes comparativos entre estrategias y periodos.
+   - ✅ Resúmenes ejecutivos con principales señales y riesgos.
+   - *Implementación: [reports/](../src/reports/) - Excel, PDF, Comparative Analysis, Executive Summary*
 
 3. **Alertas por email/webhook**
    - Notificación de señales fuertes, rebalanceos y eventos relevantes.

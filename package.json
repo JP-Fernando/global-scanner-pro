@@ -25,7 +25,10 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.22.1",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "node-fetch": "^3.3.2",
+    "xlsx": "^0.18.5",
     "yahoo-finance2": "^3.10.2"
   },
   "engines": {
