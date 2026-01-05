@@ -28,14 +28,19 @@
    - ✅ Dashboard interactivo con visualizaciones para explicar qué impulsó los resultados.
    - *Implementación: [attribution-analysis.js](../src/analytics/attribution-analysis.js), [attribution-dashboard.js](../src/dashboard/attribution-dashboard.js), documentación: [attribution-analysis.md](attribution-analysis.md)*
 
-5. **Optimización avanzada**
-   - Machine learning para ponderación dinámica y ajuste de scores.
+5. **Optimización avanzada y gestión de riesgo**
    - Tests de estrés multi-factor (sectorial, divisa, geopolítico, liquidez).
    - Optimización con restricciones de gobernanza y control de concentración.
-   - Simulación de escenarios para robustez ante shocks.
+   - Simulación de escenarios para robustez ante shocks (Monte Carlo, escenarios históricos).
 
 6. **Mejoras de experiencia**
    - Documentación interactiva de estrategia en la UI (tooltips y paneles).
    - Gobernanza dinámica: límites ajustados por volatilidad/correlación.
-   - Integración de alertas con IA para recomendaciones proactivas.
    - Accesibilidad, rendimiento y mejoras visuales de la interfaz.
+
+7. **Optimización avanzada con Machine Learning**
+   - Ponderación dinámica de factores mediante ML (regresión, Random Forest, redes neuronales).
+   - Ajuste adaptativo de scores basado en performance histórica.
+   - Predicción de régimen de mercado con modelos de clasificación.
+   - Sistema de recomendaciones proactivas con IA.
+   - Detección de patrones y anomalías mediante unsupervised learning.
