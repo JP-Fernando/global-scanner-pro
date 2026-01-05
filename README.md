@@ -114,7 +114,9 @@ El sistema traduce:
 - 🔔 **Alertas Inteligentes**: Notificaciones automáticas por email, Slack, Teams o Zapier para señales fuertes y eventos de riesgo
 - 📈 **Market Scanning**: Análisis cuantitativo de 14 mercados globales con 4 estrategias profesionales
 - 📑 **Reportes Avanzados**: Exportación a Excel/PDF con plantillas para auditoría, comité de inversión y clientes
-- 🎯 **Risk Analytics**: Motor de riesgo con VaR paramétrico, CVaR, matrices de correlación y tests de estrés
+- 🎯 **Risk Analytics**: Motor de riesgo con VaR paramétrico, CVaR, matrices de correlación y tests de estrés multi-factor
+- 🎲 **Simulación Monte Carlo**: Tests de robustez con simulaciones estocásticas y escenarios históricos
+- ⚙️ **Optimización de Portfolio**: Máximo Sharpe, mínima varianza y risk parity con restricciones de gobernanza
 - 🌐 **Multiidioma**: Interfaz completa en español e inglés
 - 🔐 **Gobernanza**: Sistema de reglas de inversión con límites de concentración y compliance automático
 
@@ -129,7 +131,9 @@ Toda la documentación detallada se encuentra en la carpeta [`docs/`](docs/READM
 - [Interpretación de señales](docs/interpretacion-senales.md)
 - [Construcción de cartera y análisis de riesgo](docs/cartera-riesgo.md)
 - [Dashboard de portfolio tracking](docs/portfolio_dashboard.md)
-- [Sistema de alertas online](docs/alertas-online.md) 🆕
+- [Sistema de alertas online](docs/alertas-online.md)
+- [Análisis de atribución](docs/attribution-analysis.md)
+- [Tests de estrés multi-factor](docs/stress-testing.md) 🆕
 
 ### Documentación Técnica
 - [Arquitectura técnica](docs/arquitectura-tecnica.md)
@@ -187,8 +191,12 @@ global-scanner-pro/
 │   ├── indicators/              # Indicadores técnicos y scoring
 │   ├── allocation/              # Métodos de asignación de capital
 │   ├── analytics/               # Backtesting, risk, governance, regime
+│   │   ├── stress-testing.js    # 🆕 Tests de estrés multi-factor
+│   │   ├── monte-carlo.js       # 🆕 Simulación Monte Carlo
+│   │   ├── portfolio-optimizer.js  # 🆕 Optimización de portfolio
+│   │   └── attribution-analysis.js # Análisis de atribución
 │   ├── data/                    # Sectores y anomalías
-│   └── tests/                   # Suite de testing
+│   └── tests/                   # Suite de testing (41 tests)
 │
 ├── docs/                        # Documentación completa
 │   ├── README.md                # Índice de documentación

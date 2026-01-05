@@ -26,6 +26,23 @@ import {
 } from '../alerts/alert-manager.js';
 import { dbStore } from '../storage/indexed-db-store.js';
 import { attributionAnalyzer } from '../analytics/attribution-analysis.js';
+import {
+  runSectorStressTest,
+  runCurrencyStressTest,
+  runGeopoliticalStressTest,
+  runLiquidityStressTest,
+  runMultiFactorStressTest
+} from '../analytics/stress-testing.js';
+import {
+  runMonteCarloSimulation,
+  runHistoricalScenarios,
+  HISTORICAL_SCENARIOS
+} from '../analytics/monte-carlo.js';
+import {
+  optimizeMaxSharpe,
+  optimizeMinVariance,
+  optimizeRiskParity
+} from '../analytics/portfolio-optimizer.js';
 
 const assert = (condition, message) => {
   if (!condition) {
@@ -1073,6 +1090,418 @@ const testStrongSignalsAlert = async () => {
 };
 
 // =====================================================
+// STRESS TESTING TESTS
+// =====================================================
+
+const buildStressTestPortfolio = () => {
+  return [
+    {
+      ticker: 'AAPL',
+      name: 'Apple Inc.',
+      sector: 800, // Technology
+      current_weight: 0.25,
+      weight: 0.25,
+      volatility: 25,
+      quantity: 100,
+      entry_price: 150,
+      current_price: 160,
+      volume: 80000000
+    },
+    {
+      ticker: 'JPM',
+      name: 'JPMorgan Chase',
+      sector: 700, // Financials
+      current_weight: 0.20,
+      weight: 0.20,
+      volatility: 22,
+      quantity: 150,
+      entry_price: 140,
+      current_price: 145,
+      volume: 15000000
+    },
+    {
+      ticker: 'XOM',
+      name: 'Exxon Mobil',
+      sector: 100, // Energy
+      current_weight: 0.15,
+      weight: 0.15,
+      volatility: 28,
+      quantity: 200,
+      entry_price: 100,
+      current_price: 105,
+      volume: 20000000
+    },
+    {
+      ticker: 'JNJ',
+      name: 'Johnson & Johnson',
+      sector: 600, // Healthcare
+      current_weight: 0.20,
+      weight: 0.20,
+      volatility: 15,
+      quantity: 120,
+      entry_price: 160,
+      current_price: 165,
+      volume: 10000000
+    },
+    {
+      ticker: 'WMT',
+      name: 'Walmart',
+      sector: 500, // Consumer Staples
+      current_weight: 0.20,
+      weight: 0.20,
+      volatility: 18,
+      quantity: 180,
+      entry_price: 145,
+      current_price: 150,
+      volume: 12000000
+    }
+  ];
+};
+
+const testSectorStressTest = () => {
+  console.log(`\n=== ${i18n.t('test.testing_sector_stress')} ===`);
+
+  const portfolio = buildStressTestPortfolio();
+  const totalCapital = 50000;
+
+  // Test Technology sector crash scenario
+  const techCrashScenario = {
+    id: 'tech_crash',
+    name: 'Technology Sector Crash',
+    description: 'Major correction in technology stocks',
+    sectorId: 800,
+    shockMagnitude: -0.30,
+    correlationIncrease: 0.25
+  };
+
+  const result = runSectorStressTest(portfolio, totalCapital, techCrashScenario);
+
+  assert(result.scenario === 'Technology Sector Crash', 'Sector stress scenario name correct');
+  assert(parseFloat(result.totalLoss) > 0, 'Total loss calculated');
+  assert(result.positionImpacts.length === portfolio.length, 'All positions analyzed');
+  assert(result.worstHit !== undefined, 'Worst hit position identified');
+
+  // AAPL should be most affected (it's in tech sector with 25% weight)
+  const applImpact = result.positionImpacts.find(p => p.ticker === 'AAPL');
+  assert(applImpact !== undefined, 'AAPL found in impacts');
+
+  return assert(parseFloat(applImpact.estimatedLoss) < 0, 'AAPL has negative impact from tech crash');
+};
+
+const testCurrencyStressTest = () => {
+  console.log(`\n=== ${i18n.t('test.testing_currency_stress')} ===`);
+
+  const portfolio = buildStressTestPortfolio();
+  const totalCapital = 50000;
+
+  const usdSurgeScenario = {
+    id: 'usd_surge',
+    name: 'USD Surge',
+    description: 'Strong US dollar appreciation',
+    trigger: 'Fed rate hike',
+    shockMagnitude: {
+      USD: 0.00,
+      EUR: -0.10,
+      GBP: -0.08,
+      JPY: -0.05,
+      CNY: -0.12,
+      OTHER: -0.08
+    }
+  };
+
+  const result = runCurrencyStressTest(portfolio, totalCapital, usdSurgeScenario);
+
+  assert(result.scenario === 'USD Surge', 'Currency stress scenario name correct');
+  assert(result.totalImpact !== undefined, 'Total impact calculated');
+  assert(result.positionImpacts.length === portfolio.length, 'All positions analyzed');
+  assert(result.currencyExposure !== undefined, 'Currency exposure calculated');
+  assert(Array.isArray(result.currencyExposure), 'Currency exposure is array');
+
+  return true;
+};
+
+const testGeopoliticalStressTest = () => {
+  console.log(`\n=== ${i18n.t('test.testing_geopolitical_stress')} ===`);
+
+  const portfolio = buildStressTestPortfolio();
+  const totalCapital = 50000;
+
+  const pandemicScenario = {
+    id: 'pandemic',
+    name: 'Global Pandemic',
+    description: 'Widespread health crisis',
+    marketShock: -0.35,
+    volatilityMultiplier: 3.0,
+    correlationTarget: 0.90,
+    sectorShocks: {
+      400: -0.50,
+      100: -0.40,
+      300: -0.35,
+      600: 0.15,
+      800: 0.10
+    }
+  };
+
+  const result = runGeopoliticalStressTest(portfolio, totalCapital, pandemicScenario);
+
+  assert(result.scenario === 'Global Pandemic', 'Geopolitical scenario name correct');
+  assert(parseFloat(result.totalLoss) !== 0, 'Total loss calculated');
+  assert(result.positionImpacts.length === portfolio.length, 'All positions analyzed');
+  assert(result.topLosers !== undefined, 'Top losers identified');
+  assert(result.topLosers.length <= 5, 'Top losers limited to 5');
+
+  // Healthcare should benefit
+  const jnjImpact = result.positionImpacts.find(p => p.ticker === 'JNJ');
+  assert(jnjImpact !== undefined, 'JNJ found in impacts');
+
+  return true;
+};
+
+const testLiquidityStressTest = () => {
+  console.log(`\n=== ${i18n.t('test.testing_liquidity_stress')} ===`);
+
+  const portfolio = buildStressTestPortfolio();
+  const totalCapital = 50000;
+
+  const marketFreezeScenario = {
+    id: 'market_freeze',
+    name: 'Market Liquidity Freeze',
+    description: 'Sudden liquidity crisis',
+    volumeReduction: 0.70,
+    bidAskSpreadMultiplier: 5.0,
+    priceImpact: -0.15,
+    recoveryDays: 5
+  };
+
+  const result = runLiquidityStressTest(portfolio, totalCapital, marketFreezeScenario);
+
+  assert(result.scenario === 'Market Liquidity Freeze', 'Liquidity scenario name correct');
+  assert(parseFloat(result.totalImpact) !== 0, 'Total impact calculated from liquidity crisis');
+  assert(result.liquidationAnalysis.length === portfolio.length, 'All positions analyzed');
+  assert(result.avgDaysToLiquidate !== undefined, 'Average days to liquidate calculated');
+  assert(result.highRiskPositions !== undefined, 'High risk positions identified');
+
+  // Check that positions have liquidity metrics
+  const firstPosition = result.liquidationAnalysis[0];
+  assert(firstPosition.daysToLiquidate !== undefined, 'Days to liquidate calculated');
+  assert(firstPosition.liquidityRisk !== undefined, 'Liquidity risk assessed');
+
+  return true;
+};
+
+const testMultiFactorStressTest = () => {
+  console.log(`\n=== ${i18n.t('test.testing_multifactor_stress')} ===`);
+
+  const portfolio = buildStressTestPortfolio();
+  const totalCapital = 50000;
+
+  const result = runMultiFactorStressTest(portfolio, totalCapital);
+
+  assert(result.summary !== undefined, 'Summary generated');
+  assert(result.summary.totalScenariosAnalyzed > 0, 'Scenarios analyzed');
+  assert(result.summary.categoriesAnalyzed === 4, 'All 4 categories analyzed');
+  assert(result.summary.worstCaseScenario !== undefined, 'Worst case identified');
+
+  assert(result.sectorStressTests !== undefined, 'Sector stress tests included');
+  assert(Array.isArray(result.sectorStressTests), 'Sector tests is array');
+  assert(result.sectorStressTests.length > 0, 'Sector tests executed');
+
+  assert(result.currencyStressTests !== undefined, 'Currency stress tests included');
+  assert(Array.isArray(result.currencyStressTests), 'Currency tests is array');
+
+  assert(result.geopoliticalStressTests !== undefined, 'Geopolitical stress tests included');
+  assert(Array.isArray(result.geopoliticalStressTests), 'Geopolitical tests is array');
+
+  assert(result.liquidityStressTests !== undefined, 'Liquidity stress tests included');
+  assert(Array.isArray(result.liquidityStressTests), 'Liquidity tests is array');
+
+  assert(result.recommendations !== undefined, 'Recommendations generated');
+  assert(Array.isArray(result.recommendations), 'Recommendations is array');
+
+  return true;
+};
+
+const testStressTestEdgeCases = () => {
+  console.log(`\n=== ${i18n.t('test.testing_stress_edge_cases')} ===`);
+
+  // Test with small portfolio
+  const smallPortfolio = [
+    {
+      ticker: 'AAPL',
+      name: 'Apple Inc.',
+      sector: 800,
+      current_weight: 1.0,
+      weight: 1.0,
+      volatility: 25,
+      quantity: 100,
+      entry_price: 150,
+      volume: 80000000
+    }
+  ];
+
+  const totalCapital = 10000;
+
+  const techCrashScenario = {
+    id: 'tech_crash',
+    name: 'Technology Sector Crash',
+    description: 'Major correction in technology stocks',
+    sectorId: 800,
+    shockMagnitude: -0.30,
+    correlationIncrease: 0.25
+  };
+
+  const result = runSectorStressTest(smallPortfolio, totalCapital, techCrashScenario);
+
+  assert(result.positionImpacts.length === 1, 'Single position handled');
+  assert(parseFloat(result.portfolioExposure) === 100.0, '100% exposure to tech sector');
+
+  return true;
+};
+
+// =====================================================
+// MONTE CARLO AND OPTIMIZATION TESTS
+// =====================================================
+
+const buildOptimizationPortfolio = () => {
+  return [
+    {
+      ticker: 'AAPL',
+      name: 'Apple Inc.',
+      sector: 800,
+      weight: 0.25,
+      prices: buildAssetSeries('AAPL', 150, 100)
+    },
+    {
+      ticker: 'JPM',
+      name: 'JPMorgan Chase',
+      sector: 700,
+      weight: 0.25,
+      prices: buildAssetSeries('JPM', 140, 100)
+    },
+    {
+      ticker: 'XOM',
+      name: 'Exxon Mobil',
+      sector: 100,
+      weight: 0.25,
+      prices: buildAssetSeries('XOM', 100, 100)
+    },
+    {
+      ticker: 'JNJ',
+      name: 'Johnson & Johnson',
+      sector: 600,
+      weight: 0.25,
+      prices: buildAssetSeries('JNJ', 160, 100)
+    }
+  ];
+};
+
+const testMonteCarloSimulation = () => {
+  console.log(`\n=== ${i18n.t('test.testing')} Monte Carlo Simulation ===`);
+
+  const portfolio = buildOptimizationPortfolio();
+  const initialCapital = 50000;
+
+  const result = runMonteCarloSimulation(portfolio, initialCapital, {
+    numSimulations: 1000,
+    timeHorizonDays: 252,
+    confidenceLevel: 0.95
+  });
+
+  assert(result.error === undefined, 'Monte Carlo simulation completed without errors');
+  assert(result.results !== undefined, 'Results generated');
+  assert(result.results.expectedValue !== undefined, 'Expected value calculated');
+  assert(result.results.var95 !== undefined, 'VaR calculated');
+  assert(result.results.cvar95 !== undefined, 'CVaR calculated');
+  assert(result.paths !== undefined, 'Simulation paths generated');
+  assert(result.paths.length > 0, 'Multiple paths generated');
+
+  return true;
+};
+
+const testHistoricalScenarios = () => {
+  console.log(`\n=== ${i18n.t('test.testing')} Historical Scenarios ===`);
+
+  const portfolio = buildOptimizationPortfolio();
+  const initialCapital = 50000;
+
+  const result = runHistoricalScenarios(portfolio, initialCapital, HISTORICAL_SCENARIOS);
+
+  assert(result.summary !== undefined, 'Summary generated');
+  assert(result.summary.scenariosAnalyzed === HISTORICAL_SCENARIOS.length, 'All scenarios analyzed');
+  assert(result.summary.worstCase !== undefined, 'Worst case identified');
+  assert(result.scenarios.length > 0, 'Scenario results generated');
+
+  const firstScenario = result.scenarios[0];
+  assert(firstScenario.totalImpact !== undefined, 'Total impact calculated');
+  assert(firstScenario.positionImpacts !== undefined, 'Position impacts calculated');
+
+  return true;
+};
+
+const testOptimizeMaxSharpe = () => {
+  console.log(`\n=== ${i18n.t('test.testing')} Max Sharpe Optimization ===`);
+
+  const portfolio = buildOptimizationPortfolio();
+
+  const result = optimizeMaxSharpe(portfolio, {
+    minWeight: 0.10,
+    maxWeight: 0.40,
+    maxSectorWeight: 0.50
+  });
+
+  assert(result.error === undefined, 'Optimization completed without errors');
+  assert(result.optimalWeights !== undefined, 'Optimal weights generated');
+  assert(result.optimalWeights.length === portfolio.length, 'Weights for all positions');
+  assert(result.metrics !== undefined, 'Metrics calculated');
+  assert(result.metrics.sharpeRatio !== undefined, 'Sharpe ratio calculated');
+
+  // Check weights sum to 1
+  const totalWeight = result.optimalWeights.reduce((sum, w) => sum + parseFloat(w.weight), 0);
+  assertApprox(totalWeight, 1.0, 0.01, 'Weights sum to 1.0');
+
+  return true;
+};
+
+const testOptimizeMinVariance = () => {
+  console.log(`\n=== ${i18n.t('test.testing')} Min Variance Optimization ===`);
+
+  const portfolio = buildOptimizationPortfolio();
+
+  const result = optimizeMinVariance(portfolio, {
+    minWeight: 0.10,
+    maxWeight: 0.40
+  });
+
+  assert(result.error === undefined, 'Optimization completed without errors');
+  assert(result.optimalWeights !== undefined, 'Optimal weights generated');
+  assert(result.metrics !== undefined, 'Metrics calculated');
+  assert(result.metrics.variance !== undefined, 'Variance calculated');
+
+  return true;
+};
+
+const testOptimizeRiskParity = () => {
+  console.log(`\n=== ${i18n.t('test.testing')} Risk Parity Optimization ===`);
+
+  const portfolio = buildOptimizationPortfolio();
+
+  const result = optimizeRiskParity(portfolio, {
+    minWeight: 0.10,
+    maxWeight: 0.50
+  });
+
+  assert(result.error === undefined, 'Optimization completed without errors');
+  assert(result.optimalWeights !== undefined, 'Optimal weights generated');
+  assert(result.metrics !== undefined, 'Metrics calculated');
+
+  // Check that risk contributions are calculated
+  const firstPosition = result.optimalWeights[0];
+  assert(firstPosition.riskContribution !== undefined, 'Risk contribution calculated');
+
+  return true;
+};
+
+// =====================================================
 // RUN ALL TESTS
 // =====================================================
 
@@ -1111,7 +1540,18 @@ export const runAllTests = () => {
     testCompareTwoPeriods,
     testAlertSettingsDefaults,
     testAlertWebhookDelivery,
-    testStrongSignalsAlert
+    testStrongSignalsAlert,
+    testSectorStressTest,
+    testCurrencyStressTest,
+    testGeopoliticalStressTest,
+    testLiquidityStressTest,
+    testMultiFactorStressTest,
+    testStressTestEdgeCases,
+    testMonteCarloSimulation,
+    testHistoricalScenarios,
+    testOptimizeMaxSharpe,
+    testOptimizeMinVariance,
+    testOptimizeRiskParity
   ];
 
   let passed = 0;

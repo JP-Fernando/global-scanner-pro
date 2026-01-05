@@ -28,10 +28,11 @@
    - ✅ Dashboard interactivo con visualizaciones para explicar qué impulsó los resultados.
    - *Implementación: [attribution-analysis.js](../src/analytics/attribution-analysis.js), [attribution-dashboard.js](../src/dashboard/attribution-dashboard.js), documentación: [attribution-analysis.md](attribution-analysis.md)*
 
-5. **Optimización avanzada y gestión de riesgo**
-   - Tests de estrés multi-factor (sectorial, divisa, geopolítico, liquidez).
-   - Optimización con restricciones de gobernanza y control de concentración.
-   - Simulación de escenarios para robustez ante shocks (Monte Carlo, escenarios históricos).
+5. ✅ **Optimización avanzada y gestión de riesgo** *(Completado)*
+   - ✅ Tests de estrés multi-factor (sectorial, divisa, geopolítico, liquidez).
+   - ✅ Optimización con restricciones de gobernanza y control de concentración (Max Sharpe, Min Variance, Risk Parity).
+   - ✅ Simulación de escenarios para robustez ante shocks (Monte Carlo, escenarios históricos).
+   - *Implementación: [stress-testing.js](../src/analytics/stress-testing.js), [monte-carlo.js](../src/analytics/monte-carlo.js), [portfolio-optimizer.js](../src/analytics/portfolio-optimizer.js), documentación: [stress-testing.md](stress-testing.md)*
 
 6. **Mejoras de experiencia**
    - Documentación interactiva de estrategia en la UI (tooltips y paneles).

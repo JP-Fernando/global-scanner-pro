@@ -23,6 +23,7 @@ import {
   getAlertLogs,
   notifyRiskEvent
 } from '../alerts/alert-manager.js';
+import { dbStore } from '../storage/indexed-db-store.js';
 
 // Current state
 let currentPortfolio = null;
@@ -1177,6 +1178,38 @@ async function exportAttributionPDF() {
 
 
 /**
+ * Clear alerts log
+ */
+async function clearAlertsLog() {
+  if (!confirm(i18n.t('portfolio_dashboard.alerts_clear_confirm'))) {
+    return;
+  }
+
+  try {
+    // Clear alerts from database
+    const strategyKey = currentPortfolio?.strategy || document.getElementById('strategySelect')?.value || 'balanced';
+    await dbStore.clearAlerts(strategyKey);
+
+    // Reload UI
+    await loadAlertLogsUI();
+
+    // Show success message
+    const container = document.getElementById('alertsLogContainer');
+    if (container) {
+      container.innerHTML = `
+        <p style="color: #34d399; text-align: center; padding: 15px;">
+          ✅ ${i18n.t('portfolio_dashboard.alerts_log_cleared')}
+        </p>
+      `;
+      setTimeout(() => loadAlertLogsUI(), 2000);
+    }
+  } catch (error) {
+    console.error('Error clearing alerts log:', error);
+    alert(i18n.t('portfolio_dashboard.alerts_clear_error'));
+  }
+}
+
+/**
  * Refresh dashboard (global function)
  */
 window.refreshDashboard = refreshDashboard;
@@ -1185,6 +1218,11 @@ window.refreshDashboard = refreshDashboard;
  * Switch chart tab (global function)
  */
 window.switchChartTab = switchChartTab;
+
+/**
+ * Clear alerts log (global function)
+ */
+window.clearAlertsLog = clearAlertsLog;
 
 /**
  * Export functions (global)

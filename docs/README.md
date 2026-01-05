@@ -9,8 +9,10 @@ Esta carpeta contiene la documentación completa de **Global Quant Scanner Pro**
 - [Interpretación de señales](interpretacion-senales.md)
 - [Construcción de cartera y análisis de riesgo](cartera-riesgo.md)
 - [Dashboard de portfolio tracking](portfolio_dashboard.md)
-- [Análisis de atribución de rendimiento](attribution-analysis.md) 🆕
-- [Sistema de alertas online](alertas-online.md) 🆕
+- [Análisis de atribución de rendimiento](attribution-analysis.md)
+- [Tests de estrés multi-factor](stress-testing.md)
+- [Simulación Monte Carlo y optimización de portfolio](monte-carlo-optimization.md) 🆕
+- [Sistema de alertas online](alertas-online.md)
 - [Régimen de mercado](regimen-mercado.md)
 
 ### Configuración y Estrategias

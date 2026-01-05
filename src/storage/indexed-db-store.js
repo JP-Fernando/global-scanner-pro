@@ -373,6 +373,47 @@ export class IndexedDBStore {
   }
 
   /**
+   * Clear alerts by strategy
+   * @param {string} strategy - Strategy key (optional, clears all if not provided)
+   * @returns {Promise<number>} Number of deleted alerts
+   */
+  async clearAlerts(strategy = null) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['alerts'], 'readwrite');
+      const store = transaction.objectStore('alerts');
+
+      if (!strategy) {
+        // Clear all alerts
+        const request = store.clear();
+        request.onsuccess = () => resolve(0); // Return 0 since we cleared all
+        request.onerror = () => reject(request.error);
+      } else {
+        // Clear alerts for specific strategy
+        const getAllRequest = store.getAll();
+
+        getAllRequest.onsuccess = () => {
+          const alerts = getAllRequest.result || [];
+          const toDelete = alerts.filter(a => a.strategy === strategy);
+          let deletedCount = 0;
+
+          toDelete.forEach(alert => {
+            const deleteRequest = store.delete(alert.id);
+            deleteRequest.onsuccess = () => deletedCount++;
+          });
+
+          transaction.oncomplete = () => resolve(deletedCount);
+        };
+
+        getAllRequest.onerror = () => reject(getAllRequest.error);
+      }
+
+      transaction.onerror = () => reject(transaction.error);
+    });
+  }
+
+  /**
    * Save alert settings
    * @param {Object} settings - Alert settings
    * @returns {Promise<string>} Settings ID

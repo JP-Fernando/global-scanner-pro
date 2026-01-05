@@ -917,6 +917,10 @@ export default {
     alerts_log_title: '📬 Historial de alertas',
     alerts_log_empty: 'No hay alertas recientes',
     alerts_log_status: 'Estado de entrega',
+    alerts_clear_log: '🗑️ Limpiar Historial',
+    alerts_clear_confirm: '¿Estás seguro de que deseas eliminar todas las alertas del historial?',
+    alerts_log_cleared: 'Historial de alertas limpiado correctamente',
+    alerts_clear_error: 'Error al limpiar el historial de alertas',
 
     // Messages
     enter_name: 'Ingresa un nombre para el portfolio:',
@@ -1041,6 +1045,14 @@ export default {
     diagonal_equals_one: 'Elemento diagonal {{i}} igual a 1.0',
     small_sample_detected: 'Muestra pequeña detectada',
     var_computed_small_sample: 'VaR calculado a pesar de muestra pequeña',
+
+    // Stress testing
+    testing_sector_stress: 'Probando Tests de Estrés Sectorial',
+    testing_currency_stress: 'Probando Tests de Estrés de Divisa',
+    testing_geopolitical_stress: 'Probando Tests de Estrés Geopolítico',
+    testing_liquidity_stress: 'Probando Tests de Estrés de Liquidez',
+    testing_multifactor_stress: 'Probando Tests de Estrés Multi-Factor',
+    testing_stress_edge_cases: 'Probando Casos Límite de Stress Testing',
 
     // Results summary
     results: 'RESULTADOS',

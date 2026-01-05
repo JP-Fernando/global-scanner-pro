@@ -918,6 +918,10 @@ export default {
     alerts_log_title: '📬 Alerts log',
     alerts_log_empty: 'No recent alerts',
     alerts_log_status: 'Delivery status',
+    alerts_clear_log: '🗑️ Clear Log',
+    alerts_clear_confirm: 'Are you sure you want to delete all alerts from the log?',
+    alerts_log_cleared: 'Alerts log cleared successfully',
+    alerts_clear_error: 'Error clearing alerts log',
 
     // Messages
     enter_name: 'Enter a name for the portfolio:',
@@ -1041,6 +1045,14 @@ export default {
     diagonal_equals_one: 'Diagonal element {{i}} equals 1.0',
     small_sample_detected: 'Small sample detected',
     var_computed_small_sample: 'VaR computed despite small sample',
+
+    // Stress testing
+    testing_sector_stress: 'Testing Sector Stress Tests',
+    testing_currency_stress: 'Testing Currency Stress Tests',
+    testing_geopolitical_stress: 'Testing Geopolitical Stress Tests',
+    testing_liquidity_stress: 'Testing Liquidity Stress Tests',
+    testing_multifactor_stress: 'Testing Multi-Factor Stress Tests',
+    testing_stress_edge_cases: 'Testing Stress Testing Edge Cases',
 
     // Results summary
     results: 'RESULTS',
