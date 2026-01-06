@@ -124,6 +124,25 @@ export default {
 
   // Filters
   filters: {
+    title: '🎛️ Quick filters',
+    subtitle: 'Refine results in real time.',
+    search_label: 'Search',
+    search_placeholder: 'Ticker or name',
+    signal_label: 'Signal',
+    signal_all: 'All signals',
+    signal_strong_buy: 'Strong Buy',
+    signal_buy: 'Buy',
+    signal_hold_upper: 'Hold+',
+    signal_hold: 'Hold',
+    signal_sell: 'Sell',
+    min_score_label: 'Minimum score',
+    min_score_value: 'Min',
+    volume_label: 'Volume',
+    volume_all: 'All',
+    volume_high: 'High volume (≥2x)',
+    clear: '🧹 Clear filters',
+    summary: 'Showing {shown} of {total}',
+    summary_static: 'Showing 0 of 0',    
     info: '✅ {approved} approved | ❌ {filtered} filtered',
     total_analyzed: 'Total analysed: {count}',
     by_reason: 'Filtered by reason',
@@ -159,7 +178,8 @@ export default {
     change: 'Change %',
     volume: 'Volume',
     marketCap: 'Market Cap',
-    actions: 'Actions'
+    actions: 'Actions',
+    no_results: 'No results match the current filters.'
   },
 
   // Signals

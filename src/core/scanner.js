@@ -1347,7 +1347,7 @@ async function scanSingleMarket(file, suffix, config, status, isPartOfAllMarkets
 
     if (i % (BATCH_SIZE * 2) === 0) {
       const sectorStats = calculateSectorStats(currentResults);
-      renderTable(currentResults);
+      applyFilters();
       updateSectorUI(sectorStats);
     }
 
@@ -1478,7 +1478,7 @@ export async function runScan() {
         };
       });
 
-      renderTable(currentResults);
+      applyFilters();
       updateSectorUI(finalStats);
 
       status.innerText = i18n.t('status.all_markets_complete', { count: totalAnalyzed });
@@ -1580,7 +1580,7 @@ export async function runScan() {
 
       if (i % (BATCH_SIZE * 2) === 0) {
         const sectorStats = calculateSectorStats(currentResults);
-        renderTable(currentResults);
+        applyFilters();
         updateSectorUI(sectorStats);
       }
 
@@ -1615,7 +1615,7 @@ export async function runScan() {
       };
     });
 
-    renderTable(currentResults);
+    applyFilters();
     updateSectorUI(finalStats);
 
     status.innerText = i18n.t('status.scan_complete', { count: analyzed });
@@ -2041,6 +2041,18 @@ function renderTable(data) {
   const viewKey = document.getElementById('viewMode').value;
   tbody.innerHTML = '';
 
+  if (!data.length) {
+    const messageKey = appState.scanCompleted ? 'table.no_results' : 'table.waiting_data';
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;">
+          ${i18n.t(messageKey)}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
   data.forEach((r, idx) => {
     const displayScore = r[viewKey] || r.finalScore;
     const dotColor = SECTOR_COLORS[r.sectorId] || SECTOR_COLORS[999];
@@ -2100,6 +2112,75 @@ function renderScorePill(score) {
   else if (score > 45) color = '#fbbf24';
 
   return `<span class="score-pill" style="color:${color}; border-color:${color}">${score}</span>`;
+}
+
+function getFilterState() {
+  const searchInput = document.getElementById('searchInput');
+  const signalFilter = document.getElementById('signalFilter');
+  const minScoreInput = document.getElementById('minScore');
+  const volumeFilter = document.getElementById('volumeFilter');
+
+  return {
+    query: searchInput?.value?.trim().toLowerCase() || '',
+    signal: signalFilter?.value || 'all',
+    minScore: Number(minScoreInput?.value || 0),
+    volume: volumeFilter?.value || 'all'
+  };
+}
+
+function updateFilterSummary(filteredCount, totalCount) {
+  const summary = document.getElementById('filterSummary');
+  if (!summary) return;
+  summary.textContent = i18n.t('filters.summary', {
+    shown: filteredCount,
+    total: totalCount
+  });
+}
+
+function applyFilters() {
+  const searchInput = document.getElementById('searchInput');
+  if (!searchInput) {
+    renderTable(currentResults);
+    return;
+  }
+
+  const { query, signal, minScore, volume } = getFilterState();
+  const viewKey = document.getElementById('viewMode')?.value || 'scoreTotal';
+
+  const filtered = currentResults.filter(result => {
+    const matchesQuery = !query
+      || result.ticker?.toLowerCase().includes(query)
+      || result.name?.toLowerCase().includes(query);
+    const matchesSignal = signal === 'all' || result.signal?.key === signal;
+    const viewScore = Number(result[viewKey] ?? result.scoreTotal ?? 0);
+    const matchesScore = viewScore >= minScore;
+    const matchesVolume = volume === 'all' || (Number(result.vRatio || 0) >= 2);
+
+    return matchesQuery && matchesSignal && matchesScore && matchesVolume;
+  }).sort((a, b) => {
+    const scoreA = Number(a[viewKey] ?? a.scoreTotal ?? 0);
+    const scoreB = Number(b[viewKey] ?? b.scoreTotal ?? 0);
+    return scoreB - scoreA;
+  });
+
+  renderTable(filtered);
+  updateFilterSummary(filtered.length, currentResults.length);
+}
+
+function resetFilters() {
+  const searchInput = document.getElementById('searchInput');
+  const signalFilter = document.getElementById('signalFilter');
+  const minScoreInput = document.getElementById('minScore');
+  const volumeFilter = document.getElementById('volumeFilter');
+  const minScoreValue = document.getElementById('minScoreValue');
+
+  if (searchInput) searchInput.value = '';
+  if (signalFilter) signalFilter.value = 'all';
+  if (minScoreInput) minScoreInput.value = '0';
+  if (volumeFilter) volumeFilter.value = 'all';
+  if (minScoreValue) minScoreValue.textContent = '0';
+
+  applyFilters();
 }
 
 
@@ -2438,7 +2519,7 @@ function showInlineError(message) {
 export function updateView() {
   const key = document.getElementById('viewMode').value;
   currentResults.sort((a, b) => b[key] - a[key]);
-  renderTable(currentResults);
+  applyFilters();
 }
 
 
@@ -2539,6 +2620,7 @@ function clearAllResults() {
   appState.portfolio = null;
   appState.scanCompleted = false;
   updateStrategyInfoDisplay();
+  resetFilters();
 }
 
 // Initialize language selector and market selector on page load
@@ -2551,6 +2633,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateStrategyInfoDisplay();
   window.addEventListener('languageChanged', () => {
     updateStrategyInfoDisplay();
+    applyFilters(); 
   });
 
   // Add event listener to market selector to clear results when changed
@@ -2560,6 +2643,37 @@ document.addEventListener('DOMContentLoaded', () => {
       clearAllResults();
     });
   }
+
+  const searchInput = document.getElementById('searchInput');
+  const signalFilter = document.getElementById('signalFilter');
+  const minScoreInput = document.getElementById('minScore');
+  const volumeFilter = document.getElementById('volumeFilter');
+  const minScoreValue = document.getElementById('minScoreValue');
+  const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+  if (signalFilter) {
+    signalFilter.addEventListener('change', applyFilters);
+  }
+  if (volumeFilter) {
+    volumeFilter.addEventListener('change', applyFilters);
+  }
+  if (minScoreInput) {
+    minScoreInput.addEventListener('input', () => {
+      if (minScoreValue) {
+        minScoreValue.textContent = minScoreInput.value;
+      }
+      applyFilters();
+    });
+  }
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', resetFilters);
+  }
+
+  applyFilters();
+
 
   // Initialize Portfolio Dashboard
   initDashboard().catch(err => {

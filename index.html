@@ -116,6 +116,109 @@
       transform: translateY(0);
     }
 
+    .filters-panel {
+      background: #111c2e;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.35);
+    }
+
+    .filters-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .filters-header h3 {
+      color: #38bdf8;
+      font-size: 1.1em;
+      margin: 0;
+    }
+
+    .filters-subtitle {
+      color: #94a3b8;
+      font-size: 0.85em;
+      margin-top: 4px;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      align-items: end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-group label {
+      font-size: 0.75em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 600;
+    }
+
+    .filter-input,
+    .filter-select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #f8fafc;
+      font-size: 0.9em;
+    }
+
+    .filter-input:focus,
+    .filter-select:focus {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
+    .filter-range {
+      accent-color: #38bdf8;
+      width: 100%;
+    }
+
+    .range-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #cbd5e1;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+
+    .filters-summary {
+      color: #cbd5e1;
+      font-size: 0.85em;
+      background: #0f172a;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+    }
+
+    .filters-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filters-actions button {
+      background: linear-gradient(135deg, #475569 0%, #334155 100%);
+      color: #f8fafc;
+      font-weight: 600;
+      box-shadow: none;
+    }
+
     .info-bar {
       display: grid;
       grid-template-columns: 2fr 1fr;
@@ -433,6 +536,11 @@
       th {
         padding: 10px;
       }
+
+      .filters-header {
+        align-items: flex-start;
+      }
+
     }
   </style>
 </head>
@@ -515,6 +623,53 @@
       <!-- Market Regime Indicator -->
       <div id="regimeIndicator" style="display: none; margin-bottom: 20px;"></div>
       <span data-i18n="info.system_ready">🎯 Sistema listo. Configura parámetros y ejecuta el análisis.</span>
+    </div>
+
+    <div class="filters-panel">
+      <div class="filters-header">
+        <div>
+          <h3 data-i18n="filters.title">🎛️ Filtros rápidos</h3>
+          <div class="filters-subtitle" data-i18n="filters.subtitle">Refina resultados en tiempo real.</div>
+        </div>
+        <div id="filterSummary" class="filters-summary" data-i18n="filters.summary_static">Mostrando 0 de 0</div>
+      </div>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="searchInput" data-i18n="filters.search_label">Buscar</label>
+          <input id="searchInput" class="filter-input" type="search" data-i18n="filters.search_placeholder"
+            placeholder="Ticker o nombre" />
+        </div>
+        <div class="filter-group">
+          <label for="signalFilter" data-i18n="filters.signal_label">Señal</label>
+          <select id="signalFilter" class="filter-select">
+            <option value="all" data-i18n="filters.signal_all">Todas</option>
+            <option value="strong_buy" data-i18n="filters.signal_strong_buy">Strong Buy</option>
+            <option value="buy" data-i18n="filters.signal_buy">Buy</option>
+            <option value="hold_upper" data-i18n="filters.signal_hold_upper">Hold+</option>
+            <option value="hold" data-i18n="filters.signal_hold">Hold</option>
+            <option value="sell" data-i18n="filters.signal_sell">Sell</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="minScore" data-i18n="filters.min_score_label">Score mínimo</label>
+          <div class="range-label">
+            <span data-i18n="filters.min_score_value">Min</span>
+            <span id="minScoreValue">0</span>
+          </div>
+          <input id="minScore" class="filter-range" type="range" min="0" max="100" step="1" value="0" />
+        </div>
+        <div class="filter-group">
+          <label for="volumeFilter" data-i18n="filters.volume_label">Volumen</label>
+          <select id="volumeFilter" class="filter-select">
+            <option value="all" data-i18n="filters.volume_all">Todos</option>
+            <option value="high" data-i18n="filters.volume_high">Volumen alto (≥2x)</option>
+          </select>
+        </div>
+        <div class="filter-group filters-actions">
+          <label>&nbsp;</label>
+          <button id="clearFiltersBtn" type="button" data-i18n="filters.clear">🧹 Limpiar filtros</button>
+        </div>
+      </div>
     </div>
 
     <div id="sectorSummary"
@@ -1339,6 +1494,7 @@
   <!-- Load application modules -->
   <script type="module" src="src/core/scanner.js"></script>
   <script type="module" src="src/i18n/ui-translator.js"></script>
+  <script type="module" src="src/i18n/ui-init.js"></script>
 </body>
 
 </html>

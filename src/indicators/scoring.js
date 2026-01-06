@@ -533,18 +533,18 @@ export const calculateFinalScore = (trendScore, momentumScore, riskScore, liquid
   return Math.round(Math.min(100, Math.max(0, finalScore)));
 };
 
-// Generar señal basada en score y umbrales configurables
+// Generate signal based on score & custom thresholds
 export const generateSignal = (score, config) => {
   if (score >= config.strong_buy) {
-    return { text: i18n.t('signals.strong_buy'), color: '#10b981', confidence: 95 };
+    return { key: 'strong_buy', text: i18n.t('signals.strong_buy'), color: '#10b981', confidence: 95 };
   } else if (score >= config.buy) {
-    return { text: i18n.t('signals.buy'), color: '#4ade80', confidence: 75 };
+    return { key: 'buy', text: i18n.t('signals.buy'), color: '#4ade80', confidence: 75 };
   } else if (score >= config.hold_upper) {
-    return { text: i18n.t('signals.hold_upper'), color: '#fbbf24', confidence: 55 };
+    return { key: 'hold_upper', text: i18n.t('signals.hold_upper'), color: '#fbbf24', confidence: 55 };
   } else if (score >= config.hold_lower) {
-    return { text: i18n.t('signals.hold'), color: '#fcd34d', confidence: 40 };
+    return { key: 'hold', text: i18n.t('signals.hold'), color: '#fcd34d', confidence: 40 };
   } else {
-    return { text: i18n.t('signals.sell'), color: '#f87171', confidence: 25 };
+    return { key: 'sell', text: i18n.t('signals.sell'), color: '#f87171', confidence: 25 };
   }
 };
 
