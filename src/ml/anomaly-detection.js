@@ -85,6 +85,7 @@ export function detectZScoreAnomalies(assets, feature = 'quant_score', config = 
       anomalies.push({
         type: 'z_score_anomaly',
         ticker: asset.ticker,
+        name: asset.name || asset.ticker,
         feature,
         value: values[idx],
         zScore: zScores[idx],
@@ -182,6 +183,7 @@ export function detectClusterAnomalies(assets, config = ANOMALY_DETECTION_CONFIG
       anomalies.push({
         type: 'cluster_anomaly',
         ticker: assets[idx].ticker,
+        name: assets[idx].name || assets[idx].ticker,
         distance: dist,
         cluster: kmeans.labels[idx],
         severity: dist >= sortedDistances[0] * 0.9 ? 'extreme' : 'high',
@@ -232,7 +234,9 @@ export function detectCorrelationAnomalies(assets, correlationMatrix, config = A
         anomalies.push({
           type: 'correlation_anomaly',
           ticker1: assets[i]?.ticker || `Asset_${i}`,
+          name1: assets[i]?.name || assets[i]?.ticker,
           ticker2: assets[j]?.ticker || `Asset_${j}`,
+          name2: assets[j]?.name || assets[j]?.ticker,
           correlation: correlationMatrix[i][j],
           severity: corr >= 0.95 ? 'extreme' : 'high',
           message: `Extremely high correlation (${(corr * 100).toFixed(1)}%) between ${assets[i]?.ticker} and ${assets[j]?.ticker}`,
@@ -270,6 +274,7 @@ export function detectPriceScoreDivergence(assets, config = ANOMALY_DETECTION_CO
         type: 'price_score_divergence',
         subtype: type,
         ticker,
+        name: asset.name || ticker,
         quant_score,
         price_change_60d,
         divergence,
@@ -303,6 +308,7 @@ export function detectVolumeAnomalies(assets, config = ANOMALY_DETECTION_CONFIG)
       anomalies.push({
         type: 'volume_anomaly',
         ticker: asset.ticker,
+        name: asset.name || asset.ticker,
         volume: asset.volume,
         zScore: zScores[idx],
         severity: zScore >= config.z_score_thresholds.extreme ? 'extreme' : 'high',

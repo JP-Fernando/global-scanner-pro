@@ -2400,9 +2400,9 @@ function renderMLRecommendations() {
   const html = `
     <div style="background: #1e293b; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #818cf8;">
       <h3 style="color: #818cf8; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-        🤖 ML Recommendations
+        🤖 ${i18n.t('ml.recommendations.title')}
         <span style="font-size: 0.7em; background: #334155; padding: 4px 12px; border-radius: 12px; color: #94a3b8;">
-          ${mlRecommendations.length} insights
+          ${i18n.t('ml.recommendations.insights_count', { count: mlRecommendations.length })}
         </span>
       </h3>
       <div style="display: grid; gap: 12px;">
@@ -2412,15 +2412,15 @@ function renderMLRecommendations() {
               <span style="font-size: 1.5em;">${priorityIcons[rec.priority.level]}</span>
               <div style="flex: 1;">
                 <div style="font-weight: bold; color: ${priorityColors[rec.priority.level]}; margin-bottom: 5px;">
-                  ${rec.title}
+                  ${rec.ticker ? `${rec.ticker}${rec.name ? ` (${rec.name})` : ''}` : rec.title}
                 </div>
                 <div style="color: #cbd5e1; font-size: 0.9em; margin-bottom: 8px;">
                   ${rec.message}
                 </div>
-                <div style="display: flex; gap: 15px; font-size: 0.8em; color: #64748b;">
-                  <span><strong>Action:</strong> ${rec.action}</span>
-                  <span><strong>Confidence:</strong> ${(rec.confidence * 100).toFixed(0)}%</span>
-                  <span><strong>Type:</strong> ${rec.type}</span>
+                <div style="display: flex; gap: 15px; font-size: 0.8em; color: #64748b; flex-wrap: wrap;">
+                  <span><strong>${i18n.t('ml.recommendations.action')}:</strong> ${rec.action}</span>
+                  <span><strong>${i18n.t('ml.recommendations.confidence')}:</strong> ${(rec.confidence * 100).toFixed(0)}%</span>
+                  <span><strong>${i18n.t('ml.recommendations.type')}:</strong> ${i18n.t('ml.recommendations.type_' + rec.type, rec.type)}</span>
                 </div>
               </div>
             </div>
@@ -2458,17 +2458,17 @@ function renderMLAnomalies() {
   const html = `
     <div style="background: #1e293b; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #f43f5e;">
       <h3 style="color: #f87171; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-        🔍 ML Anomaly Detection
+        🔍 ${i18n.t('ml.anomalies.title')}
         <span style="font-size: 0.7em; background: #334155; padding: 4px 12px; border-radius: 12px; color: #94a3b8;">
-          ${summary.total || 0} anomalies detected
+          ${i18n.t('ml.anomalies.detected_count', { count: summary.total || 0 })}
         </span>
       </h3>
 
       ${summary.by_severity ? `
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
           ${Object.entries(summary.by_severity).map(([severity, count]) => `
             <div style="background: #0f172a; padding: 8px 12px; border-radius: 6px; border: 1px solid ${severityColors[severity]};">
-              <span style="font-size: 0.8em; color: #94a3b8;">${severity}:</span>
+              <span style="font-size: 0.8em; color: #94a3b8;">${i18n.t('ml.anomalies.severity_' + severity, severity)}:</span>
               <strong style="color: ${severityColors[severity]}; margin-left: 5px;">${count}</strong>
             </div>
           `).join('')}
@@ -2476,23 +2476,21 @@ function renderMLAnomalies() {
       ` : ''}
 
       <div style="display: grid; gap: 10px; max-height: 400px; overflow-y: auto;">
-        ${mlAnomalies.slice(0, 15).map(anomaly => `
-          <div style="background: #0f172a; padding: 12px; border-radius: 6px; border-left: 3px solid ${severityColors[anomaly.severity]};">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
-              <span>${severityIcons[anomaly.severity]}</span>
-              <strong style="color: #f8fafc;">${anomaly.ticker || 'N/A'}</strong>
-              <span style="color: ${severityColors[anomaly.severity]}; font-size: 0.85em; font-weight: 600;">
-                ${anomaly.type.replace(/_/g, ' ').toUpperCase()}
-              </span>
+        ${mlAnomalies.slice(0, 15).map((anomaly, idx) => `
+          <div onclick="showAnomalyDetails(${idx})" style="background: #0f172a; padding: 12px; border-radius: 6px; border-left: 3px solid ${severityColors[anomaly.severity]}; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='#0f172a'">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span>${severityIcons[anomaly.severity]}</span>
+                <strong style="color: #f8fafc;">${anomaly.ticker || 'N/A'}${anomaly.name ? ` (${anomaly.name})` : ''}</strong>
+                <span style="color: ${severityColors[anomaly.severity]}; font-size: 0.85em; font-weight: 600;">
+                  ${i18n.t('ml.anomalies.type_' + anomaly.type.replace(/_anomaly/g, ''), anomaly.type.replace(/_/g, ' ').toUpperCase())}
+                </span>
+              </div>
+              <span style="font-size: 0.75em; color: #64748b;">👁️ ${i18n.t('ml.anomalies.view_details')}</span>
             </div>
             <div style="color: #94a3b8; font-size: 0.85em;">
-              ${anomaly.description || 'Anomaly detected'}
+              ${anomaly.message}
             </div>
-            ${anomaly.details ? `
-              <div style="color: #64748b; font-size: 0.75em; margin-top: 5px;">
-                ${JSON.stringify(anomaly.details).substring(0, 100)}...
-              </div>
-            ` : ''}
           </div>
         `).join('')}
       </div>
@@ -2632,6 +2630,185 @@ function showDetails(result) {
 
   modal.style.display = 'flex';
 }
+
+// Show anomaly details in modal
+function showAnomalyDetails(anomalyIndex) {
+  const modal = document.getElementById('detailModal');
+  const content = document.getElementById('modalContent');
+  const anomaly = mlAnomalies[anomalyIndex];
+
+  if (!anomaly) return;
+
+  const severityColors = {
+    'extreme': '#dc2626',
+    'high': '#f97316',
+    'moderate': '#fbbf24'
+  };
+
+  // Generate explanation based on anomaly type
+  let explanation = '';
+  let riskAssessment = '';
+  let suggestedAction = '';
+
+  switch (anomaly.type) {
+    case 'z_score_anomaly':
+      explanation = i18n.t('ml.anomalies.explanation_z_score', {
+        ticker: anomaly.ticker,
+        name: anomaly.name || anomaly.ticker,
+        feature: anomaly.feature,
+        zscore: Math.abs(anomaly.zScore).toFixed(2)
+      });
+      break;
+    case 'cluster_anomaly':
+      explanation = i18n.t('ml.anomalies.explanation_cluster', {
+        ticker: anomaly.ticker,
+        name: anomaly.name || anomaly.ticker
+      });
+      break;
+    case 'correlation_anomaly':
+      explanation = i18n.t('ml.anomalies.explanation_correlation', {
+        correlation: (Math.abs(anomaly.correlation) * 100).toFixed(1),
+        ticker1: anomaly.ticker1,
+        name1: anomaly.name1 || anomaly.ticker1,
+        ticker2: anomaly.ticker2,
+        name2: anomaly.name2 || anomaly.ticker2
+      });
+      suggestedAction = i18n.t('ml.anomalies.action_diversify_correlation');
+      break;
+    case 'price_score_divergence':
+      if (anomaly.subtype === 'bullish_divergence') {
+        explanation = i18n.t('ml.anomalies.explanation_divergence_bullish', {
+          ticker: anomaly.ticker,
+          name: anomaly.name || anomaly.ticker,
+          quant_score: anomaly.quant_score.toFixed(1),
+          price_change: anomaly.price_change_60d.toFixed(1)
+        });
+        suggestedAction = i18n.t('ml.anomalies.action_opportunity_buy');
+      } else {
+        explanation = i18n.t('ml.anomalies.explanation_divergence_bearish', {
+          ticker: anomaly.ticker,
+          name: anomaly.name || anomaly.ticker,
+          quant_score: anomaly.quant_score.toFixed(1),
+          price_change: anomaly.price_change_60d.toFixed(1)
+        });
+        suggestedAction = i18n.t('ml.anomalies.action_opportunity_sell');
+      }
+      break;
+    case 'volume_anomaly':
+      if (anomaly.direction === 'spike') {
+        explanation = i18n.t('ml.anomalies.explanation_volume_spike', {
+          ticker: anomaly.ticker,
+          name: anomaly.name || anomaly.ticker,
+          zscore: Math.abs(anomaly.zScore).toFixed(2)
+        });
+        suggestedAction = i18n.t('ml.anomalies.action_check_news');
+      } else {
+        explanation = i18n.t('ml.anomalies.explanation_volume_drought', {
+          ticker: anomaly.ticker,
+          name: anomaly.name || anomaly.ticker,
+          zscore: Math.abs(anomaly.zScore).toFixed(2)
+        });
+        suggestedAction = i18n.t('ml.anomalies.action_improve_liquidity');
+      }
+      break;
+  }
+
+  // Risk assessment based on severity
+  switch (anomaly.severity) {
+    case 'extreme':
+      riskAssessment = i18n.t('ml.anomalies.risk_extreme');
+      if (!suggestedAction) {
+        suggestedAction = i18n.t('ml.anomalies.action_eliminate_position', {
+          ticker: anomaly.ticker,
+          name: anomaly.name || anomaly.ticker
+        });
+      }
+      break;
+    case 'high':
+      riskAssessment = i18n.t('ml.anomalies.risk_high');
+      if (!suggestedAction) {
+        suggestedAction = i18n.t('ml.anomalies.action_reduce_position', {
+          ticker: anomaly.ticker,
+          name: anomaly.name || anomaly.ticker
+        });
+      }
+      break;
+    case 'moderate':
+      riskAssessment = i18n.t('ml.anomalies.risk_moderate');
+      if (!suggestedAction) {
+        suggestedAction = i18n.t('ml.anomalies.action_monitor');
+      }
+      break;
+  }
+
+  content.innerHTML = `
+    <h2>${i18n.t('ml.anomalies.anomaly_details_title')}</h2>
+    <div style="background: ${severityColors[anomaly.severity]}20; padding: 15px; border-radius: 8px; border-left: 4px solid ${severityColors[anomaly.severity]}; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <strong style="color: #f8fafc; font-size: 1.2em;">${anomaly.ticker}${anomaly.name ? ` (${anomaly.name})` : ''}</strong>
+        <span style="color: ${severityColors[anomaly.severity]}; font-size: 0.9em; font-weight: 600;">
+          ${i18n.t('ml.anomalies.severity_' + anomaly.severity, anomaly.severity).toUpperCase()}
+        </span>
+      </div>
+      <div style="color: #cbd5e1; font-size: 0.95em;">
+        ${anomaly.message}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h3>💡 ${i18n.t('ml.anomalies.explanation')}</h3>
+      <p style="color: #cbd5e1; line-height: 1.6;">
+        ${explanation}
+      </p>
+    </div>
+
+    <div class="detail-section">
+      <h3>⚠️ ${i18n.t('ml.anomalies.risk_assessment')}</h3>
+      <p style="color: #fca5a5; line-height: 1.6; font-weight: 500;">
+        ${riskAssessment}
+      </p>
+    </div>
+
+    <div class="detail-section" style="background: #0f172a;">
+      <h3>🎯 ${i18n.t('ml.anomalies.suggested_action')}</h3>
+      <p style="color: #6ee7b7; line-height: 1.6; font-weight: 500;">
+        ${suggestedAction}
+      </p>
+    </div>
+
+    <div class="detail-section">
+      <h3>🔧 ${i18n.t('ml.anomalies.technical_details')}</h3>
+      <ul style="list-style: none; padding: 0;">
+        <li style="padding: 8px 0; border-bottom: 1px solid #334155; color: #94a3b8;">
+          <strong>${i18n.t('ml.anomalies.type')}:</strong> ${i18n.t('ml.anomalies.type_' + anomaly.type.replace(/_anomaly/g, ''), anomaly.type)}
+        </li>
+        ${anomaly.zScore ? `<li style="padding: 8px 0; border-bottom: 1px solid #334155; color: #94a3b8;">
+          <strong>Z-Score:</strong> ${anomaly.zScore.toFixed(3)}
+        </li>` : ''}
+        ${anomaly.distance ? `<li style="padding: 8px 0; border-bottom: 1px solid #334155; color: #94a3b8;">
+          <strong>Cluster Distance:</strong> ${anomaly.distance.toFixed(3)}
+        </li>` : ''}
+        ${anomaly.correlation ? `<li style="padding: 8px 0; border-bottom: 1px solid #334155; color: #94a3b8;">
+          <strong>Correlation:</strong> ${(anomaly.correlation * 100).toFixed(2)}%
+        </li>` : ''}
+        ${anomaly.divergence ? `<li style="padding: 8px 0; border-bottom: 1px solid #334155; color: #94a3b8;">
+          <strong>Divergence:</strong> ${anomaly.divergence.toFixed(2)}
+        </li>` : ''}
+        ${anomaly.volume ? `<li style="padding: 8px 0; border-bottom: 1px solid #334155; color: #94a3b8;">
+          <strong>Volume:</strong> ${anomaly.volume.toLocaleString()}
+        </li>` : ''}
+        <li style="padding: 8px 0; color: #94a3b8;">
+          <strong>Timestamp:</strong> ${new Date(anomaly.timestamp).toLocaleString()}
+        </li>
+      </ul>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+// Make function available globally
+window.showAnomalyDetails = showAnomalyDetails;
 
 // Render governance
 function renderGovernanceReport(governanceReport, complianceCheck) {

@@ -1292,6 +1292,127 @@ export default {
     rec_high_stress: 'Condiciones de alto stress. Requisitos de liquidez incrementados. Considere posicionamiento defensivo.',
     rec_moderate_stress: 'Stress moderado detectado. Monitoree liquidez y umbrales de rebalanceo.',
     rec_favorable: 'Condiciones de mercado favorables. Límites ligeramente relajados para capturar oportunidades.'
+  },
+
+  // =====================================================
+  // ML MODULE
+  // =====================================================
+
+  ml: {
+    // Recommendation Engine
+    recommendations: {
+      title: 'Recomendaciones ML',
+      insights_count: '{count} recomendaciones',
+      priority_critical: 'Crítico',
+      priority_high: 'Alto',
+      priority_medium: 'Medio',
+      priority_low: 'Bajo',
+      action: 'Acción',
+      confidence: 'Confianza',
+      type: 'Tipo',
+
+      // Recommendation types
+      type_rebalance: 'Rebalanceo',
+      type_buy_opportunity: 'Oportunidad de Compra',
+      type_sell_alert: 'Alerta de Venta',
+      type_risk_warning: 'Aviso de Riesgo',
+      type_diversification: 'Diversificación',
+      type_momentum_shift: 'Cambio de Momentum',
+      type_regime_change: 'Cambio de Régimen',
+
+      // Recommendation messages
+      rebalance_title: 'Rebalancear {ticker} ({name})',
+      rebalance_message: 'Peso actual ({current_weight}%) se desvía del objetivo ({target_weight}%) en {deviation}%',
+      buy_opportunity_title: 'Oportunidad de Compra: {ticker} ({name})',
+      buy_opportunity_message: 'Score cuantitativo elevado ({score}) con señales fuertes de momentum y calidad',
+      sell_alert_title: 'Alerta de Venta: {ticker} ({name})',
+      sell_alert_underperformance: 'Posición bajó {loss}% en 60 días. Considere salir.',
+      sell_alert_low_score: 'El score cayó a {score}. Fundamentales debilitándose.',
+      risk_warning_concentration: 'Alto Riesgo de Concentración',
+      risk_warning_concentration_message: 'Las top 3 posiciones representan {concentration}% de la cartera. Considere diversificar.',
+      risk_warning_volatility: 'Volatilidad de Mercado Elevada',
+      risk_warning_volatility_message: 'Volatilidad de mercado en {volatility}%. Considere reducir exposición o cubrir.',
+      diversification_sector: 'Alta Exposición en {sector}',
+      diversification_message: 'El sector {sector} representa {weight}% de la cartera. Considere diversificar.',
+      regime_change_title: 'Cambio de Régimen de Mercado Detectado',
+      regime_change_message: 'El mercado está transitando de {previous_regime} a {regime} con {confidence}% de confianza',
+
+      // Actions
+      action_sell: 'Vender',
+      action_buy: 'Comprar',
+      action_diversify: 'Diversificar',
+      action_review_risk: 'Revisar Riesgo',
+      action_consider_buying: 'Considere Comprar',
+      action_consider_selling: 'Considere Vender',
+      action_monitor_closely: 'Monitorear de Cerca',
+      action_reduce_risk: 'Reducir Riesgo',
+      action_adjust_strategy: 'Ajustar Estrategia'
+    },
+
+    // Anomaly Detection
+    anomalies: {
+      title: 'Detección de Anomalías ML',
+      detected_count: '{count} anomalías detectadas',
+      severity_extreme: 'extrema',
+      severity_high: 'alta',
+      severity_moderate: 'moderada',
+
+      // Anomaly types
+      type_z_score: 'Anomalía Z-Score',
+      type_cluster: 'Anomalía de Cluster',
+      type_correlation: 'Anomalía de Correlación',
+      type_price_score_divergence: 'Divergencia Precio-Score',
+      type_volume: 'Anomalía de Volumen',
+
+      // Anomaly subtypes
+      subtype_bullish_divergence: 'divergencia alcista',
+      subtype_bearish_divergence: 'divergencia bajista',
+      direction_above_mean: 'por encima de la media',
+      direction_below_mean: 'por debajo de la media',
+      direction_spike: 'pico',
+      direction_drought: 'sequía',
+
+      // Anomaly messages
+      z_score_message: '{ticker} ({name}) tiene {feature} {severity} (z-score: {zscore})',
+      cluster_message: '{ticker} ({name}) es un outlier en su cluster (distancia: {distance})',
+      correlation_message: 'Correlación extremadamente alta ({correlation}%) entre {ticker1} ({name1}) y {ticker2} ({name2})',
+      divergence_message: '{ticker} ({name}): {subtype} - Score es {score} pero cambio de precio es {price_change}%',
+      volume_message: '{ticker} ({name}) tiene volumen {direction} inusual (z-score: {zscore})',
+
+      // Modal dialog
+      view_details: 'Ver Detalles',
+      close: 'Cerrar',
+      anomaly_details_title: 'Detalles de la Anomalía',
+      explanation: 'Explicación',
+      risk_assessment: 'Evaluación de Riesgo',
+      suggested_action: 'Acción Sugerida',
+      technical_details: 'Detalles Técnicos',
+
+      // Explanations
+      explanation_z_score: 'Esta anomalía indica que {ticker} ({name}) presenta un comportamiento estadístico inusual en su {feature}. Un z-score de {zscore} significa que el valor está a {zscore} desviaciones estándar de la media del mercado.',
+      explanation_cluster: 'El algoritmo de clustering K-Means ha identificado que {ticker} ({name}) es un outlier respecto a su grupo de activos similares. Esto puede indicar características únicas o comportamiento anómalo.',
+      explanation_correlation: 'Se ha detectado una correlación extremadamente alta ({correlation}%) entre {ticker1} ({name1}) y {ticker2} ({name2}). Esto puede indicar riesgo de concentración y pérdida de beneficios de diversificación.',
+      explanation_divergence_bullish: 'Divergencia alcista: {ticker} ({name}) tiene un score cuantitativo alto ({quant_score}) pero su precio ha caído ({price_change}%). Esto podría indicar una oportunidad de compra.',
+      explanation_divergence_bearish: 'Divergencia bajista: {ticker} ({name}) tiene un score cuantitativo bajo ({quant_score}) pero su precio ha subido ({price_change}%). Esto podría indicar sobrevaloración.',
+      explanation_volume_spike: 'El volumen de trading de {ticker} ({name}) está anormalmente alto (z-score: {zscore}). Esto puede indicar un evento significativo o interés institucional.',
+      explanation_volume_drought: 'El volumen de trading de {ticker} ({name}) está anormalmente bajo (z-score: {zscore}). Esto puede indicar falta de interés o problemas de liquidez.',
+
+      // Risk assessments
+      risk_extreme: 'Riesgo Extremo: Esta anomalía requiere atención inmediata. Considere reducir o eliminar la exposición a este activo.',
+      risk_high: 'Riesgo Alto: Monitoree de cerca este activo y considere ajustar su posición si la anomalía persiste.',
+      risk_moderate: 'Riesgo Moderado: Mantenga bajo observación, pero no requiere acción inmediata a menos que se combien con otras señales negativas.',
+
+      // Suggested actions
+      action_reduce_position: 'Considere reducir la posición en {ticker} ({name}) hasta que se normalice el comportamiento.',
+      action_eliminate_position: 'Considere eliminar completamente la posición en {ticker} ({name}) debido al riesgo elevado.',
+      action_investigate: 'Investigue las causas fundamentales de esta anomalía antes de tomar decisiones.',
+      action_monitor: 'Monitoree la evolución de esta anomalía en los próximos días.',
+      action_diversify_correlation: 'Considere reducir la exposición a uno de estos activos correlacionados para mejorar la diversificación.',
+      action_opportunity_buy: 'Esta divergencia podría representar una oportunidad de compra si los fundamentales son sólidos.',
+      action_opportunity_sell: 'Esta divergencia podría ser una señal de venta si la sobrevaloración es confirmada por otros indicadores.',
+      action_check_news: 'Verifique noticias recientes que puedan explicar el volumen anómalo.',
+      action_improve_liquidity: 'Considere reemplazar este activo por alternativas más líquidas.'
+    }
   }
 
 };

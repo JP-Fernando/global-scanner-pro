@@ -1171,6 +1171,127 @@ export default {
     // Common
     error: 'Error',
     no_data: 'No data available'
+  },
+
+  // =====================================================
+  // ML MODULE
+  // =====================================================
+
+  ml: {
+    // Recommendation Engine
+    recommendations: {
+      title: 'ML Recommendations',
+      insights_count: '{count} insights',
+      priority_critical: 'Critical',
+      priority_high: 'High',
+      priority_medium: 'Medium',
+      priority_low: 'Low',
+      action: 'Action',
+      confidence: 'Confidence',
+      type: 'Type',
+
+      // Recommendation types
+      type_rebalance: 'Rebalance',
+      type_buy_opportunity: 'Buy Opportunity',
+      type_sell_alert: 'Sell Alert',
+      type_risk_warning: 'Risk Warning',
+      type_diversification: 'Diversification',
+      type_momentum_shift: 'Momentum Shift',
+      type_regime_change: 'Regime Change',
+
+      // Recommendation messages
+      rebalance_title: 'Rebalance {ticker} ({name})',
+      rebalance_message: 'Current weight ({current_weight}%) deviates from target ({target_weight}%) by {deviation}%',
+      buy_opportunity_title: 'Buy Opportunity: {ticker} ({name})',
+      buy_opportunity_message: 'High quant score ({score}) with strong momentum and quality signals',
+      sell_alert_title: 'Sell Alert: {ticker} ({name})',
+      sell_alert_underperformance: 'Position down {loss}% over 60 days. Consider exiting.',
+      sell_alert_low_score: 'Score dropped to {score}. Fundamentals weakening.',
+      risk_warning_concentration: 'High Concentration Risk',
+      risk_warning_concentration_message: 'Top 3 positions represent {concentration}% of portfolio. Consider diversifying.',
+      risk_warning_volatility: 'Elevated Market Volatility',
+      risk_warning_volatility_message: 'Market volatility at {volatility}%. Consider reducing exposure or hedging.',
+      diversification_sector: 'High {sector} Exposure',
+      diversification_message: '{sector} sector represents {weight}% of portfolio. Consider diversifying.',
+      regime_change_title: 'Market Regime Change Detected',
+      regime_change_message: 'Market transitioning from {previous_regime} to {regime} with {confidence}% confidence',
+
+      // Actions
+      action_sell: 'Sell',
+      action_buy: 'Buy',
+      action_diversify: 'Diversify',
+      action_review_risk: 'Review Risk',
+      action_consider_buying: 'Consider Buying',
+      action_consider_selling: 'Consider Selling',
+      action_monitor_closely: 'Monitor Closely',
+      action_reduce_risk: 'Reduce Risk',
+      action_adjust_strategy: 'Adjust Strategy'
+    },
+
+    // Anomaly Detection
+    anomalies: {
+      title: 'ML Anomaly Detection',
+      detected_count: '{count} anomalies detected',
+      severity_extreme: 'extreme',
+      severity_high: 'high',
+      severity_moderate: 'moderate',
+
+      // Anomaly types
+      type_z_score: 'Z-Score Anomaly',
+      type_cluster: 'Cluster Anomaly',
+      type_correlation: 'Correlation Anomaly',
+      type_price_score_divergence: 'Price-Score Divergence',
+      type_volume: 'Volume Anomaly',
+
+      // Anomaly subtypes
+      subtype_bullish_divergence: 'bullish divergence',
+      subtype_bearish_divergence: 'bearish divergence',
+      direction_above_mean: 'above mean',
+      direction_below_mean: 'below mean',
+      direction_spike: 'spike',
+      direction_drought: 'drought',
+
+      // Anomaly messages
+      z_score_message: '{ticker} ({name}) has {severity} {feature} (z-score: {zscore})',
+      cluster_message: '{ticker} ({name}) is an outlier in its cluster (distance: {distance})',
+      correlation_message: 'Extremely high correlation ({correlation}%) between {ticker1} ({name1}) and {ticker2} ({name2})',
+      divergence_message: '{ticker} ({name}): {subtype} - Score is {score} but price change is {price_change}%',
+      volume_message: '{ticker} ({name}) has unusually {direction} volume (z-score: {zscore})',
+
+      // Modal dialog
+      view_details: 'View Details',
+      close: 'Close',
+      anomaly_details_title: 'Anomaly Details',
+      explanation: 'Explanation',
+      risk_assessment: 'Risk Assessment',
+      suggested_action: 'Suggested Action',
+      technical_details: 'Technical Details',
+
+      // Explanations
+      explanation_z_score: 'This anomaly indicates that {ticker} ({name}) exhibits unusual statistical behaviour in its {feature}. A z-score of {zscore} means the value is {zscore} standard deviations from the market mean.',
+      explanation_cluster: 'The K-Means clustering algorithm has identified that {ticker} ({name}) is an outlier relative to its group of similar assets. This may indicate unique characteristics or anomalous behaviour.',
+      explanation_correlation: 'An extremely high correlation ({correlation}%) has been detected between {ticker1} ({name1}) and {ticker2} ({name2}). This may indicate concentration risk and loss of diversification benefits.',
+      explanation_divergence_bullish: 'Bullish divergence: {ticker} ({name}) has a high quant score ({quant_score}) but its price has fallen ({price_change}%). This could indicate a buying opportunity.',
+      explanation_divergence_bearish: 'Bearish divergence: {ticker} ({name}) has a low quant score ({quant_score}) but its price has risen ({price_change}%). This could indicate overvaluation.',
+      explanation_volume_spike: 'The trading volume of {ticker} ({name}) is abnormally high (z-score: {zscore}). This may indicate a significant event or institutional interest.',
+      explanation_volume_drought: 'The trading volume of {ticker} ({name}) is abnormally low (z-score: {zscore}). This may indicate lack of interest or liquidity issues.',
+
+      // Risk assessments
+      risk_extreme: 'Extreme Risk: This anomaly requires immediate attention. Consider reducing or eliminating exposure to this asset.',
+      risk_high: 'High Risk: Monitor this asset closely and consider adjusting your position if the anomaly persists.',
+      risk_moderate: 'Moderate Risk: Keep under observation, but does not require immediate action unless combined with other negative signals.',
+
+      // Suggested actions
+      action_reduce_position: 'Consider reducing position in {ticker} ({name}) until behaviour normalises.',
+      action_eliminate_position: 'Consider completely eliminating position in {ticker} ({name}) due to elevated risk.',
+      action_investigate: 'Investigate the fundamental causes of this anomaly before making decisions.',
+      action_monitor: 'Monitor the evolution of this anomaly over the coming days.',
+      action_diversify_correlation: 'Consider reducing exposure to one of these correlated assets to improve diversification.',
+      action_opportunity_buy: 'This divergence could represent a buying opportunity if fundamentals are solid.',
+      action_opportunity_sell: 'This divergence could be a sell signal if overvaluation is confirmed by other indicators.',
+      action_check_news: 'Check recent news that may explain the anomalous volume.',
+      action_improve_liquidity: 'Consider replacing this asset with more liquid alternatives.'
+    }
   }
 
 };
