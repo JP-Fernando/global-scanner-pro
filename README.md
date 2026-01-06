@@ -118,7 +118,10 @@ El sistema traduce:
 - 🎲 **Simulación Monte Carlo**: Tests de robustez con simulaciones estocásticas y escenarios históricos
 - ⚙️ **Optimización de Portfolio**: Máximo Sharpe, mínima varianza y risk parity con restricciones de gobernanza
 - 🌐 **Multiidioma**: Interfaz completa en español e inglés
-- 🔐 **Gobernanza**: Sistema de reglas de inversión con límites de concentración y compliance automático
+- 🔐 **Gobernanza Dinámica**: Límites adaptativos según volatilidad y correlación de mercado 🆕
+- ♿ **Accesibilidad Completa**: WCAG 2.1 AA, navegación por teclado, screen readers 🆕
+- 💡 **Documentación Interactiva**: Tooltips contextuales y panel de ayuda integrado 🆕
+- ⚡ **Optimización de Rendimiento**: Lazy loading, virtual scrolling, debouncing 🆕
 
 ---
 
@@ -133,12 +136,14 @@ Toda la documentación detallada se encuentra en la carpeta [`docs/`](docs/READM
 - [Dashboard de portfolio tracking](docs/portfolio_dashboard.md)
 - [Sistema de alertas online](docs/alertas-online.md)
 - [Análisis de atribución](docs/attribution-analysis.md)
-- [Tests de estrés multi-factor](docs/stress-testing.md) 🆕
+- [Tests de estrés multi-factor](docs/stress-testing.md)
+- [Simulación Monte Carlo y optimización](docs/monte-carlo-optimization.md)
 
 ### Documentación Técnica
 - [Arquitectura técnica](docs/arquitectura-tecnica.md)
 - [Sistema de internacionalización (i18n)](src/i18n/README.md)
 - [Módulo de reportes avanzados](docs/reports-module.md)
+- [Fase 6: Mejoras de experiencia de usuario](docs/phase6-ux-improvements.md) 🆕
 - [Roadmap del proyecto](docs/roadmap.md)
 
 ---
@@ -167,6 +172,14 @@ global-scanner-pro/
 │   │   ├── README.md            # Documentación completa del sistema i18n
 │   │   └── example-integration.html  # Ejemplo funcional
 │   │
+│   ├── ui/                      # 🆕 Sistema de UX mejorado (Fase 6)
+│   │   ├── tooltip-manager.js   # Tooltips interactivos
+│   │   ├── help-panel.js        # Panel de ayuda contextual
+│   │   ├── accessibility-manager.js  # Accesibilidad (WCAG 2.1 AA)
+│   │   ├── performance-optimizer.js  # Optimización de rendimiento
+│   │   ├── ui-init.js           # Inicialización de componentes UI
+│   │   └── ui-enhancements.css  # Estilos mejorados
+│   │
 │   ├── reports/                 # Sistema de exportación y reportes
 │   │   ├── report-generator.js  # Clases base para generación
 │   │   ├── excel-exporter.js    # Exportadores Excel especializados
@@ -175,7 +188,7 @@ global-scanner-pro/
 │   │   ├── index.js             # Exports centralizados
 │   │   └── README.md            # Documentación técnica
 │   │
-│   ├── alerts/                  # 🆕 Sistema de alertas online
+│   ├── alerts/                  # Sistema de alertas online
 │   │   └── alert-manager.js     # Gestión de alertas y notificaciones
 │   │
 │   ├── portfolio/               # Gestión y tracking de portfolios
@@ -183,7 +196,8 @@ global-scanner-pro/
 │   │   └── performance-tracker.js  # Métricas y análisis
 │   │
 │   ├── dashboard/               # Dashboard interactivo
-│   │   └── portfolio-dashboard.js  # Controller del dashboard
+│   │   ├── portfolio-dashboard.js  # Controller del dashboard
+│   │   └── attribution-dashboard.js # Dashboard de atribución
 │   │
 │   ├── storage/                 # Persistencia de datos
 │   │   └── indexed-db-store.js  # IndexedDB wrapper (portfolios + alertas)
@@ -191,12 +205,14 @@ global-scanner-pro/
 │   ├── indicators/              # Indicadores técnicos y scoring
 │   ├── allocation/              # Métodos de asignación de capital
 │   ├── analytics/               # Backtesting, risk, governance, regime
-│   │   ├── stress-testing.js    # 🆕 Tests de estrés multi-factor
-│   │   ├── monte-carlo.js       # 🆕 Simulación Monte Carlo
-│   │   ├── portfolio-optimizer.js  # 🆕 Optimización de portfolio
-│   │   └── attribution-analysis.js # Análisis de atribución
+│   │   ├── stress-testing.js    # Tests de estrés multi-factor
+│   │   ├── monte-carlo.js       # Simulación Monte Carlo
+│   │   ├── portfolio-optimizer.js  # Optimización de portfolio
+│   │   ├── attribution-analysis.js # Análisis de atribución
+│   │   ├── dynamic-governance.js   # 🆕 Gobernanza dinámica
+│   │   └── governance.js        # Reglas de gobernanza estáticas
 │   ├── data/                    # Sectores y anomalías
-│   └── tests/                   # Suite de testing (41 tests)
+│   └── tests/                   # Suite de testing (49 tests)
 │
 ├── docs/                        # Documentación completa
 │   ├── README.md                # Índice de documentación
@@ -204,9 +220,13 @@ global-scanner-pro/
 │   ├── interpretacion-senales.md  # Cómo interpretar señales
 │   ├── cartera-riesgo.md        # Construcción de cartera
 │   ├── portfolio_dashboard.md   # Dashboard de tracking
-│   ├── alertas-online.md        # 🆕 Sistema de alertas
+│   ├── alertas-online.md        # Sistema de alertas
+│   ├── attribution-analysis.md  # Análisis de atribución
+│   ├── stress-testing.md        # Tests de estrés
+│   ├── monte-carlo-optimization.md  # Monte Carlo y optimización
 │   ├── arquitectura-tecnica.md  # Detalles técnicos
 │   ├── reports-module.md        # Módulo de reportes
+│   ├── phase6-ux-improvements.md  # 🆕 Mejoras UX (Fase 6)
 │   ├── roadmap.md               # Roadmap del proyecto
 │   └── disclaimer.md            # Descargo de responsabilidad
 │

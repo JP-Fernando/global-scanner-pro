@@ -34,10 +34,11 @@
    - ✅ Simulación de escenarios para robustez ante shocks (Monte Carlo, escenarios históricos).
    - *Implementación: [stress-testing.js](../src/analytics/stress-testing.js), [monte-carlo.js](../src/analytics/monte-carlo.js), [portfolio-optimizer.js](../src/analytics/portfolio-optimizer.js), documentación: [stress-testing.md](stress-testing.md)*
 
-6. **Mejoras de experiencia**
-   - Documentación interactiva de estrategia en la UI (tooltips y paneles).
-   - Gobernanza dinámica: límites ajustados por volatilidad/correlación.
-   - Accesibilidad, rendimiento y mejoras visuales de la interfaz.
+6. ✅ **Mejoras de experiencia** *(Completado)*
+   - ✅ Documentación interactiva de estrategia en la UI (tooltips y paneles).
+   - ✅ Gobernanza dinámica: límites ajustados por volatilidad/correlación.
+   - ✅ Accesibilidad, rendimiento y mejoras visuales de la interfaz.
+   - *Implementación: [ui/](../src/ui/) - TooltipManager, HelpPanel, AccessibilityManager, PerformanceOptimizer, [dynamic-governance.js](../src/analytics/dynamic-governance.js), documentación: [phase6-ux-improvements.md](phase6-ux-improvements.md)*
 
 7. **Optimización avanzada con Machine Learning**
    - Ponderación dinámica de factores mediante ML (regresión, Random Forest, redes neuronales).

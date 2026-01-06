@@ -1151,6 +1151,127 @@ export default {
     // Common
     error: 'Error',
     no_data: 'No hay datos disponibles'
+  },
+
+  // =====================================================
+  // PHASE 6: UX IMPROVEMENTS
+  // =====================================================
+
+  // Help Panel
+  help: {
+    panel_title: 'Ayuda y Documentación',
+    toggle: 'Alternar panel de ayuda',
+    search_placeholder: 'Buscar en la ayuda...',
+    search: 'Buscar ayuda',
+    context: 'Contexto',
+    quick_links: 'Enlaces Rápidos',
+    beginner_guide: 'Guía de Principiantes',
+    strategies: 'Estrategias',
+    portfolio: 'Gestión de Cartera',
+    governance: 'Gobernanza',
+    loading: 'Cargando...',
+    load_error: 'Error al cargar documentación',
+    no_results: 'No se encontraron resultados',
+    search_results: 'Resultados de búsqueda',
+    goto_context: 'Ir al contexto',
+
+    // Contexts
+    contexts: {
+      general: 'General',
+      scanner: 'Escáner de Mercado',
+      portfolio: 'Gestión de Cartera',
+      governance: 'Gobernanza',
+      attribution: 'Análisis de Atribución'
+    },
+
+    // General
+    general: {
+      welcome: 'Bienvenido',
+      welcome_text: 'Global Quant Scanner Pro es un sistema cuantitativo avanzado para análisis multi-factor de mercados globales.',
+      getting_started: 'Primeros Pasos',
+      getting_started_text: '1. Selecciona un mercado\n2. Elige una estrategia\n3. Configura el método de asignación\n4. Ejecuta el análisis'
+    },
+
+    // Scanner
+    scanner: {
+      market_selection: 'Selección de Mercado',
+      market_selection_text: 'Elige entre 14 mercados globales o analiza todos simultáneamente. Cada mercado incluye acciones líquidas de alta capitalización.',
+      strategy_profiles: 'Perfiles de Estrategia',
+      strategy_profiles_text: 'Cada estrategia pondera diferentes factores: Trend, Momentum, Risk y Liquidity. Momentum Agresivo favorece impulso reciente, Trend Conservador prioriza estabilidad.',
+      scoring: 'Sistema de Puntuación',
+      scoring_text: 'Score 0-100 basado en análisis multi-factor. >70 = Compra Fuerte, 60-70 = Compra, 40-60 = Mantener, <40 = Vender.'
+    },
+
+    // Portfolio
+    portfolio: {
+      allocation: 'Métodos de Asignación',
+      allocation_text: 'Equal Weight (pesos iguales), Score-Weighted (proporcional al score), ERC (igual contribución de riesgo), Volatility Target (objetivo de volatilidad), Hybrid (combina ERC y score).',
+      risk_metrics: 'Métricas de Riesgo',
+      risk_metrics_text: 'VaR (Value at Risk al 95%), CVaR (pérdida esperada en cola), Sharpe (retorno ajustado por riesgo), Sortino (penaliza solo volatilidad a la baja), Max Drawdown (pérdida máxima desde pico).',
+      rebalancing: 'Rebalanceo',
+      rebalancing_text: 'Rebalanceo automático cuando las desviaciones de peso superan el threshold configurado (5% por defecto). Considera costos de transacción.'
+    },
+
+    // Governance
+    governance: {
+      limits: 'Límites de Posición',
+      limits_text: 'Máximo 15% por activo, 30% por sector, 40% por país. Top 3 posiciones no pueden superar 40% combinadas. Estos límites se ajustan dinámicamente según condiciones de mercado.',
+      risk_profiles: 'Perfiles de Riesgo',
+      risk_profiles_text: 'Conservador (máx 10% posición, 15% volatilidad), Moderado (máx 15% posición, 20% volatilidad), Agresivo (máx 20% posición, 30% volatilidad).',
+      compliance: 'Compliance',
+      compliance_text: 'Validación automática de reglas de inversión. Correcciones automáticas de posiciones sobredimensionadas. Reportes de gobernanza completos.'
+    },
+
+    // Attribution
+    attribution: {
+      brinson: 'Análisis Brinson',
+      brinson_text: 'Descomposición del exceso de retorno en: Allocation Effect (decisión de asignación sectorial), Selection Effect (elección de activos dentro de sectores), Interaction Effect (combinación de ambos).',
+      factor: 'Atribución por Factor',
+      factor_text: 'Contribución de cada factor de riesgo (Trend, Momentum, Risk, Liquidity) al rendimiento total del portafolio.'
+    }
+  },
+
+  // Tooltips
+  tooltips: {
+    market_selector: 'Selecciona el mercado a analizar. "Todos los Mercados" ejecuta análisis global.',
+    strategy_selector: 'Elige el perfil de estrategia que define la ponderación de factores.',
+    allocation_method: 'Método para distribuir capital entre activos seleccionados.',
+    risk_profile: 'Perfil de riesgo que define límites de concentración y volatilidad.',
+    run_scan: 'Ejecuta el análisis cuantitativo con la configuración actual.',
+    quant_score: 'Puntuación 0-100 basada en análisis multi-factor (Trend, Momentum, Risk, Liquidity).',
+    signal: 'Señal de trading basada en score y umbrales configurados.',
+    trend_score: 'Score de tendencia basado en medias móviles y ADX.',
+    momentum_score: 'Score de momentum basado en RSI, ROC y Williams %R.',
+    risk_score: 'Score de riesgo inverso basado en volatilidad, ATR y drawdown.',
+    liquidity_score: 'Score de liquidez basado en volumen promedio.',
+    sharpe_ratio: 'Ratio de Sharpe: retorno ajustado por riesgo. >1.0 es bueno, >2.0 es excelente.',
+    max_drawdown: 'Máxima pérdida desde pico histórico.',
+    var_95: 'Value at Risk al 95%: pérdida máxima esperada en 95% de los casos.',
+    cvar_95: 'Conditional VaR: pérdida esperada cuando VaR es excedido.'
+  },
+
+  // Accessibility
+  a11y: {
+    main_header: 'Encabezado principal',
+    main_content: 'Contenido principal',
+    language_navigation: 'Selección de idioma',
+    help_panel: 'Panel de ayuda',
+    results_table: 'Tabla de resultados de escaneo',
+    skip_to_content: 'Saltar al contenido principal',
+    external_link: 'abre en nueva pestaña',
+    data_table: 'Tabla de datos',
+    required: 'requerido'
+  },
+
+  // Dynamic Governance
+  dynamic_governance: {
+    rec_extreme_vol: 'Volatilidad extrema detectada. Límites de posición significativamente reducidos. Considere reducir exposición global.',
+    rec_high_vol: 'Régimen de alta volatilidad. Límites de posición ajustados. Monitoree drawdowns de cerca.',
+    rec_extreme_corr: 'Correlación extrema detectada (riesgo de crowding). Beneficios de diversificación limitados. Reduzca concentración.',
+    rec_high_corr: 'Régimen de alta correlación. Límites sectoriales ajustados para mejorar diversificación.',
+    rec_high_stress: 'Condiciones de alto stress. Requisitos de liquidez incrementados. Considere posicionamiento defensivo.',
+    rec_moderate_stress: 'Stress moderado detectado. Monitoree liquidez y umbrales de rebalanceo.',
+    rec_favorable: 'Condiciones de mercado favorables. Límites ligeramente relajados para capturar oportunidades.'
   }
 
 };
