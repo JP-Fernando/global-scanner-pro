@@ -43,6 +43,7 @@ import {
   optimizeMinVariance,
   optimizeRiskParity
 } from '../analytics/portfolio-optimizer.js';
+import { runAllMLTests } from './ml-tests.js';
 
 // Phase 6 imports
 import {
@@ -1772,7 +1773,7 @@ export const testAccessibilityARIA = () => {
 // RUN ALL TESTS
 // =====================================================
 
-export const runAllTests = () => {
+export const runAllTests = async () => {
   console.log('╔═══════════════════════════════════════╗');
   console.log(`║   ${i18n.t('test.suite_title')}        ║`);
   console.log('╚═══════════════════════════════════════╝');
@@ -1852,13 +1853,22 @@ export const runAllTests = () => {
     });
   });
 
-  return chain.then(() => {
-    console.log('\n╔═══════════════════════════════════════╗');
-    console.log(`║  ${i18n.t('test.results').toUpperCase()}: ${passed} ✅  ${failed} ❌`);
-    console.log('╚═══════════════════════════════════════╝\n');
 
-    return { passed, failed };
-  });
+  
+  await chain;
+  const mlSummary = await runAllMLTests();
+  if (mlSummary?.passed !== undefined) {
+    passed += mlSummary.passed;
+  }
+  if (mlSummary?.failed !== undefined) {
+    failed += mlSummary.failed;
+  }
+
+  console.log('\n╔═══════════════════════════════════════╗');
+  console.log(`║  ${i18n.t('test.results').toUpperCase()}: ${passed} ✅  ${failed} ❌`);
+  console.log('╚═══════════════════════════════════════╝\n');
+
+  return { passed, failed };
 };
 
 export default { runAllTests };

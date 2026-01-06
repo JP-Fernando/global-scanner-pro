@@ -18,7 +18,6 @@
  * - Weight optimisation
  */
 
-import i18n from '../i18n/i18n.js';
 import { calculateCorrelation } from './ml-engine.js';
 
 // =====================================================
@@ -89,9 +88,10 @@ function detectRebalancingNeeds(portfolio) {
     const current_weight = position.weight;
     const target_weight = target_weights[ticker] || 0;
 
-    const deviation = Math.abs(current_weight - target_weight);
+    // Round to avoid floating point precision issues
+    const deviation = Math.round(Math.abs(current_weight - target_weight) * 1000) / 1000;
 
-    if (deviation > 0.05) { // 5% threshold
+    if (deviation >= 0.05) { // 5% threshold
       recommendations.push({
         type: RECOMMENDATION_TYPES.REBALANCE,
         priority: deviation > 0.10 ? RECOMMENDATION_PRIORITY.HIGH : RECOMMENDATION_PRIORITY.MEDIUM,

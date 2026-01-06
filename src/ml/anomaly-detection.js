@@ -156,6 +156,21 @@ export function detectClusterAnomalies(assets, config = ANOMALY_DETECTION_CONFIG
     return euclideanDistance(point, centroid);
   });
 
+
+  const maxDistance = Math.max(...distances);
+
+  if (maxDistance === 0) {
+    return {
+      anomalies: [],
+      clusters: {
+        labels: kmeans.labels,
+        centroids: kmeans.centroids,
+        inertia: kmeans.getInertia(X_standardized)
+      }
+    };
+  }
+
+
   // Identify outliers (top 10% furthest from centroids)
   const sortedDistances = [...distances].sort((a, b) => b - a);
   const outlierThreshold = sortedDistances[Math.floor(distances.length * 0.1)];
@@ -163,7 +178,7 @@ export function detectClusterAnomalies(assets, config = ANOMALY_DETECTION_CONFIG
   const anomalies = [];
 
   distances.forEach((dist, idx) => {
-    if (dist >= outlierThreshold) {
+    if (dist > 0 && dist >= outlierThreshold) {
       anomalies.push({
         type: 'cluster_anomaly',
         ticker: assets[idx].ticker,

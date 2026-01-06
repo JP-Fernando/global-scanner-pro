@@ -461,11 +461,25 @@ export function testAnomalyDetection() {
     const { anomalies: clusterAnomalies } = detectClusterAnomalies(assets);
     console.log(`  Cluster anomalies: ${clusterAnomalies.length}`);
 
+
+    // Uniform assets should not trigger anomalies
+    const uniformAssets = Array.from({ length: 6 }, (_, idx) => ({
+      ticker: `UNIFORM_${idx}`,
+      quant_score: 50,
+      volatility: 20,
+      volume: 100000,
+      momentum: 0,
+      correlation: 0.5
+    }));
+    const { anomalies: uniformClusterAnomalies } = detectClusterAnomalies(uniformAssets);
+    console.log(`  Uniform cluster anomalies: ${uniformClusterAnomalies.length}`);
+
+
     // All anomalies
     const allAnomalies = detectAllAnomalies(assets, null);
     console.log(`  Total anomalies: ${allAnomalies.length}`);
 
-    if (allAnomalies.length >= 2) {
+    if (allAnomalies.length >= 2 && uniformClusterAnomalies.length === 0) {
       console.log('  ✅ Anomaly detection working correctly');
       return true;
     } else {
@@ -484,7 +498,7 @@ export function testAnomalyDetection() {
 
 export async function runAllMLTests() {
   console.log('\n╔═══════════════════════════════════════╗');
-  console.log('║   ML COMPONENT TEST SUITE (Phase 7)  ║');
+  console.log('║   ML COMPONENT TEST SUITE             ║');
   console.log('╚═══════════════════════════════════════╝');
 
   const tests = [

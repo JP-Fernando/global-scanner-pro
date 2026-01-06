@@ -200,12 +200,21 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
     const avgVol = ind.SMA(volumes.slice(-50), 50);
     const vRatio = volumes[volumes.length - 1] / avgVol;
 
+    const priceChange60d = prices.length >= 61
+      ? ((prices[prices.length - 1] - prices[prices.length - 61]) / prices[prices.length - 61]) * 100
+      : undefined;
+
     return {
       passed: true,
       ticker: stock.ticker,
       name: stock.name,
       prices,
       pricesWithDates,
+      quant_score: finalScore,
+      volatility: Number(riskResult.details.volatility),
+      volume: volumes[volumes.length - 1],
+      momentum: momentumResult.score,
+      price_change_60d: priceChange60d,
       warnings: filterResult.reasons,
       price: prices[prices.length - 1],
       scoreTotal: finalScore,
