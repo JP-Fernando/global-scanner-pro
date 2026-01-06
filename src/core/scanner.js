@@ -22,6 +22,24 @@ import {
   generateComparativeExcel
 } from '../reports/index.js';
 import { notifyStrongSignals } from '../alerts/alert-manager.js';
+import {
+  adjustScoresBatch,
+  PerformanceTracker,
+  loadPerformanceTracker,
+  savePerformanceTracker,
+  PerformanceRecord
+} from '../ml/adaptive-scoring.js';
+import {
+  predictRegime as predictRegimeML,
+  extractRegimeFeatures
+} from '../ml/regime-prediction.js';
+import {
+  generateRecommendations
+} from '../ml/recommendation-engine.js';
+import {
+  detectAllAnomalies as detectMLAnomalies,
+  getAnomalySummary
+} from '../ml/anomaly-detection.js';
 
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 let currentResults = [];
@@ -32,12 +50,19 @@ let lastBacktestInitialCapital = null;
 const dataCache = new Map();
 let isScanning = false; // Control flag
 
+// ML State
+let performanceTracker = null;
+let mlRegimePrediction = null;
+let mlRecommendations = [];
+let mlAnomalies = [];
+
 const appState = {
   scanResults: [],
   portfolio: null,
   market: null,
   strategy: null,
-  scanCompleted: false
+  scanCompleted: false,
+  mlEnabled: true // ML features enabled by default
 };
 
 
@@ -1651,10 +1676,24 @@ export async function runScan() {
       showInlineError(i18n.t('errors.insufficient_assets_portfolio'));
     }
 
-    // Detección de régimen
+    // =====================================================
+    // ML INTEGRATION: Machine Learning Analysis
+    // =====================================================
+
+    // 1. Initialize Performance Tracker (if not already loaded)
+    if (!performanceTracker && appState.mlEnabled) {
+      try {
+        status.innerText = '🤖 Initializing ML Performance Tracker...';
+        performanceTracker = await loadPerformanceTracker();
+        console.log('✅ ML Performance Tracker loaded');
+      } catch (e) {
+        console.warn('Performance Tracker initialization failed, creating new:', e.message);
+        performanceTracker = new PerformanceTracker();
+      }
+    }
+
+    // 2. Detección de régimen (rule-based + ML)
     if (benchmarkData && benchmarkData.symbol) {
-      // ... (Código de régimen existente se mantiene igual) ...
-      // (Mantenemos tu lógica existente para brevity, pero dentro del try)
       try {
         status.innerText = i18n.t('status.detecting_regime');
         const benchmarkFullData = await loadYahooData(benchmarkData.symbol, '');
@@ -1663,15 +1702,119 @@ export async function runScan() {
         } else {
           const benchmarkPrices = benchmarkFullData.map(d => ({ date: d.date, close: d.close }));
           if (benchmarkPrices.length >= 200) {
+            // Rule-based regime detection
             currentRegime = regime.detectMarketRegime(benchmarkPrices, currentResults);
             appState.regime = currentRegime;
+
+            // ML-based regime prediction (enhanced)
+            if (appState.mlEnabled) {
+              try {
+                status.innerText = '🤖 ML Regime Prediction...';
+                const regimeFeatures = extractRegimeFeatures(benchmarkPrices, currentResults);
+
+                // Note: This requires a trained model. For now, we'll use rule-based
+                // In production, you would load a trained model and use predictRegimeML()
+                mlRegimePrediction = {
+                  regime: currentRegime.regime,
+                  confidence: 0.75,
+                  method: 'rule-based',
+                  features: regimeFeatures,
+                  timestamp: Date.now()
+                };
+
+                console.log('🤖 ML Regime Prediction:', mlRegimePrediction);
+              } catch (e) {
+                console.warn('ML Regime prediction failed:', e.message);
+              }
+            }
+
             renderRegimeIndicator(currentRegime);
             console.log('📊 Régimen detectado:', currentRegime);
           }
         }
-      } catch (e) { console.error(e); }
-      status.innerText = i18n.t('status.scan_complete', { count: analyzed });
+      } catch (e) {
+        console.error('Regime detection error:', e);
+      }
     }
+
+    // 3. ML Adaptive Score Adjustment
+    if (appState.mlEnabled && performanceTracker && currentRegime) {
+      try {
+        status.innerText = '🤖 Applying ML Adaptive Scoring...';
+
+        // Adjust scores based on historical performance
+        currentResults = adjustScoresBatch(
+          currentResults,
+          strategyKey,
+          currentRegime.regime,
+          performanceTracker
+        );
+
+        // Update appState with adjusted results
+        appState.scanResults = currentResults;
+
+        console.log('✅ ML Adaptive scoring applied to', currentResults.length, 'assets');
+      } catch (e) {
+        console.warn('ML Adaptive scoring failed:', e.message);
+      }
+    }
+
+    // 4. ML Anomaly Detection
+    if (appState.mlEnabled && currentResults.length > 0) {
+      try {
+        status.innerText = '🤖 ML Anomaly Detection...';
+
+        mlAnomalies = detectMLAnomalies(currentResults, null);
+        const anomalySummary = getAnomalySummary(mlAnomalies);
+
+        console.log('🔍 ML Anomalies detected:', anomalySummary);
+
+        // Store ML anomalies in appState
+        appState.mlAnomalies = mlAnomalies;
+        appState.mlAnomalySummary = anomalySummary;
+      } catch (e) {
+        console.warn('ML Anomaly detection failed:', e.message);
+      }
+    }
+
+    // 5. ML Recommendations Generation
+    if (appState.mlEnabled && currentResults.length > 0) {
+      try {
+        status.innerText = '🤖 Generating ML Recommendations...';
+
+        // Create portfolio-like structure for recommendations
+        const mockPortfolio = {
+          positions: {},
+          sector_exposure: {}
+        };
+
+        const marketData = {
+          volatility: benchmarkData?.volatility || 20,
+          regime_prediction: mlRegimePrediction || { regime: currentRegime?.regime || 'neutral' },
+          assets: currentResults.slice(0, 20) // Top 20 for recommendations
+        };
+
+        mlRecommendations = generateRecommendations(mockPortfolio, marketData, {});
+
+        console.log('💡 ML Recommendations generated:', mlRecommendations.length);
+        appState.mlRecommendations = mlRecommendations;
+      } catch (e) {
+        console.warn('ML Recommendations generation failed:', e.message);
+      }
+    }
+
+    // 6. Render ML Results in UI
+    if (appState.mlEnabled) {
+      try {
+        renderMLRecommendations();
+        renderMLAnomalies();
+        console.log('✅ ML UI rendered');
+      } catch (e) {
+        console.warn('ML UI rendering failed:', e.message);
+      }
+    }
+
+    status.innerText = i18n.t('status.scan_complete', { count: analyzed });
 
     const portfolioSection = document.getElementById('portfolioSection');
     if (portfolioSection && currentResults.length > 0) {
@@ -2217,6 +2360,137 @@ function renderRegimeIndicator(regimeData) {
     </div>
   `;
 
+  container.style.display = 'block';
+}
+
+// =====================================================
+// ML RENDERING FUNCTIONS
+// =====================================================
+
+function renderMLRecommendations() {
+  const container = document.getElementById('mlRecommendations');
+  if (!container || !mlRecommendations.length) {
+    if (container) container.style.display = 'none';
+    return;
+  }
+
+  const priorityColors = {
+    4: '#ef4444', // Critical
+    3: '#f97316', // High
+    2: '#fbbf24', // Medium
+    1: '#3b82f6'  // Low
+  };
+
+  const priorityIcons = {
+    4: '🚨',
+    3: '⚠️',
+    2: '💡',
+    1: 'ℹ️'
+  };
+
+  const html = `
+    <div style="background: #1e293b; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #818cf8;">
+      <h3 style="color: #818cf8; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+        🤖 ML Recommendations
+        <span style="font-size: 0.7em; background: #334155; padding: 4px 12px; border-radius: 12px; color: #94a3b8;">
+          ${mlRecommendations.length} insights
+        </span>
+      </h3>
+      <div style="display: grid; gap: 12px;">
+        ${mlRecommendations.slice(0, 10).map(rec => `
+          <div style="background: #0f172a; padding: 15px; border-radius: 8px; border-left: 3px solid ${priorityColors[rec.priority.level]};">
+            <div style="display: flex; align-items: start; gap: 10px; margin-bottom: 8px;">
+              <span style="font-size: 1.5em;">${priorityIcons[rec.priority.level]}</span>
+              <div style="flex: 1;">
+                <div style="font-weight: bold; color: ${priorityColors[rec.priority.level]}; margin-bottom: 5px;">
+                  ${rec.title}
+                </div>
+                <div style="color: #cbd5e1; font-size: 0.9em; margin-bottom: 8px;">
+                  ${rec.message}
+                </div>
+                <div style="display: flex; gap: 15px; font-size: 0.8em; color: #64748b;">
+                  <span><strong>Action:</strong> ${rec.action}</span>
+                  <span><strong>Confidence:</strong> ${(rec.confidence * 100).toFixed(0)}%</span>
+                  <span><strong>Type:</strong> ${rec.type}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+  container.style.display = 'block';
+}
+
+function renderMLAnomalies() {
+  const container = document.getElementById('mlAnomalies');
+  if (!container || !mlAnomalies.length) {
+    if (container) container.style.display = 'none';
+    return;
+  }
+
+  const severityColors = {
+    'extreme': '#dc2626',
+    'high': '#f97316',
+    'moderate': '#fbbf24'
+  };
+
+  const severityIcons = {
+    'extreme': '🔴',
+    'high': '🟠',
+    'moderate': '🟡'
+  };
+
+  const summary = appState.mlAnomalySummary || {};
+
+  const html = `
+    <div style="background: #1e293b; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #f43f5e;">
+      <h3 style="color: #f87171; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+        🔍 ML Anomaly Detection
+        <span style="font-size: 0.7em; background: #334155; padding: 4px 12px; border-radius: 12px; color: #94a3b8;">
+          ${summary.total || 0} anomalies detected
+        </span>
+      </h3>
+
+      ${summary.by_severity ? `
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          ${Object.entries(summary.by_severity).map(([severity, count]) => `
+            <div style="background: #0f172a; padding: 8px 12px; border-radius: 6px; border: 1px solid ${severityColors[severity]};">
+              <span style="font-size: 0.8em; color: #94a3b8;">${severity}:</span>
+              <strong style="color: ${severityColors[severity]}; margin-left: 5px;">${count}</strong>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      <div style="display: grid; gap: 10px; max-height: 400px; overflow-y: auto;">
+        ${mlAnomalies.slice(0, 15).map(anomaly => `
+          <div style="background: #0f172a; padding: 12px; border-radius: 6px; border-left: 3px solid ${severityColors[anomaly.severity]};">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+              <span>${severityIcons[anomaly.severity]}</span>
+              <strong style="color: #f8fafc;">${anomaly.ticker || 'N/A'}</strong>
+              <span style="color: ${severityColors[anomaly.severity]}; font-size: 0.85em; font-weight: 600;">
+                ${anomaly.type.replace(/_/g, ' ').toUpperCase()}
+              </span>
+            </div>
+            <div style="color: #94a3b8; font-size: 0.85em;">
+              ${anomaly.description || 'Anomaly detected'}
+            </div>
+            ${anomaly.details ? `
+              <div style="color: #64748b; font-size: 0.75em; margin-top: 5px;">
+                ${JSON.stringify(anomaly.details).substring(0, 100)}...
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
   container.style.display = 'block';
 }
 

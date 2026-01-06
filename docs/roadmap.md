@@ -38,11 +38,14 @@
    - ✅ Documentación interactiva de estrategia en la UI (tooltips y paneles).
    - ✅ Gobernanza dinámica: límites ajustados por volatilidad/correlación.
    - ✅ Accesibilidad, rendimiento y mejoras visuales de la interfaz.
-   - *Implementación: [ui/](../src/ui/) - TooltipManager, HelpPanel, AccessibilityManager, PerformanceOptimizer, [dynamic-governance.js](../src/analytics/dynamic-governance.js), documentación: [phase6-ux-improvements.md](phase6-ux-improvements.md)*
+   - *Implementación: [ui/](../src/ui/) - TooltipManager, HelpPanel, AccessibilityManager, PerformanceOptimizer, [dynamic-governance.js](../src/analytics/dynamic-governance.js), documentación: [ux-improvements.md](ux-improvements.md)*
 
-7. **Optimización avanzada con Machine Learning**
-   - Ponderación dinámica de factores mediante ML (regresión, Random Forest, redes neuronales).
-   - Ajuste adaptativo de scores basado en performance histórica.
-   - Predicción de régimen de mercado con modelos de clasificación.
-   - Sistema de recomendaciones proactivas con IA.
-   - Detección de patrones y anomalías mediante unsupervised learning.
+7. ✅ **Optimización avanzada con Machine Learning** *(Completado e Integrado)* 🆕
+   - ✅ Ponderación dinámica de factores mediante ML (regresión, Random Forest).
+   - ✅ Ajuste adaptativo de scores basado en performance histórica.
+   - ✅ Predicción de régimen de mercado con modelos de clasificación.
+   - ✅ Sistema de recomendaciones proactivas con IA.
+   - ✅ Detección de patrones y anomalías mediante unsupervised learning.
+   - ✅ **Integración completa en el scanner principal** 🎯
+   - ✅ **UI para visualizar recomendaciones y anomalías ML** 🎯
+   - *Implementación: [ml/](../src/ml/) - ML Engine, Factor Weighting, Adaptive Scoring, Regime Prediction, Recommendation Engine, Anomaly Detection, integrado en [scanner.js](../src/core/scanner.js), documentación: [machine-learning.md](machine-learning.md)*

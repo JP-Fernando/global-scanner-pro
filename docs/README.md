@@ -25,7 +25,8 @@ Esta carpeta contiene la documentación completa de **Global Quant Scanner Pro**
 ### Documentación Técnica
 - [Arquitectura técnica](arquitectura-tecnica.md)
 - [Módulo de reportes avanzados](reports-module.md)
-- [Fase 6: Mejoras de experiencia de usuario](phase6-ux-improvements.md) 🆕
+- [Mejoras de experiencia de usuario (UX)](ux-improvements.md)
+- [Machine Learning y optimización avanzada](machine-learning.md) 🆕 ✨
 - [Roadmap del proyecto](roadmap.md)
 
 ### Legal

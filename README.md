@@ -118,10 +118,13 @@ El sistema traduce:
 - 🎲 **Simulación Monte Carlo**: Tests de robustez con simulaciones estocásticas y escenarios históricos
 - ⚙️ **Optimización de Portfolio**: Máximo Sharpe, mínima varianza y risk parity con restricciones de gobernanza
 - 🌐 **Multiidioma**: Interfaz completa en español e inglés
-- 🔐 **Gobernanza Dinámica**: Límites adaptativos según volatilidad y correlación de mercado 🆕
-- ♿ **Accesibilidad Completa**: WCAG 2.1 AA, navegación por teclado, screen readers 🆕
-- 💡 **Documentación Interactiva**: Tooltips contextuales y panel de ayuda integrado 🆕
-- ⚡ **Optimización de Rendimiento**: Lazy loading, virtual scrolling, debouncing 🆕
+- 🔐 **Gobernanza Dinámica**: Límites adaptativos según volatilidad y correlación de mercado
+- ♿ **Accesibilidad Completa**: WCAG 2.1 AA, navegación por teclado, screen readers
+- 💡 **Documentación Interactiva**: Tooltips contextuales y panel de ayuda integrado
+- ⚡ **Optimización de Rendimiento**: Lazy loading, virtual scrolling, debouncing
+- 🤖 **Machine Learning**: Ponderación dinámica de factores, adaptive scoring, predicción de regímenes 🆕
+- 🎯 **AI Recommendations**: Sistema de recomendaciones proactivas con IA 🆕
+- 🔍 **Anomaly Detection**: Detección de patrones y anomalías con unsupervised learning 🆕
 
 ---
 
@@ -143,7 +146,8 @@ Toda la documentación detallada se encuentra en la carpeta [`docs/`](docs/READM
 - [Arquitectura técnica](docs/arquitectura-tecnica.md)
 - [Sistema de internacionalización (i18n)](src/i18n/README.md)
 - [Módulo de reportes avanzados](docs/reports-module.md)
-- [Fase 6: Mejoras de experiencia de usuario](docs/phase6-ux-improvements.md) 🆕
+- [Mejoras de experiencia de usuario](docs/ux-improvements.md)
+- [Machine Learning y optimización avanzada](docs/machine-learning.md) 🆕
 - [Roadmap del proyecto](docs/roadmap.md)
 
 ---
@@ -211,8 +215,18 @@ global-scanner-pro/
 │   │   ├── attribution-analysis.js # Análisis de atribución
 │   │   ├── dynamic-governance.js   # 🆕 Gobernanza dinámica
 │   │   └── governance.js        # Reglas de gobernanza estáticas
+│   │
+│   ├── ml/                      # 🆕 Machine Learning (Integrado)
+│   │   ├── ml-engine.js         # Core ML: Linear Regression, Random Forest, K-Means
+│   │   ├── factor-weighting.js  # Optimización dinámica de pesos
+│   │   ├── adaptive-scoring.js  # Ajuste adaptativo de scores
+│   │   ├── regime-prediction.js # Predicción de régimen con ML
+│   │   ├── recommendation-engine.js  # Recomendaciones con IA
+│   │   ├── anomaly-detection.js # Detección de anomalías
+│   │   └── index.js             # Exports centralizados
+│   │
 │   ├── data/                    # Sectores y anomalías
-│   └── tests/                   # Suite de testing (49 tests)
+│   └── tests/                   # Suite de testing (con tests ML)
 │
 ├── docs/                        # Documentación completa
 │   ├── README.md                # Índice de documentación
@@ -226,7 +240,8 @@ global-scanner-pro/
 │   ├── monte-carlo-optimization.md  # Monte Carlo y optimización
 │   ├── arquitectura-tecnica.md  # Detalles técnicos
 │   ├── reports-module.md        # Módulo de reportes
-│   ├── phase6-ux-improvements.md  # 🆕 Mejoras UX (Fase 6)
+│   ├── ux-improvements.md       # 🆕 Mejoras UX
+│   ├── machine-learning.md      # 🆕 Machine Learning integrado
 │   ├── roadmap.md               # Roadmap del proyecto
 │   └── disclaimer.md            # Descargo de responsabilidad
 │
