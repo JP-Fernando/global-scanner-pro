@@ -180,12 +180,6 @@
     "industry": "Medical Devices"
   },
   {
-    "ticker": "FNM",
-    "name": "FNM",
-    "sector": "Industrials",
-    "industry": "Railroads"
-  },
-  {
     "ticker": "IGD",
     "name": "IGD",
     "sector": "Real Estate",
@@ -436,5 +430,71 @@
     "name": "ENAV",
     "sector": "Industrials",
     "industry": "Airports & Air Services"
+  },
+  {
+    "ticker": "XMEU",
+    "name": "Xtrackers MSCI Europe UCITS ETF",
+    "sector": "ETF",
+    "industry": "European Equity ETF"
+  },
+  {
+    "ticker": "CSSPX",
+    "name": "iShares Core S&P 500 UCITS ETF",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "SWDA",
+    "name": "iShares Core MSCI World UCITS ETF",
+    "sector": "ETF",
+    "industry": "Global Equity ETF"
+  },
+  {
+    "ticker": "EIMI",
+    "name": "iShares Core MSCI EM IMI UCITS ETF",
+    "sector": "ETF",
+    "industry": "Emerging Markets ETF"
+  },
+  {
+    "ticker": "FTSEMIB",
+    "name": "Lyxor FTSE MIB UCITS ETF",
+    "sector": "ETF",
+    "industry": "Italian Equity ETF"
+  },
+  {
+    "ticker": "IMIB",
+    "name": "iShares FTSE MIB UCITS ETF",
+    "sector": "ETF",
+    "industry": "Italian Equity ETF"
+  },
+  {
+    "ticker": "VWCE",
+    "name": "Vanguard FTSE All-World UCITS ETF",
+    "sector": "ETF",
+    "industry": "Global Equity ETF"
+  },
+  {
+    "ticker": "XEON",
+    "name": "Xtrackers EURO STOXX 50 UCITS ETF",
+    "sector": "ETF",
+    "industry": "European Equity ETF"
+  },
+  {
+    "ticker": "MEUD",
+    "name": "Amundi MSCI Europe UCITS ETF",
+    "sector": "ETF",
+    "industry": "European Equity ETF"
+  },
+  {
+    "ticker": "XDJP",
+    "name": "Xtrackers Nikkei 225 UCITS ETF",
+    "sector": "ETF",
+    "industry": "Japanese Equity ETF"
+  },
+  {
+    "ticker": "CINA",
+    "name": "iShares MSCI China UCITS ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
   }
 ]

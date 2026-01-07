@@ -502,5 +502,77 @@
     "name": "Guosen Securities",
     "sector": "Financial Services",
     "industry": "Financial Conglomerates"
+  },
+  {
+    "ticker": "159919",
+    "name": "China Southern CSI 300 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "159915",
+    "name": "E Fund ChiNext ETF",
+    "sector": "ETF",
+    "industry": "China Growth ETF"
+  },
+  {
+    "ticker": "159901",
+    "name": "Harvest Shenzhen 100 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "159928",
+    "name": "Huaxia ChiNext ETF",
+    "sector": "ETF",
+    "industry": "China Growth ETF"
+  },
+  {
+    "ticker": "159995",
+    "name": "Fullgoal CSI Semiconductor ETF",
+    "sector": "ETF",
+    "industry": "China Tech ETF"
+  },
+  {
+    "ticker": "159997",
+    "name": "China AMC Hang Seng Tech ETF",
+    "sector": "ETF",
+    "industry": "China Tech ETF"
+  },
+  {
+    "ticker": "159941",
+    "name": "China Southern CSI 500 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "159985",
+    "name": "Huatai Berry CSI Photovoltaic Industry ETF",
+    "sector": "ETF",
+    "industry": "China Sector ETF"
+  },
+  {
+    "ticker": "159949",
+    "name": "Huaxia Shenzhen Composite Index ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "159981",
+    "name": "Invesco Great Wall CSI 5G ETF",
+    "sector": "ETF",
+    "industry": "China Tech ETF"
+  },
+  {
+    "ticker": "159992",
+    "name": "Fullgoal CSI New Energy Vehicle ETF",
+    "sector": "ETF",
+    "industry": "China Sector ETF"
+  },
+  {
+    "ticker": "159967",
+    "name": "Fullgoal CSI Liquor Industry ETF",
+    "sector": "ETF",
+    "industry": "China Sector ETF"
   }
 ]

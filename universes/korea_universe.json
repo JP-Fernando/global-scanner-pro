@@ -448,5 +448,77 @@
     "name": "Doosan Enerbility",
     "sector": "Industrials",
     "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "069500",
+    "name": "KODEX 200",
+    "sector": "ETF",
+    "industry": "Korean Equity ETF"
+  },
+  {
+    "ticker": "102110",
+    "name": "TIGER 200",
+    "sector": "ETF",
+    "industry": "Korean Equity ETF"
+  },
+  {
+    "ticker": "226490",
+    "name": "KODEX KOSPI",
+    "sector": "ETF",
+    "industry": "Korean Equity ETF"
+  },
+  {
+    "ticker": "148020",
+    "name": "KBSTAR 200",
+    "sector": "ETF",
+    "industry": "Korean Equity ETF"
+  },
+  {
+    "ticker": "229200",
+    "name": "KODEX KOSDAQ 150",
+    "sector": "ETF",
+    "industry": "Korean Growth ETF"
+  },
+  {
+    "ticker": "091160",
+    "name": "KODEX Secondary Battery",
+    "sector": "ETF",
+    "industry": "Korean Sector ETF"
+  },
+  {
+    "ticker": "133690",
+    "name": "TIGER S&P 500",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "251340",
+    "name": "KODEX Nasdaq 100",
+    "sector": "ETF",
+    "industry": "US Tech ETF"
+  },
+  {
+    "ticker": "219480",
+    "name": "TIGER China CSI 300",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "098560",
+    "name": "TIGER Dividend",
+    "sector": "ETF",
+    "industry": "Korean Dividend ETF"
+  },
+  {
+    "ticker": "261220",
+    "name": "KODEX WTI Crude Oil Futures",
+    "sector": "ETF",
+    "industry": "Commodity ETF"
+  },
+  {
+    "ticker": "132030",
+    "name": "KODEX Gold Futures",
+    "sector": "ETF",
+    "industry": "Commodity ETF"
   }
 ]

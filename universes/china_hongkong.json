@@ -440,5 +440,71 @@
     "name": "Intel",
     "sector": "Technology",
     "industry": "Semiconductors"
+  },
+  {
+    "ticker": "2800",
+    "name": "Tracker Fund of Hong Kong",
+    "sector": "ETF",
+    "industry": "Hong Kong Equity ETF"
+  },
+  {
+    "ticker": "2801",
+    "name": "iShares MSCI China ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "2828",
+    "name": "Hang Seng China Enterprises Index ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "2822",
+    "name": "CSOP FTSE China A50 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "2846",
+    "name": "ishares Asia Trust - iShares MSCI Asia ex Japan ETF",
+    "sector": "ETF",
+    "industry": "Asia Pacific ETF"
+  },
+  {
+    "ticker": "2823",
+    "name": "iShares A50 China Index ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "3010",
+    "name": "iShares MSCI AC Far East ex-Japan Index ETF",
+    "sector": "ETF",
+    "industry": "Asia Pacific ETF"
+  },
+  {
+    "ticker": "3040",
+    "name": "CSOP MSCI China A International ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "2821",
+    "name": "SPDR Gold Shares (HKD)",
+    "sector": "ETF",
+    "industry": "Commodity ETF"
+  },
+  {
+    "ticker": "3001",
+    "name": "iShares MSCI China Index ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "2825",
+    "name": "WISE CSI 300 China Tracker",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
   }
 ]

@@ -96,7 +96,7 @@
     "industry": "Chemicals"
   },
   {
-    "ticker": "EMBR3",
+    "ticker": "EMBJ3",
     "name": "Embraer S.A.",
     "sector": "Industrials",
     "industry": "Aerospace & Defense"
@@ -420,5 +420,71 @@
     "name": "Rand(Ordinaria) Implementos",
     "sector": "Industrials",
     "industry": "Farm & Heavy Construction Machinery"
+  },
+  {
+    "ticker": "BOVA11",
+    "name": "iShares Ibovespa ETF",
+    "sector": "ETF",
+    "industry": "Brazilian Equity ETF"
+  },
+  {
+    "ticker": "SMAL11",
+    "name": "iShares Small Cap ETF",
+    "sector": "ETF",
+    "industry": "Brazilian Equity ETF"
+  },
+  {
+    "ticker": "IVVB11",
+    "name": "iShares S&P 500 ETF (BRL)",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "WRLD11",
+    "name": "iShares MSCI World ETF (BRL)",
+    "sector": "ETF",
+    "industry": "Global Equity ETF"
+  },
+  {
+    "ticker": "DIVO11",
+    "name": "iShares Dividendos ETF",
+    "sector": "ETF",
+    "industry": "Brazilian Dividend ETF"
+  },
+  {
+    "ticker": "PIBB11",
+    "name": "iShares Brasil Index ETF",
+    "sector": "ETF",
+    "industry": "Brazilian Equity ETF"
+  },
+  {
+    "ticker": "FIND11",
+    "name": "iShares Financeiro ETF",
+    "sector": "ETF",
+    "industry": "Brazilian Sector ETF"
+  },
+  {
+    "ticker": "MATB11",
+    "name": "iShares Materiais Básicos ETF",
+    "sector": "ETF",
+    "industry": "Brazilian Sector ETF"
+  },
+  {
+    "ticker": "ECOO11",
+    "name": "iShares Energia Limpa ETF",
+    "sector": "ETF",
+    "industry": "Brazilian ESG ETF"
+  },
+  {
+    "ticker": "ISUS11",
+    "name": "iShares Sustentabilidade ETF",
+    "sector": "ETF",
+    "industry": "Brazilian ESG ETF"
+  },
+  {
+    "ticker": "BBSD11",
+    "name": "BB ETF S&P Dividendos Brasil",
+    "sector": "ETF",
+    "industry": "Brazilian Dividend ETF"
   }
 ]

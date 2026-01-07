@@ -490,5 +490,77 @@
     "name": "Chalco",
     "sector": "Basic Materials",
     "industry": "Aluminum"
+  },
+  {
+    "ticker": "510050",
+    "name": "Huatai-PB SSE 50 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "510300",
+    "name": "Huatai-PB CSI 300 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "510500",
+    "name": "Huatai-PB CSI 500 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "510880",
+    "name": "EFUND SSE 180 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "588000",
+    "name": "Huatai-PineBridge STAR 50 ETF",
+    "sector": "ETF",
+    "industry": "China Tech ETF"
+  },
+  {
+    "ticker": "510180",
+    "name": "Huaan SSE 180 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "510330",
+    "name": "Huaxia SSE 300 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "510230",
+    "name": "Guotai China SSE 180 Financial ETF",
+    "sector": "ETF",
+    "industry": "China Sector ETF"
+  },
+  {
+    "ticker": "512880",
+    "name": "China Securities 500 All-Media Index ETF",
+    "sector": "ETF",
+    "industry": "China Sector ETF"
+  },
+  {
+    "ticker": "510630",
+    "name": "Huaxia Shanghai SZSE 300 ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
+  },
+  {
+    "ticker": "512690",
+    "name": "Harvest CSI 500 Communication ETF",
+    "sector": "ETF",
+    "industry": "China Sector ETF"
+  },
+  {
+    "ticker": "510850",
+    "name": "Huaxia SSE Central SOE ETF",
+    "sector": "ETF",
+    "industry": "China Equity ETF"
   }
 ]

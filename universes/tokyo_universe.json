@@ -538,5 +538,77 @@
     "name": "ORIX",
     "sector": "Financial Services",
     "industry": "Financial Conglomerates"
+  },
+  {
+    "ticker": "1306",
+    "name": "TOPIX ETF",
+    "sector": "ETF",
+    "industry": "Japanese Equity ETF"
+  },
+  {
+    "ticker": "1321",
+    "name": "Nikkei 225 ETF",
+    "sector": "ETF",
+    "industry": "Japanese Equity ETF"
+  },
+  {
+    "ticker": "1330",
+    "name": "Nikkei 225 (1330)",
+    "sector": "ETF",
+    "industry": "Japanese Equity ETF"
+  },
+  {
+    "ticker": "1343",
+    "name": "NEXT FUNDS Nikkei 225 Double Inverse Index ETF",
+    "sector": "ETF",
+    "industry": "Japanese Inverse ETF"
+  },
+  {
+    "ticker": "1557",
+    "name": "SPDR S&P 500 ETF (JPY)",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "1655",
+    "name": "iShares S&P 500 ETF (JPY)",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "2558",
+    "name": "MAXIS Nasdaq 100 ETF",
+    "sector": "ETF",
+    "industry": "US Tech ETF"
+  },
+  {
+    "ticker": "2630",
+    "name": "MAXIS Japan Stock High Dividend 70 Market Neutral ETF",
+    "sector": "ETF",
+    "industry": "Japanese Dividend ETF"
+  },
+  {
+    "ticker": "1308",
+    "name": "TOPIX Banks Index ETF",
+    "sector": "ETF",
+    "industry": "Japanese Sector ETF"
+  },
+  {
+    "ticker": "1540",
+    "name": "Pure Gold ETF",
+    "sector": "ETF",
+    "industry": "Commodity ETF"
+  },
+  {
+    "ticker": "1326",
+    "name": "SPY ETF (JP)",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "2513",
+    "name": "NEXT FUNDS India Stock Index ETF",
+    "sector": "ETF",
+    "industry": "Emerging Markets ETF"
   }
 ]

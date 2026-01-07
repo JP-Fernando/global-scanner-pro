@@ -478,5 +478,89 @@
     "name": "PayPal Holdings",
     "sector": "Financial Services",
     "industry": "Credit Services"
+  },
+  {
+    "ticker": "SPY",
+    "name": "SPDR S&P 500 ETF Trust",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "VOO",
+    "name": "Vanguard S&P 500 ETF",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "IVV",
+    "name": "iShares Core S&P 500 ETF",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "QQQ",
+    "name": "Invesco QQQ Trust",
+    "sector": "ETF",
+    "industry": "US Tech ETF"
+  },
+  {
+    "ticker": "VTI",
+    "name": "Vanguard Total Stock Market ETF",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "VEA",
+    "name": "Vanguard FTSE Developed Markets ETF",
+    "sector": "ETF",
+    "industry": "International Equity ETF"
+  },
+  {
+    "ticker": "VWO",
+    "name": "Vanguard FTSE Emerging Markets ETF",
+    "sector": "ETF",
+    "industry": "Emerging Markets ETF"
+  },
+  {
+    "ticker": "AGG",
+    "name": "iShares Core U.S. Aggregate Bond ETF",
+    "sector": "ETF",
+    "industry": "Bond ETF"
+  },
+  {
+    "ticker": "BND",
+    "name": "Vanguard Total Bond Market ETF",
+    "sector": "ETF",
+    "industry": "Bond ETF"
+  },
+  {
+    "ticker": "GLD",
+    "name": "SPDR Gold Shares",
+    "sector": "ETF",
+    "industry": "Commodity ETF"
+  },
+  {
+    "ticker": "DIA",
+    "name": "SPDR Dow Jones Industrial Average ETF",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "IWM",
+    "name": "iShares Russell 2000 ETF",
+    "sector": "ETF",
+    "industry": "US Small Cap ETF"
+  },
+  {
+    "ticker": "VYM",
+    "name": "Vanguard High Dividend Yield ETF",
+    "sector": "ETF",
+    "industry": "US Dividend ETF"
+  },
+  {
+    "ticker": "SCHD",
+    "name": "Schwab U.S. Dividend Equity ETF",
+    "sector": "ETF",
+    "industry": "US Dividend ETF"
   }
 ]

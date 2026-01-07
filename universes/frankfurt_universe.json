@@ -466,5 +466,71 @@
     "name": "Siemens Energy",
     "sector": "Industrials",
     "industry": "Specialty Industrial Machinery"
+  },
+  {
+    "ticker": "VWCE",
+    "name": "Vanguard FTSE All-World UCITS ETF USD Accumulation",
+    "sector": "ETF",
+    "industry": "Global Equity ETF"
+  },
+  {
+    "ticker": "EUNL",
+    "name": "iShares Core MSCI World UCITS ETF USD (Acc)",
+    "sector": "ETF",
+    "industry": "Global Equity ETF"
+  },
+  {
+    "ticker": "EXSA",
+    "name": "iShares Core DAX UCITS ETF (DE)",
+    "sector": "ETF",
+    "industry": "German Equity ETF"
+  },
+  {
+    "ticker": "XMEU",
+    "name": "Xtrackers MSCI Europe UCITS ETF 1C",
+    "sector": "ETF",
+    "industry": "European Equity ETF"
+  },
+  {
+    "ticker": "XEON",
+    "name": "Xtrackers EURO STOXX 50 UCITS ETF 1C",
+    "sector": "ETF",
+    "industry": "European Equity ETF"
+  },
+  {
+    "ticker": "IQQH",
+    "name": "iShares MSCI World Quality Dividend UCITS ETF",
+    "sector": "ETF",
+    "industry": "Global Dividend ETF"
+  },
+  {
+    "ticker": "IS3S",
+    "name": "iShares Core S&P 500 UCITS ETF USD (Acc)",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "SXRV",
+    "name": "iShares Core S&P 500 UCITS ETF USD (Dist)",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "IUSA",
+    "name": "iShares MSCI USA UCITS ETF",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "LYPS",
+    "name": "Lyxor MSCI World UCITS ETF - Dist",
+    "sector": "ETF",
+    "industry": "Global Equity ETF"
+  },
+  {
+    "ticker": "DBXW",
+    "name": "Xtrackers MSCI World Swap UCITS ETF 1C",
+    "sector": "ETF",
+    "industry": "Global Equity ETF"
   }
 ]

@@ -506,5 +506,77 @@
     "name": "ICG",
     "sector": "Financial Services",
     "industry": "Asset Management"
+  },
+  {
+    "ticker": "VWRL",
+    "name": "Vanguard FTSE All-World UCITS ETF",
+    "sector": "ETF",
+    "industry": "Global Equity ETF"
+  },
+  {
+    "ticker": "VUSA",
+    "name": "Vanguard S&P 500 UCITS ETF",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "ISF",
+    "name": "iShares Core FTSE 100 UCITS ETF",
+    "sector": "ETF",
+    "industry": "UK Equity ETF"
+  },
+  {
+    "ticker": "VUKE",
+    "name": "Vanguard FTSE 100 UCITS ETF",
+    "sector": "ETF",
+    "industry": "UK Equity ETF"
+  },
+  {
+    "ticker": "VMID",
+    "name": "Vanguard FTSE 250 UCITS ETF",
+    "sector": "ETF",
+    "industry": "UK Equity ETF"
+  },
+  {
+    "ticker": "CSP1",
+    "name": "iShares Core S&P 500 UCITS ETF",
+    "sector": "ETF",
+    "industry": "US Equity ETF"
+  },
+  {
+    "ticker": "VEUR",
+    "name": "Vanguard FTSE Developed Europe ex-UK UCITS ETF",
+    "sector": "ETF",
+    "industry": "European Equity ETF"
+  },
+  {
+    "ticker": "EIMI",
+    "name": "iShares Core MSCI EM IMI UCITS ETF",
+    "sector": "ETF",
+    "industry": "Emerging Markets ETF"
+  },
+  {
+    "ticker": "VFEM",
+    "name": "Vanguard FTSE Emerging Markets UCITS ETF",
+    "sector": "ETF",
+    "industry": "Emerging Markets ETF"
+  },
+  {
+    "ticker": "SGLN",
+    "name": "Physical Gold ETC",
+    "sector": "ETF",
+    "industry": "Commodity ETF"
+  },
+  {
+    "ticker": "VHYL",
+    "name": "Vanguard FTSE All-World High Dividend Yield UCITS ETF",
+    "sector": "ETF",
+    "industry": "Global Dividend ETF"
+  },
+  {
+    "ticker": "VERX",
+    "name": "Vanguard FTSE Developed Europe UCITS ETF",
+    "sector": "ETF",
+    "industry": "European Equity ETF"
   }
 ]
