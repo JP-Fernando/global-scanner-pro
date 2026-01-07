@@ -2501,6 +2501,357 @@ function renderMLAnomalies() {
   container.style.display = 'block';
 }
 
+// =====================================================
+// INVESTMENT RECOMMENDATION GENERATOR
+// =====================================================
+
+/**
+ * Generate time horizon specific recommendations
+ * @param {Object} result - The stock analysis result
+ * @returns {string} - HTML string with time horizon recommendations
+ */
+function generateTimeHorizonRecommendations(result) {
+  const scoreShort = result.scoreShort || 0;
+  const scoreMedium = result.scoreMedium || 0;
+  const scoreLong = result.scoreLong || 0;
+
+  const getRecommendationForScore = (score, months) => {
+    if (score >= 80) return i18n.t('details.timeframe_rec_excellent', { months });
+    if (score >= 70) return i18n.t('details.timeframe_rec_good', { months });
+    if (score >= 60) return i18n.t('details.timeframe_rec_moderate', { months });
+    if (score >= 50) return i18n.t('details.timeframe_rec_neutral', { months });
+    if (score >= 40) return i18n.t('details.timeframe_rec_cautious', { months });
+    return i18n.t('details.timeframe_rec_avoid', { months });
+  };
+
+  const getColorForScore = (score) => {
+    if (score >= 70) return '#10b981';
+    if (score >= 60) return '#3b82f6';
+    if (score >= 50) return '#8b5cf6';
+    if (score >= 40) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  return `
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+      <h4 style="color: #cbd5e1; margin-bottom: 15px; font-size: 0.95em;">
+        📅 ${i18n.t('details.timeframe_recommendations_title')}
+      </h4>
+      <div style="display: grid; gap: 12px;">
+        <div style="background: rgba(59, 130, 246, 0.1); padding: 12px; border-radius: 6px; border-left: 3px solid ${getColorForScore(scoreShort)};">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <strong style="color: #60a5fa; font-size: 0.9em;">${i18n.t('details.short_term_6m')}</strong>
+            <span style="color: ${getColorForScore(scoreShort)}; font-weight: bold;">${scoreShort}/100</span>
+          </div>
+          <p style="color: #cbd5e1; font-size: 0.85em; margin: 0; line-height: 1.5;">
+            ${getRecommendationForScore(scoreShort, 6)}
+          </p>
+        </div>
+        <div style="background: rgba(139, 92, 246, 0.1); padding: 12px; border-radius: 6px; border-left: 3px solid ${getColorForScore(scoreMedium)};">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <strong style="color: #a78bfa; font-size: 0.9em;">${i18n.t('details.medium_term_18m')}</strong>
+            <span style="color: ${getColorForScore(scoreMedium)}; font-weight: bold;">${scoreMedium}/100</span>
+          </div>
+          <p style="color: #cbd5e1; font-size: 0.85em; margin: 0; line-height: 1.5;">
+            ${getRecommendationForScore(scoreMedium, 18)}
+          </p>
+        </div>
+        <div style="background: rgba(236, 72, 153, 0.1); padding: 12px; border-radius: 6px; border-left: 3px solid ${getColorForScore(scoreLong)};">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <strong style="color: #f472b6; font-size: 0.9em;">${i18n.t('details.long_term_4y')}</strong>
+            <span style="color: ${getColorForScore(scoreLong)}; font-weight: bold;">${scoreLong}/100</span>
+          </div>
+          <p style="color: #cbd5e1; font-size: 0.85em; margin: 0; line-height: 1.5;">
+            ${getRecommendationForScore(scoreLong, 48)}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Check for ML anomalies related to a specific ticker
+ * @param {string} ticker - The ticker to check
+ * @returns {Object} - Anomaly information
+ */
+function checkMLAnomaliesForTicker(ticker) {
+  if (!mlAnomalies || mlAnomalies.length === 0) {
+    return { hasAnomalies: false, types: [], maxSeverity: null, count: 0 };
+  }
+
+  const relevantAnomalies = mlAnomalies.filter(a =>
+    a.ticker === ticker || a.ticker1 === ticker || a.ticker2 === ticker
+  );
+
+  if (relevantAnomalies.length === 0) {
+    return { hasAnomalies: false, types: [], maxSeverity: null, count: 0 };
+  }
+
+  const types = [...new Set(relevantAnomalies.map(a => a.type))];
+  const severityOrder = { extreme: 4, high: 3, moderate: 2, low: 1 };
+  const maxSeverity = relevantAnomalies.reduce((max, a) => {
+    return (severityOrder[a.severity] || 0) > (severityOrder[max] || 0) ? a.severity : max;
+  }, 'low');
+
+  return {
+    hasAnomalies: true,
+    types: types,
+    maxSeverity: maxSeverity,
+    count: relevantAnomalies.length,
+    anomalies: relevantAnomalies
+  };
+}
+
+/**
+ * Generates an intelligent investment recommendation based on quantitative analysis
+ * @param {Object} result - The stock analysis result
+ * @returns {Object} - Recommendation object with key, params, and style
+ */
+function generateInvestmentRecommendation(result) {
+  const d = result.details;
+  const score = result.scoreTotal;
+  const signal = result.signal.text;
+
+  // Extract key metrics
+  const volatility = parseFloat(d.risk.volatility) || 0;
+  const rsi = parseFloat(d.momentum.rsi) || 50;
+  const maxDrawdown = Math.abs(parseFloat(d.risk.maxDrawdown)) || 0;
+  const roc6m = parseFloat(d.momentum.roc6m) || 0;
+  const roc12m = parseFloat(d.momentum.roc12m) || 0;
+  const alpha6m = parseFloat(d.momentum.alpha6m) || 0;
+  const scoreTrend = result.scoreTrend || 0;
+  const scoreMomentum = result.scoreMomentum || 0;
+  const scoreRisk = result.scoreRisk || 0;
+  const hasAnomalies = result.hasAnomalies;
+  const anomalyPenalty = result.anomalyPenalty || 0;
+
+  // Extract time horizon scores for timeframe recommendations
+  const scoreShort = result.scoreShort || 0;   // 6 months
+  const scoreMedium = result.scoreMedium || 0; // 18 months
+  const scoreLong = result.scoreLong || 0;     // 4 years
+
+  // Check for ML anomalies related to this ticker
+  const mlAnomalyInfo = checkMLAnomaliesForTicker(result.ticker);
+  const hasMLAnomalies = mlAnomalyInfo.hasAnomalies;
+  const mlAnomalyTypes = mlAnomalyInfo.types;
+  const mlAnomalySeverity = mlAnomalyInfo.maxSeverity;
+
+  // Determine market position
+  const isUndervalued = alpha6m < -5 && roc6m < 0 && score > 60;
+  const isOvervalued = rsi > 70 && roc6m > 15 && scoreMomentum > 80;
+  const isHighVolatility = volatility > 35;
+  const isVeryHighVolatility = volatility > 50;
+  const isStable = volatility < 20 && maxDrawdown < 15;
+  const hasStrongMomentum = scoreMomentum > 75 && roc6m > 10;
+  const hasWeakMomentum = scoreMomentum < 40;
+  const isDeepDrawdown = maxDrawdown > 30;
+  const isBullish = scoreTrend > 70 && scoreMomentum > 60;
+  const isBearish = scoreTrend < 40 && roc12m < -10;
+  const isOversold = rsi < 30 && score > 50;
+  const hasAnomalyRisk = hasAnomalies && anomalyPenalty > 15;
+
+  // Decision tree for recommendations
+  let recommendationKey = '';
+  let params = {};
+  let style = {
+    borderColor: '#3b82f6',
+    backgroundColor: '#1e3a8a20',
+    icon: '💡'
+  };
+
+  // Critical warnings (highest priority)
+  if (hasAnomalyRisk) {
+    recommendationKey = 'recommendation.critical_anomaly_warning';
+    params = {
+      ticker: result.ticker,
+      penalty: anomalyPenalty,
+      anomalyTypes: result.anomalies.join(', ')
+    };
+    style = { borderColor: '#dc2626', backgroundColor: '#450a0a', icon: '⚠️' };
+  }
+  // Very high volatility + deep drawdown
+  else if (isVeryHighVolatility && isDeepDrawdown) {
+    recommendationKey = 'recommendation.extreme_volatility_crisis';
+    params = {
+      ticker: result.ticker,
+      volatility: volatility.toFixed(1),
+      maxDrawdown: maxDrawdown.toFixed(1)
+    };
+    style = { borderColor: '#dc2626', backgroundColor: '#450a0a', icon: '🚨' };
+  }
+  // Undervalued opportunity
+  else if (isUndervalued) {
+    const weeksUnderperforming = Math.abs(Math.floor(roc6m / 2));
+    const expectedRecoveryMonths = Math.ceil(Math.abs(alpha6m) / 5);
+    recommendationKey = 'recommendation.undervalued_opportunity';
+    params = {
+      ticker: result.ticker,
+      alpha6m: alpha6m.toFixed(1),
+      weeksUnderperforming: weeksUnderperforming,
+      expectedRecoveryMonths: expectedRecoveryMonths,
+      score: score.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      scoreLong: scoreLong.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#10b981', backgroundColor: '#022c22', icon: '📈' };
+  }
+  // Overvalued / Overbought
+  else if (isOvervalued) {
+    recommendationKey = 'recommendation.overvalued_warning';
+    params = {
+      ticker: result.ticker,
+      rsi: rsi.toFixed(0),
+      roc6m: roc6m.toFixed(1),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#f59e0b', backgroundColor: '#451a03', icon: '⚠️' };
+  }
+  // Strong momentum + good score
+  else if (hasStrongMomentum && score > 70) {
+    recommendationKey = 'recommendation.strong_momentum_buy';
+    params = {
+      ticker: result.ticker,
+      scoreMomentum: scoreMomentum.toFixed(0),
+      roc6m: roc6m.toFixed(1),
+      score: score.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      scoreLong: scoreLong.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#10b981', backgroundColor: '#022c22', icon: '🚀' };
+  }
+  // High volatility but recoverable
+  else if (isHighVolatility && !isDeepDrawdown && scoreRisk > 50) {
+    const riskCapitalPct = Math.max(5, Math.min(15, 100 - volatility));
+    recommendationKey = 'recommendation.high_volatility_moderate';
+    params = {
+      ticker: result.ticker,
+      volatility: volatility.toFixed(1),
+      riskCapitalPct: riskCapitalPct.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#f59e0b', backgroundColor: '#451a03', icon: '⚡' };
+  }
+  // Stable and reliable
+  else if (isStable && score > 65) {
+    recommendationKey = 'recommendation.stable_quality';
+    params = {
+      ticker: result.ticker,
+      volatility: volatility.toFixed(1),
+      maxDrawdown: maxDrawdown.toFixed(1),
+      score: score.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      scoreLong: scoreLong.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#3b82f6', backgroundColor: '#1e3a8a20', icon: '🛡️' };
+  }
+  // Oversold bounce opportunity
+  else if (isOversold) {
+    recommendationKey = 'recommendation.oversold_bounce';
+    params = {
+      ticker: result.ticker,
+      rsi: rsi.toFixed(0),
+      score: score.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#10b981', backgroundColor: '#022c22', icon: '📊' };
+  }
+  // Bearish / declining
+  else if (isBearish) {
+    recommendationKey = 'recommendation.bearish_decline';
+    params = {
+      ticker: result.ticker,
+      roc12m: roc12m.toFixed(1),
+      scoreTrend: scoreTrend.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#ef4444', backgroundColor: '#450a0a', icon: '📉' };
+  }
+  // Weak momentum - hold or wait
+  else if (hasWeakMomentum) {
+    recommendationKey = 'recommendation.weak_momentum_wait';
+    params = {
+      ticker: result.ticker,
+      scoreMomentum: scoreMomentum.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#64748b', backgroundColor: '#1e293b', icon: '⏸️' };
+  }
+  // Bullish trend
+  else if (isBullish) {
+    recommendationKey = 'recommendation.bullish_trend';
+    params = {
+      ticker: result.ticker,
+      scoreTrend: scoreTrend.toFixed(0),
+      scoreMomentum: scoreMomentum.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      scoreLong: scoreLong.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#10b981', backgroundColor: '#022c22', icon: '✅' };
+  }
+  // Generic positive
+  else if (score > 70) {
+    recommendationKey = 'recommendation.good_opportunity';
+    params = {
+      ticker: result.ticker,
+      score: score.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      scoreLong: scoreLong.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#3b82f6', backgroundColor: '#1e3a8a20', icon: '💼' };
+  }
+  // Generic neutral
+  else if (score >= 50) {
+    recommendationKey = 'recommendation.neutral_hold';
+    params = {
+      ticker: result.ticker,
+      score: score.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      scoreLong: scoreLong.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#64748b', backgroundColor: '#1e293b', icon: '⚖️' };
+  }
+  // Generic negative
+  else {
+    recommendationKey = 'recommendation.avoid_low_score';
+    params = {
+      ticker: result.ticker,
+      score: score.toFixed(0),
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+    };
+    style = { borderColor: '#ef4444', backgroundColor: '#450a0a', icon: '❌' };
+  }
+
+  return {
+    key: recommendationKey,
+    params: params,
+    style: style
+  };
+}
+
 function showDetails(result) {
   const modal = document.getElementById('detailModal');
   const content = document.getElementById('modalContent');
@@ -2544,8 +2895,46 @@ function showDetails(result) {
     `
     : '';
 
+  // Generate investment recommendation
+  const recommendation = generateInvestmentRecommendation(result);
+
+  // Generate time horizon recommendations
+  const timeHorizonRecommendations = generateTimeHorizonRecommendations(result);
+
+  // Check for ML anomalies
+  const mlInfo = checkMLAnomaliesForTicker(result.ticker);
+  const mlAnomaliesSection = mlInfo.hasAnomalies ? `
+    <div style="background: rgba(239, 68, 68, 0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #ef4444; margin-top: 15px;">
+      <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 0.95em;">
+        🤖 ${i18n.t('details.ml_anomalies_detected', { count: mlInfo.count })}
+      </h4>
+      <p style="color: #fca5a5; font-size: 0.85em; line-height: 1.6;">
+        ${i18n.t('details.ml_anomalies_description', {
+          severity: i18n.t('ml.anomalies.severity_' + mlInfo.maxSeverity),
+          types: mlInfo.types.map(t => i18n.t('ml.anomalies.type_' + t.replace(/_anomaly/g, ''), t)).join(', ')
+        })}
+      </p>
+    </div>
+  ` : '';
+
+  const recommendationSection = `
+    <div class="detail-section recommendation-section" style="border-left: 4px solid ${recommendation.style.borderColor}; background: ${recommendation.style.backgroundColor}; padding: 20px; margin-bottom: 20px;">
+      <h3 style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+        <span style="font-size: 1.5em;">${recommendation.style.icon}</span>
+        <span>${i18n.t('recommendation.section_title')}</span>
+      </h3>
+      <div style="line-height: 1.8; font-size: 0.95em; color: #e2e8f0;">
+        ${i18n.t(recommendation.key, recommendation.params)}
+      </div>
+      ${mlAnomaliesSection}
+      ${timeHorizonRecommendations}
+    </div>
+  `;
+
   content.innerHTML = `
     <h2>${result.ticker} - ${result.name}</h2>
+
+    ${recommendationSection}
 
     <div class="detail-section">
       <h3>📊 ${i18n.t('details.main_scores_title')}</h3>

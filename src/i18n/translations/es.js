@@ -621,6 +621,19 @@ export default {
     medium_term_18m: "Medio Plazo (18m)",
     long_term_4y: "Largo Plazo (4a)",
 
+    // Time horizon recommendations
+    timeframe_recommendations_title: "Recomendaciones por Horizonte de Inversión",
+    timeframe_rec_excellent: "Excelente oportunidad de inversión para un horizonte de {months} meses. Fundamentos sólidos en todas las métricas respaldan un potencial de apreciación significativo.",
+    timeframe_rec_good: "Oportunidad atractiva para un horizonte de {months} meses. Fundamentos sólidos sugieren buen potencial de apreciación con riesgo controlado.",
+    timeframe_rec_moderate: "Oportunidad razonable para un horizonte de {months} meses. Fundamentos aceptables, aunque los retornos pueden ser moderados. Considere como parte de la diversificación.",
+    timeframe_rec_neutral: "Posición neutral para un horizonte de {months} meses. No hay señales claras. Mejor esperar tendencias más definidas o explorar oportunidades alternativas.",
+    timeframe_rec_cautious: "Ejercite cautela para un horizonte de {months} meses. Fundamentos débiles sugieren potencial alcista limitado. Solo apto para estrategias contrarian con aceptación de riesgo.",
+    timeframe_rec_avoid: "Evitar para un horizonte de {months} meses. Fundamentos pobres indican riesgos significativos. Hay mejores oportunidades disponibles en el mercado.",
+
+    // ML Anomalies in details
+    ml_anomalies_detected: "Machine Learning detectó {count} anomalías",
+    ml_anomalies_description: "Nuestro sistema ML identificó patrones inusuales con severidad {severity}: {types}. Esto puede indicar comportamiento irregular que requiere investigación adicional.",
+
     trend_analysis_title: "Análisis de Tendencia",
     position_score: "Score posición",
     consistency_score: "Score consistencia",
@@ -1413,6 +1426,46 @@ export default {
       action_check_news: 'Verifique noticias recientes que puedan explicar el volumen anómalo.',
       action_improve_liquidity: 'Considere reemplazar este activo por alternativas más líquidas.'
     }
+  },
+
+  // Investment Recommendations
+  recommendation: {
+    section_title: "Recomendación de Global Quant Scanner Pro",
+
+    // ML Anomaly warning
+    ml_anomaly_detected: "⚠️ Alerta ML: {count} anomalías detectadas (severidad: {severity})",
+
+    // Critical warnings
+    critical_anomaly_warning: "⚠️ ALERTA CRÍTICA: {ticker} presenta anomalías significativas detectadas por nuestro sistema de análisis cuantitativo. Se ha aplicado una penalización de -{penalty} puntos debido a comportamientos anómalos ({anomalyTypes}). RECOMENDACIÓN: Evite este activo hasta que se normalice su comportamiento o investigue exhaustivamente las causas subyacentes antes de invertir.",
+
+    extreme_volatility_crisis: "🚨 RIESGO EXTREMO: {ticker} presenta una volatilidad extremadamente alta del {volatility}% anual combinada con un drawdown máximo del {maxDrawdown}%. Este activo está experimentando turbulencias severas que indican una crisis sectorial o problemas específicos de la compañía. RECOMENDACIÓN: Manténgase alejado de este activo. Si ya tiene posición, considere seriamente reducirla o eliminarla. NO es momento de invertir.",
+
+    // Opportunities
+    undervalued_opportunity: "📈 OPORTUNIDAD DE COMPRA: {ticker} muestra señales de infravaloración significativa. Su alpha a 6 meses es de {alpha6m}%, indicando que ha estado cotizando por debajo de su valor teórico durante aproximadamente {weeksUnderperforming} semanas. Con un Quant Score de {score}/100, nuestro análisis sugiere que este valor tiene potencial de recuperación en los próximos {expectedRecoveryMonths} meses. Scores por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100, Largo plazo (4a): {scoreLong}/100. {mlAnomalyWarning} RECOMENDACIÓN: Considere iniciar una posición o aumentar gradualmente su exposición. Es un buen momento para comprar.",
+
+    strong_momentum_buy: "🚀 MOMENTUM FUERTE: {ticker} presenta un momentum excepcional con un score de {scoreMomentum}/100 y un rendimiento a 6 meses del {roc6m}%. El Quant Score total es de {score}/100. Scores por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100, Largo plazo (4a): {scoreLong}/100. {mlAnomalyWarning} Este activo está en plena tendencia alcista con sólidos fundamentos cuantitativos. RECOMENDACIÓN: Excelente oportunidad de compra para estrategias de momentum. Considere establecer stops de protección para asegurar ganancias.",
+
+    oversold_bounce: "📊 REBOTE POTENCIAL: {ticker} se encuentra en territorio de sobreventa con un RSI de {rsi}, pero mantiene un Quant Score sólido de {score}/100. Análisis por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100. {mlAnomalyWarning} Esto sugiere una corrección técnica temporal más que un deterioro fundamental. RECOMENDACIÓN: Oportunidad táctica de compra para capturar el rebote. Espere confirmación de giro antes de entrar o establezca una posición reducida.",
+
+    bullish_trend: "✅ TENDENCIA ALCISTA CONFIRMADA: {ticker} presenta una tendencia alcista bien establecida (Score Tendencia: {scoreTrend}/100) respaldada por momentum sólido ({scoreMomentum}/100). Scores por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100, Largo plazo (4a): {scoreLong}/100. {mlAnomalyWarning} Los indicadores técnicos confirman la fortaleza del movimiento. RECOMENDACIÓN: Activo apropiado para posiciones de medio plazo. Mantenga o considere aumentar exposición gradualmente.",
+
+    // Moderate situations
+    high_volatility_moderate: "⚡ VOLATILIDAD ELEVADA: {ticker} presenta una volatilidad significativa del {volatility}% anual, lo que implica oscilaciones de precio considerables. Perspectiva a corto plazo (6m): {scoreShort}/100. {mlAnomalyWarning} Sin embargo, el perfil de riesgo es manejable para inversores experimentados. RECOMENDACIÓN: Si decide invertir, limite su exposición a un máximo del {riskCapitalPct}% de su capital disponible. Utilice estrategias de entrada escalonada y stops amplios para absorber la volatilidad.",
+
+    stable_quality: "🛡️ CALIDAD Y ESTABILIDAD: {ticker} es un activo de alta calidad con volatilidad controlada del {volatility}% y un drawdown máximo razonable del {maxDrawdown}%. Su Quant Score de {score}/100 refleja fundamentos sólidos. Scores por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100, Largo plazo (4a): {scoreLong}/100. {mlAnomalyWarning} RECOMENDACIÓN: Activo apropiado para carteras conservadoras y estrategias de largo plazo. Considere como posición core estable en su cartera.",
+
+    good_opportunity: "💼 OPORTUNIDAD INTERESANTE: {ticker} presenta un Quant Score atractivo de {score}/100, indicando fundamentos cuantitativos positivos. Scores por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100, Largo plazo (4a): {scoreLong}/100. {mlAnomalyWarning} El análisis multifactor sugiere que este activo tiene potencial de apreciación. RECOMENDACIÓN: Considere iniciar una posición con tamaño moderado como parte de una cartera diversificada.",
+
+    neutral_hold: "⚖️ POSICIÓN NEUTRAL: {ticker} muestra un desempeño moderado con un Quant Score de {score}/100. Scores por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100, Largo plazo (4a): {scoreLong}/100. {mlAnomalyWarning} No presenta señales claras de compra ni de venta en este momento. RECOMENDACIÓN: Si ya tiene posición, puede mantenerla. Si está considerando entrar, espere señales más definidas o busque oportunidades con mejor perfil riesgo-retorno.",
+
+    // Warnings and cautions
+    overvalued_warning: "⚠️ SEÑAL DE SOBREVALORACIÓN: {ticker} muestra signos de estar sobreextendido con un RSI de {rsi} y un rendimiento a 6 meses del {roc6m}%. Perspectiva por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100. {mlAnomalyWarning} Esto sugiere que el activo podría estar entrando en territorio de sobrecompra. RECOMENDACIÓN: NO es momento ideal para iniciar posiciones. Si ya tiene participación, considere tomar beneficios parciales o establecer stops más ajustados para proteger ganancias.",
+
+    bearish_decline: "📉 TENDENCIA BAJISTA: {ticker} está en una tendencia descendente con un rendimiento a 12 meses del {roc12m}% y un Score de Tendencia de solo {scoreTrend}/100. Perspectiva por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100. {mlAnomalyWarning} Los indicadores técnicos sugieren continuidad de la debilidad. RECOMENDACIÓN: Evite este activo para posiciones largas. Si tiene posición, considere reducir o cerrar. Los inversores avanzados podrían considerar estrategias cortas o de cobertura.",
+
+    weak_momentum_wait: "⏸️ MOMENTUM DÉBIL: {ticker} presenta un momentum insuficiente con un score de solo {scoreMomentum}/100. Perspectiva por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100. {mlAnomalyWarning} El activo no muestra el impulso necesario para generar retornos atractivos en el corto-medio plazo. RECOMENDACIÓN: Mejor abstenerse de invertir por ahora. Espere a que el activo demuestre señales de fortaleza antes de considerar una entrada. Hay mejores oportunidades en el mercado.",
+
+    avoid_low_score: "❌ NO RECOMENDADO: {ticker} presenta un Quant Score bajo de {score}/100, indicando fundamentos cuantitativos débiles. Scores por horizonte temporal: Corto plazo (6m): {scoreShort}/100, Medio plazo (18m): {scoreMedium}/100. {mlAnomalyWarning} Múltiples factores de nuestro análisis multidimensional señalan riesgos significativos o falta de oportunidad. RECOMENDACIÓN: Evite este activo. Concentre su capital en oportunidades con mejores perfiles de riesgo-retorno y scores más elevados."
   }
 
 };

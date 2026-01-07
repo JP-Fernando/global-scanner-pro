@@ -622,6 +622,19 @@ export default {
     medium_term_18m: "Medium Term (18m)",
     long_term_4y: "Long Term (4y)",
 
+    // Time horizon recommendations
+    timeframe_recommendations_title: "Investment Horizon Recommendations",
+    timeframe_rec_excellent: "Excellent investment opportunity for a {months}-month horizon. Strong fundamentals across all metrics support significant appreciation potential.",
+    timeframe_rec_good: "Attractive opportunity for a {months}-month horizon. Solid fundamentals suggest good appreciation potential with controlled risk.",
+    timeframe_rec_moderate: "Reasonable opportunity for a {months}-month horizon. Acceptable fundamentals, though returns may be moderate. Consider as part of diversification.",
+    timeframe_rec_neutral: "Neutral position for a {months}-month horizon. No clear signals. Better to wait for more definitive trends or explore alternative opportunities.",
+    timeframe_rec_cautious: "Exercise caution for a {months}-month horizon. Weak fundamentals suggest limited upside. Only suitable for contrarian strategies with risk acceptance.",
+    timeframe_rec_avoid: "Avoid for a {months}-month horizon. Poor fundamentals indicate significant risks. Better opportunities available in the market.",
+
+    // ML Anomalies in details
+    ml_anomalies_detected: "Machine Learning detected {count} anomalies",
+    ml_anomalies_description: "Our ML system identified unusual patterns with {severity} severity: {types}. This may indicate irregular behaviour requiring additional investigation.",
+
     trend_analysis_title: "Trend Analysis",
     position_score: "Position score",
     consistency_score: "Consistency score",
@@ -1292,6 +1305,46 @@ export default {
       action_check_news: 'Check recent news that may explain the anomalous volume.',
       action_improve_liquidity: 'Consider replacing this asset with more liquid alternatives.'
     }
+  },
+
+  // Investment Recommendations
+  recommendation: {
+    section_title: "Global Quant Scanner Pro Recommendation",
+
+    // ML Anomaly warning
+    ml_anomaly_detected: "⚠️ ML Alert: {count} anomalies detected (severity: {severity})",
+
+    // Critical warnings
+    critical_anomaly_warning: "⚠️ CRITICAL ALERT: {ticker} shows significant anomalies detected by our quantitative analysis system. A penalty of -{penalty} points has been applied due to anomalous behaviour ({anomalyTypes}). RECOMMENDATION: Avoid this asset until its behaviour normalises, or investigate thoroughly the underlying causes before investing.",
+
+    extreme_volatility_crisis: "🚨 EXTREME RISK: {ticker} exhibits extremely high volatility of {volatility}% per annum combined with a maximum drawdown of {maxDrawdown}%. This asset is experiencing severe turbulence indicating a sectoral crisis or company-specific problems. RECOMMENDATION: Stay away from this asset. If you already have a position, seriously consider reducing or eliminating it. This is NOT a time to invest.",
+
+    // Opportunities
+    undervalued_opportunity: "📈 BUY OPPORTUNITY: {ticker} shows signs of significant undervaluation. Its 6-month alpha is {alpha6m}%, indicating it has been trading below its theoretical value for approximately {weeksUnderperforming} weeks. With a Quant Score of {score}/100, our analysis suggests this stock has recovery potential over the next {expectedRecoveryMonths} months. Time horizon scores: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100, Long-term (4y): {scoreLong}/100. {mlAnomalyWarning} RECOMMENDATION: Consider initiating a position or gradually increasing your exposure. This is a good time to buy.",
+
+    strong_momentum_buy: "🚀 STRONG MOMENTUM: {ticker} exhibits exceptional momentum with a score of {scoreMomentum}/100 and a 6-month return of {roc6m}%. The total Quant Score is {score}/100. Time horizon scores: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100, Long-term (4y): {scoreLong}/100. {mlAnomalyWarning} This asset is in a strong uptrend with solid quantitative fundamentals. RECOMMENDATION: Excellent buying opportunity for momentum strategies. Consider setting protective stops to secure gains.",
+
+    oversold_bounce: "📊 POTENTIAL BOUNCE: {ticker} is in oversold territory with an RSI of {rsi}, but maintains a solid Quant Score of {score}/100. Time horizon analysis: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100. {mlAnomalyWarning} This suggests a temporary technical correction rather than fundamental deterioration. RECOMMENDATION: Tactical buying opportunity to capture the bounce. Wait for reversal confirmation before entering or establish a reduced position.",
+
+    bullish_trend: "✅ CONFIRMED UPTREND: {ticker} presents a well-established uptrend (Trend Score: {scoreTrend}/100) backed by solid momentum ({scoreMomentum}/100). Time horizon scores: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100, Long-term (4y): {scoreLong}/100. {mlAnomalyWarning} Technical indicators confirm the strength of the move. RECOMMENDATION: Suitable asset for medium-term positions. Hold or consider gradually increasing exposure.",
+
+    // Moderate situations
+    high_volatility_moderate: "⚡ ELEVATED VOLATILITY: {ticker} presents significant volatility of {volatility}% per annum, which implies considerable price swings. Short-term outlook (6m): {scoreShort}/100. {mlAnomalyWarning} However, the risk profile is manageable for experienced investors. RECOMMENDATION: If you decide to invest, limit your exposure to a maximum of {riskCapitalPct}% of your available capital. Use staged entry strategies and wide stops to absorb volatility.",
+
+    stable_quality: "🛡️ QUALITY AND STABILITY: {ticker} is a high-quality asset with controlled volatility of {volatility}% and a reasonable maximum drawdown of {maxDrawdown}%. Its Quant Score of {score}/100 reflects solid fundamentals. Time horizon scores: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100, Long-term (4y): {scoreLong}/100. {mlAnomalyWarning} RECOMMENDATION: Suitable asset for conservative portfolios and long-term strategies. Consider as a stable core position in your portfolio.",
+
+    good_opportunity: "💼 INTERESTING OPPORTUNITY: {ticker} presents an attractive Quant Score of {score}/100, indicating positive quantitative fundamentals. Time horizon scores: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100, Long-term (4y): {scoreLong}/100. {mlAnomalyWarning} Multi-factor analysis suggests this asset has appreciation potential. RECOMMENDATION: Consider initiating a moderate-sized position as part of a diversified portfolio.",
+
+    neutral_hold: "⚖️ NEUTRAL POSITION: {ticker} shows moderate performance with a Quant Score of {score}/100. Time horizon scores: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100, Long-term (4y): {scoreLong}/100. {mlAnomalyWarning} It presents no clear buy or sell signals at this time. RECOMMENDATION: If you already have a position, you may hold it. If you're considering entry, wait for more definitive signals or look for opportunities with better risk-return profiles.",
+
+    // Warnings and cautions
+    overvalued_warning: "⚠️ OVERVALUATION SIGNAL: {ticker} shows signs of being overextended with an RSI of {rsi} and a 6-month return of {roc6m}%. Time horizon outlook: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100. {mlAnomalyWarning} This suggests the asset may be entering overbought territory. RECOMMENDATION: This is NOT an ideal time to initiate positions. If you already hold shares, consider taking partial profits or setting tighter stops to protect gains.",
+
+    bearish_decline: "📉 DOWNTREND: {ticker} is in a descending trend with a 12-month return of {roc12m}% and a Trend Score of only {scoreTrend}/100. Time horizon outlook: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100. {mlAnomalyWarning} Technical indicators suggest continued weakness. RECOMMENDATION: Avoid this asset for long positions. If you hold a position, consider reducing or closing. Advanced investors might consider short strategies or hedging.",
+
+    weak_momentum_wait: "⏸️ WEAK MOMENTUM: {ticker} presents insufficient momentum with a score of only {scoreMomentum}/100. Time horizon outlook: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100. {mlAnomalyWarning} The asset does not show the necessary impulse to generate attractive returns in the short-medium term. RECOMMENDATION: Better to refrain from investing for now. Wait for the asset to demonstrate signs of strength before considering entry. There are better opportunities in the market.",
+
+    avoid_low_score: "❌ NOT RECOMMENDED: {ticker} presents a low Quant Score of {score}/100, indicating weak quantitative fundamentals. Time horizon scores: Short-term (6m): {scoreShort}/100, Medium-term (18m): {scoreMedium}/100. {mlAnomalyWarning} Multiple factors in our multidimensional analysis point to significant risks or lack of opportunity. RECOMMENDATION: Avoid this asset. Focus your capital on opportunities with better risk-return profiles and higher scores."
   }
 
 };
