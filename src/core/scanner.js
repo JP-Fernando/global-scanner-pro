@@ -2637,6 +2637,10 @@ function generateInvestmentRecommendation(result) {
   const mlAnomalyTypes = mlAnomalyInfo.types;
   const mlAnomalySeverity = mlAnomalyInfo.maxSeverity;
 
+  const mlAnomalySeverityLabel = mlAnomalySeverity
+    ? i18n.t('ml.anomalies.severity_' + mlAnomalySeverity, mlAnomalySeverity)
+    : '';
+
   // Determine market position
   const isUndervalued = alpha6m < -5 && roc6m < 0 && score > 60;
   const isOvervalued = rsi > 70 && roc6m > 15 && scoreMomentum > 80;
@@ -2650,6 +2654,7 @@ function generateInvestmentRecommendation(result) {
   const isBearish = scoreTrend < 40 && roc12m < -10;
   const isOversold = rsi < 30 && score > 50;
   const hasAnomalyRisk = hasAnomalies && anomalyPenalty > 15;
+  const hasSevereMlAnomaly = hasMLAnomalies && ['extreme', 'high'].includes(mlAnomalySeverity);
 
   // Decision tree for recommendations
   let recommendationKey = '';
@@ -2670,6 +2675,23 @@ function generateInvestmentRecommendation(result) {
     };
     style = { borderColor: '#dc2626', backgroundColor: '#450a0a', icon: '⚠️' };
   }
+
+  // ML anomaly override (keep consistent with ML anomaly alerts)
+  else if (hasSevereMlAnomaly) {
+    recommendationKey = 'recommendation.ml_anomaly_override';
+    params = {
+      ticker: result.ticker,
+      score: score.toFixed(0),
+      count: mlAnomalyInfo.count,
+      severity: mlAnomalySeverityLabel,
+      scoreShort: scoreShort.toFixed(0),
+      scoreMedium: scoreMedium.toFixed(0),
+      scoreLong: scoreLong.toFixed(0)
+    };
+    style = { borderColor: '#dc2626', backgroundColor: '#450a0a', icon: '🚨' };
+  }
+
+
   // Very high volatility + deep drawdown
   else if (isVeryHighVolatility && isDeepDrawdown) {
     recommendationKey = 'recommendation.extreme_volatility_crisis';
@@ -2694,7 +2716,7 @@ function generateInvestmentRecommendation(result) {
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
       scoreLong: scoreLong.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#10b981', backgroundColor: '#022c22', icon: '📈' };
   }
@@ -2707,7 +2729,7 @@ function generateInvestmentRecommendation(result) {
       roc6m: roc6m.toFixed(1),
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#f59e0b', backgroundColor: '#451a03', icon: '⚠️' };
   }
@@ -2722,7 +2744,7 @@ function generateInvestmentRecommendation(result) {
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
       scoreLong: scoreLong.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#10b981', backgroundColor: '#022c22', icon: '🚀' };
   }
@@ -2735,7 +2757,7 @@ function generateInvestmentRecommendation(result) {
       volatility: volatility.toFixed(1),
       riskCapitalPct: riskCapitalPct.toFixed(0),
       scoreShort: scoreShort.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#f59e0b', backgroundColor: '#451a03', icon: '⚡' };
   }
@@ -2750,7 +2772,7 @@ function generateInvestmentRecommendation(result) {
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
       scoreLong: scoreLong.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#3b82f6', backgroundColor: '#1e3a8a20', icon: '🛡️' };
   }
@@ -2763,7 +2785,7 @@ function generateInvestmentRecommendation(result) {
       score: score.toFixed(0),
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#10b981', backgroundColor: '#022c22', icon: '📊' };
   }
@@ -2776,7 +2798,7 @@ function generateInvestmentRecommendation(result) {
       scoreTrend: scoreTrend.toFixed(0),
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#ef4444', backgroundColor: '#450a0a', icon: '📉' };
   }
@@ -2788,7 +2810,7 @@ function generateInvestmentRecommendation(result) {
       scoreMomentum: scoreMomentum.toFixed(0),
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#64748b', backgroundColor: '#1e293b', icon: '⏸️' };
   }
@@ -2802,7 +2824,7 @@ function generateInvestmentRecommendation(result) {
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
       scoreLong: scoreLong.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#10b981', backgroundColor: '#022c22', icon: '✅' };
   }
@@ -2815,7 +2837,7 @@ function generateInvestmentRecommendation(result) {
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
       scoreLong: scoreLong.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#3b82f6', backgroundColor: '#1e3a8a20', icon: '💼' };
   }
@@ -2828,7 +2850,7 @@ function generateInvestmentRecommendation(result) {
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
       scoreLong: scoreLong.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#64748b', backgroundColor: '#1e293b', icon: '⚖️' };
   }
@@ -2840,7 +2862,7 @@ function generateInvestmentRecommendation(result) {
       score: score.toFixed(0),
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
-      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverity }) : ''
+      mlAnomalyWarning: hasMLAnomalies ? i18n.t('recommendation.ml_anomaly_detected', { count: mlAnomalyInfo.count, severity: mlAnomalySeverityLabel }) : ''
     };
     style = { borderColor: '#ef4444', backgroundColor: '#450a0a', icon: '❌' };
   }

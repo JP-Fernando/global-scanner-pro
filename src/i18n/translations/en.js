@@ -1317,6 +1317,8 @@ export default {
     // Critical warnings
     critical_anomaly_warning: "⚠️ CRITICAL ALERT: {ticker} shows significant anomalies detected by our quantitative analysis system. A penalty of -{penalty} points has been applied due to anomalous behaviour ({anomalyTypes}). RECOMMENDATION: Avoid this asset until its behaviour normalises, or investigate thoroughly the underlying causes before investing.",
 
+    ml_anomaly_override: "🚨 ML ANOMALY ALERT: {ticker} has {count} ML anomalies with {severity} severity. Even with a Quant Score of {score}/100 (Short-term: {scoreShort}/100, Medium-term: {scoreMedium}/100, Long-term: {scoreLong}/100), this asset carries elevated risk. RECOMMENDATION: Avoid increasing exposure until anomalies resolve. If you already hold it, consider reducing or hedging the position.",
+
     extreme_volatility_crisis: "🚨 EXTREME RISK: {ticker} exhibits extremely high volatility of {volatility}% per annum combined with a maximum drawdown of {maxDrawdown}%. This asset is experiencing severe turbulence indicating a sectoral crisis or company-specific problems. RECOMMENDATION: Stay away from this asset. If you already have a position, seriously consider reducing or eliminating it. This is NOT a time to invest.",
 
     // Opportunities
