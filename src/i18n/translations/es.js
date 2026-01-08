@@ -1369,6 +1369,7 @@ export default {
       severity_extreme: 'extrema',
       severity_high: 'alta',
       severity_moderate: 'moderada',
+      severity_low: 'baja',
 
       // Anomaly types
       type_z_score: 'Anomalía Z-Score',
@@ -1380,6 +1381,7 @@ export default {
       // Anomaly subtypes
       subtype_bullish_divergence: 'divergencia alcista',
       subtype_bearish_divergence: 'divergencia bajista',
+      subtype_divergence: 'divergencia',
       direction_above_mean: 'por encima de la media',
       direction_below_mean: 'por debajo de la media',
       direction_spike: 'pico',
@@ -1490,6 +1492,11 @@ export default {
       elevated_volatility_title: "Volatilidad de Mercado Elevada",
       elevated_volatility_message: "La volatilidad del mercado está en {volatility}%. Considere reducir exposición o cobertura.",
       action_review_risk: "Revisar Riesgo",
+
+      anomaly_warning_title: "Riesgo por Anomalías: {ticker}",
+      anomaly_warning_message: "ML detectó {count} anomalías para {ticker} con severidad {severity}. Considérelo como riesgo elevado y valide antes de aumentar exposición.",
+      action_investigate: "Investigar",
+
 
       buy_opportunity_title: "Oportunidad de Compra: {ticker}",
       buy_opportunity_message: "Alto quant score ({score}) con fuerte momentum y señales de calidad",

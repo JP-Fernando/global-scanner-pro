@@ -51,15 +51,16 @@ export const RECOMMENDATION_PRIORITY = {
  */
 export function generateRecommendations(portfolio, marketData, historicalPerformance) {
   const recommendations = [];
+  const anomalyMap = buildAnomalyMap(marketData?.anomalies);
 
   // 1. Rebalancing recommendations
   recommendations.push(...detectRebalancingNeeds(portfolio));
 
   // 2. Risk warnings
-  recommendations.push(...detectRiskWarnings(portfolio, marketData));
+  recommendations.push(...detectRiskWarnings(portfolio, marketData, anomalyMap));
 
   // 3. Buy opportunities
-  recommendations.push(...detectBuyOpportunities(marketData, portfolio));
+  recommendations.push(...detectBuyOpportunities(marketData, portfolio, anomalyMap));
 
   // 4. Sell alerts
   recommendations.push(...detectSellAlerts(portfolio, historicalPerformance));
@@ -74,6 +75,38 @@ export function generateRecommendations(portfolio, marketData, historicalPerform
   recommendations.sort((a, b) => b.priority.level - a.priority.level);
 
   return recommendations;
+}
+
+
+function buildAnomalyMap(anomalies = []) {
+  const map = new Map();
+
+  anomalies.forEach(anomaly => {
+    const tickers = [anomaly.ticker, anomaly.ticker1, anomaly.ticker2].filter(Boolean);
+    tickers.forEach(ticker => {
+      if (!map.has(ticker)) {
+        map.set(ticker, []);
+      }
+      map.get(ticker).push(anomaly);
+    });
+  });
+
+  return map;
+}
+
+function getMaxSeverity(anomalies = []) {
+  const severityOrder = { extreme: 4, high: 3, moderate: 2, low: 1 };
+
+  return anomalies.reduce((max, anomaly) => {
+    return (severityOrder[anomaly.severity] || 0) > (severityOrder[max] || 0)
+      ? anomaly.severity
+      : max;
+  }, 'low');
+}
+
+function isSevereAnomaly(anomalies = []) {
+  const maxSeverity = getMaxSeverity(anomalies);
+  return ['extreme', 'high'].includes(maxSeverity);
 }
 
 /**
@@ -118,7 +151,7 @@ function detectRebalancingNeeds(portfolio) {
 /**
  * Detect risk warnings
  */
-function detectRiskWarnings(portfolio, marketData) {
+function detectRiskWarnings(portfolio, marketData, anomalyMap) {
   const recommendations = [];
 
   // Check concentration risk
@@ -159,13 +192,47 @@ function detectRiskWarnings(portfolio, marketData) {
     });
   }
 
+  // Check ML anomalies for risk warnings
+  if (marketData?.assets && anomalyMap && anomalyMap.size > 0) {
+    const warnedTickers = new Set();
+
+    marketData.assets.forEach(asset => {
+      const anomalies = anomalyMap.get(asset.ticker) || [];
+      if (!anomalies.length || !isSevereAnomaly(anomalies)) {
+        return;
+      }
+
+      if (warnedTickers.has(asset.ticker)) {
+        return;
+      }
+      warnedTickers.add(asset.ticker);
+
+      const severity = getMaxSeverity(anomalies);
+      recommendations.push({
+        type: RECOMMENDATION_TYPES.RISK_WARNING,
+        priority: RECOMMENDATION_PRIORITY.HIGH,
+        ticker: asset.ticker,
+        name: asset.name || asset.ticker,
+        title: i18n.t('ml.portfolio.anomaly_warning_title', { ticker: asset.ticker }),
+        message: i18n.t('ml.portfolio.anomaly_warning_message', {
+          ticker: asset.ticker,
+          severity: i18n.t(`ml.anomalies.severity_${severity}`),
+          count: anomalies.length
+        }),
+        action: i18n.t('ml.portfolio.action_investigate'),
+        confidence: 0.7,
+        timestamp: Date.now()
+      });
+    });
+  }
+
   return recommendations;
 }
 
 /**
  * Detect buy opportunities
  */
-function detectBuyOpportunities(marketData, portfolio) {
+function detectBuyOpportunities(marketData, portfolio, anomalyMap) {
   const recommendations = [];
 
   if (!marketData || !marketData.assets) return recommendations;
@@ -177,6 +244,13 @@ function detectBuyOpportunities(marketData, portfolio) {
 
   const topOpportunities = assetsNotOwned
     .filter(asset => asset.quant_score > 70)
+    .filter(asset => {
+      if (!anomalyMap || anomalyMap.size === 0) {
+        return true;
+      }
+      const anomalies = anomalyMap.get(asset.ticker) || [];
+      return !isSevereAnomaly(anomalies);
+    })
     .sort((a, b) => b.quant_score - a.quant_score)
     .slice(0, 3);
 

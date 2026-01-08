@@ -1801,7 +1801,9 @@ export async function runScan() {
         const marketData = {
           volatility: benchmarkData?.volatility || 20,
           regime_prediction: mlRegimePrediction || { regime: currentRegime?.regime || 'neutral' },
-          assets: currentResults.slice(0, 20) // Top 20 for recommendations
+
+          assets: currentResults.slice(0, 20), // Top 20 for recommendations
+          anomalies: mlAnomalies
         };
 
         mlRecommendations = generateRecommendations(mockPortfolio, marketData, {});
