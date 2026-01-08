@@ -492,8 +492,8 @@ export default {
     interpretation: '💡 Interpretation',
     max_dd_meaning: '• <strong>Max DD:</strong> Maximum loss from previous peak',
     avg_recovery_meaning: '• <strong>Avg. Recovery:</strong> Average time to recover drawdowns',
-    outperformed_benchmark: 'The strategy <strong style="color: #10b981;">outperformed the benchmark</strong> by ${formatNumber(outperformance)}%. This indicates that active asset selection added value over simply holding the index.',
-    underperformed_benchmark: 'The strategy <strong style="color: #f87171;">underperformed the benchmark</strong> by ${formatNumber(Math.abs(outperformance))}%. Consider reviewing parameters or using passive management.'
+    outperformed_benchmark: 'The strategy <strong style="color: #10b981;">outperformed the benchmark</strong> by {{value}}%. This indicates that active asset selection added value over simply holding the index.',
+    underperformed_benchmark: 'The strategy <strong style="color: #f87171;">underperformed the benchmark</strong> by {{value}}%. Consider reviewing parameters or using passive management.'
   },
 
   // View modes
@@ -1304,6 +1304,92 @@ export default {
       action_opportunity_sell: 'This divergence could be a sell signal if overvaluation is confirmed by other indicators.',
       action_check_news: 'Check recent news that may explain the anomalous volume.',
       action_improve_liquidity: 'Consider replacing this asset with more liquid alternatives.'
+    },
+
+    // ML Insights Section
+    insights: {
+      section_title: "Advanced ML Analysis",
+
+      // Regime Impact
+      regime_impact_title: "Regime Change Impact",
+      regime_change: "The market is transitioning from {from} to {to} with {confidence}% confidence. This change has a {impact} impact for this asset ({assetType}).",
+      defensive_asset: "defensive asset",
+      aggressive_asset: "aggressive asset",
+      neutral_asset: "neutral asset",
+      impact_favorable: "FAVOURABLE",
+      impact_unfavorable: "UNFAVOURABLE",
+      impact_neutral: "neutral",
+
+      // Momentum Shift
+      momentum_shift_title: "Momentum Shift Detected",
+      momentum_accelerating: "The asset shows {strength} acceleration in momentum. Acceleration is {acceleration}% with a percentile of {percentile} in the universe.",
+      momentum_decelerating: "The asset shows {strength} deceleration in momentum. Deceleration is {acceleration}% with a percentile of {percentile} in the universe.",
+      momentum_strong_positive: "The asset is in the {percentile}th percentile of the universe with {strength} positive momentum.",
+      momentum_strong_negative: "The asset is in the {percentile}th percentile of the universe with {strength} negative momentum.",
+      strength_strong: "STRONG",
+      strength_moderate: "moderate",
+      strength_high: "high",
+      strength_low: "low",
+
+      // ML Signals
+      ml_signal_title: "ML Signal",
+      signal_strong_buy: "STRONG BUY - ML analysis generates a strong buy signal with {confidence}% confidence (ML Score: {mlScore}/100).",
+      signal_buy: "BUY - ML analysis suggests a buying opportunity with {confidence}% confidence (ML Score: {mlScore}/100).",
+      signal_hold: "HOLD - ML analysis recommends holding current positions with {confidence}% confidence (ML Score: {mlScore}/100).",
+      signal_sell: "SELL - ML analysis suggests considering reducing exposure with {confidence}% confidence (ML Score: {mlScore}/100).",
+      signal_strong_sell: "STRONG SELL - ML analysis generates a strong sell signal with {confidence}% confidence (ML Score: {mlScore}/100).",
+
+      // ML Risk
+      ml_risk_title: "ML Risk Assessment",
+      risk_very_high: "VERY HIGH RISK - ML analysis assigns a risk score of {riskScore}/100. This asset is in the {percentile}th percentile of relative risk in the universe.",
+      risk_high: "HIGH RISK - ML analysis assigns a risk score of {riskScore}/100. This asset is in the {percentile}th percentile of relative risk in the universe.",
+      risk_moderate: "MODERATE RISK - ML analysis assigns a risk score of {riskScore}/100. This asset is in the {percentile}th percentile of relative risk in the universe.",
+      risk_low: "LOW RISK - ML analysis assigns a risk score of {riskScore}/100. This asset is in the {percentile}th percentile of relative risk in the universe."
+    },
+
+    // Market Regimes
+    regime: {
+      risk_on: "Risk On",
+      risk_off: "Risk Off",
+      neutral: "Neutral",
+      transition: "Transition"
+    },
+
+    // Portfolio Recommendations (for recommendation-engine.js)
+    portfolio: {
+      rebalance_title: "Rebalance {ticker}",
+      rebalance_message: "Current weight ({currentWeight}%) deviates from target ({targetWeight}%) by {deviation}%",
+      action_sell: "Sell",
+      action_buy: "Buy",
+
+      high_concentration_title: "High Concentration Risk",
+      high_concentration_message: "Top 3 positions represent {concentration}% of portfolio. Consider diversifying.",
+      action_diversify: "Diversify",
+
+      elevated_volatility_title: "Elevated Market Volatility",
+      elevated_volatility_message: "Market volatility at {volatility}%. Consider reducing exposure or hedging.",
+      action_review_risk: "Review Risk",
+
+      buy_opportunity_title: "Buy Opportunity: {ticker}",
+      buy_opportunity_message: "High quant score ({score}) with strong momentum and quality signals",
+      action_consider_buying: "Consider Buying",
+
+      sell_alert_title: "Sell Alert: {ticker}",
+      sell_alert_message: "Position down {return}% over 60 days. Consider exiting.",
+      action_consider_selling: "Consider Selling",
+
+      low_score_title: "Low Score: {ticker}",
+      low_score_message: "Quant score dropped to {score}. Fundamentals weakening.",
+      action_monitor_closely: "Monitor Closely",
+
+      high_sector_exposure_title: "High {sector} Exposure",
+      high_sector_exposure_message: "{sector} sector represents {weight}% of portfolio. Consider diversifying.",
+      action_diversify_sectors: "Diversify Sectors",
+
+      regime_change_title: "Market Regime Change Detected",
+      regime_change_message: "Market transitioning from {from} to {to} with {confidence}% confidence",
+      action_reduce_risk: "Reduce Risk",
+      action_adjust_strategy: "Adjust Strategy"
     }
   },
 

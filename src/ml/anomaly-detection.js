@@ -91,7 +91,13 @@ export function detectZScoreAnomalies(assets, feature = 'quant_score', config = 
         zScore: zScores[idx],
         severity,
         direction: zScores[idx] > 0 ? 'above_mean' : 'below_mean',
-        message: `${asset.ticker} has ${severity} ${feature} (z-score: ${zScores[idx].toFixed(2)})`,
+        message: i18n.t('ml.anomalies.z_score_message', {
+          ticker: asset.ticker,
+          name: asset.name || asset.ticker,
+          severity: i18n.t(`ml.anomalies.severity_${severity}`),
+          feature,
+          zscore: zScores[idx].toFixed(2)
+        }),
         timestamp: Date.now()
       });
     }
@@ -180,14 +186,19 @@ export function detectClusterAnomalies(assets, config = ANOMALY_DETECTION_CONFIG
 
   distances.forEach((dist, idx) => {
     if (dist > 0 && dist >= outlierThreshold) {
+      const severity = dist >= sortedDistances[0] * 0.9 ? 'extreme' : 'high';
       anomalies.push({
         type: 'cluster_anomaly',
         ticker: assets[idx].ticker,
         name: assets[idx].name || assets[idx].ticker,
         distance: dist,
         cluster: kmeans.labels[idx],
-        severity: dist >= sortedDistances[0] * 0.9 ? 'extreme' : 'high',
-        message: `${assets[idx].ticker} is an outlier in its cluster (distance: ${dist.toFixed(2)})`,
+        severity,
+        message: i18n.t('ml.anomalies.cluster_message', {
+          ticker: assets[idx].ticker,
+          name: assets[idx].name || assets[idx].ticker,
+          distance: dist.toFixed(2)
+        }),
         timestamp: Date.now()
       });
     }
@@ -231,6 +242,7 @@ export function detectCorrelationAnomalies(assets, correlationMatrix, config = A
       const corr = Math.abs(correlationMatrix[i][j]);
 
       if (corr >= config.correlation_threshold) {
+        const severity = corr >= 0.95 ? 'extreme' : 'high';
         anomalies.push({
           type: 'correlation_anomaly',
           ticker1: assets[i]?.ticker || `Asset_${i}`,
@@ -238,8 +250,14 @@ export function detectCorrelationAnomalies(assets, correlationMatrix, config = A
           ticker2: assets[j]?.ticker || `Asset_${j}`,
           name2: assets[j]?.name || assets[j]?.ticker,
           correlation: correlationMatrix[i][j],
-          severity: corr >= 0.95 ? 'extreme' : 'high',
-          message: `Extremely high correlation (${(corr * 100).toFixed(1)}%) between ${assets[i]?.ticker} and ${assets[j]?.ticker}`,
+          severity,
+          message: i18n.t('ml.anomalies.correlation_message', {
+            correlation: (corr * 100).toFixed(1),
+            ticker1: assets[i]?.ticker,
+            name1: assets[i]?.name || assets[i]?.ticker,
+            ticker2: assets[j]?.ticker,
+            name2: assets[j]?.name || assets[j]?.ticker
+          }),
           timestamp: Date.now()
         });
       }
@@ -270,6 +288,7 @@ export function detectPriceScoreDivergence(assets, config = ANOMALY_DETECTION_CO
       const type = normalizedScore > 0 && price_change_60d < 0 ? 'bullish_divergence' :
                    normalizedScore < 0 && price_change_60d > 0 ? 'bearish_divergence' : 'divergence';
 
+      const severity = divergence >= config.divergence_threshold * 1.5 ? 'high' : 'moderate';
       anomalies.push({
         type: 'price_score_divergence',
         subtype: type,
@@ -278,8 +297,14 @@ export function detectPriceScoreDivergence(assets, config = ANOMALY_DETECTION_CO
         quant_score,
         price_change_60d,
         divergence,
-        severity: divergence >= config.divergence_threshold * 1.5 ? 'high' : 'moderate',
-        message: `${ticker}: ${type} - Score is ${normalizedScore.toFixed(1)} but price change is ${price_change_60d.toFixed(1)}%`,
+        severity,
+        message: i18n.t('ml.anomalies.divergence_message', {
+          ticker,
+          name: asset.name || ticker,
+          subtype: i18n.t(`ml.anomalies.subtype_${type}`),
+          score: normalizedScore.toFixed(1),
+          price_change: price_change_60d.toFixed(1)
+        }),
         timestamp: Date.now()
       });
     }
@@ -305,15 +330,22 @@ export function detectVolumeAnomalies(assets, config = ANOMALY_DETECTION_CONFIG)
     const zScore = Math.abs(zScores[idx]);
 
     if (zScore >= config.z_score_thresholds.high) {
+      const severity = zScore >= config.z_score_thresholds.extreme ? 'extreme' : 'high';
+      const direction = zScores[idx] > 0 ? 'spike' : 'drought';
       anomalies.push({
         type: 'volume_anomaly',
         ticker: asset.ticker,
         name: asset.name || asset.ticker,
         volume: asset.volume,
         zScore: zScores[idx],
-        severity: zScore >= config.z_score_thresholds.extreme ? 'extreme' : 'high',
-        direction: zScores[idx] > 0 ? 'spike' : 'drought',
-        message: `${asset.ticker} has ${zScores[idx] > 0 ? 'unusually high' : 'unusually low'} volume (z-score: ${zScores[idx].toFixed(2)})`,
+        severity,
+        direction,
+        message: i18n.t('ml.anomalies.volume_message', {
+          ticker: asset.ticker,
+          name: asset.name || asset.ticker,
+          direction: i18n.t(`ml.anomalies.direction_${direction}`),
+          zscore: zScores[idx].toFixed(2)
+        }),
         timestamp: Date.now()
       });
     }

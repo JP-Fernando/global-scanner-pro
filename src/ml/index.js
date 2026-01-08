@@ -70,7 +70,8 @@ export {
   RECOMMENDATION_PRIORITY,
   generateRecommendations,
   filterByPriority,
-  groupByType
+  groupByType,
+  analyzeAssetML
 } from './recommendation-engine.js';
 
 // Anomaly detection

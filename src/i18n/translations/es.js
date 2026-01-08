@@ -491,8 +491,8 @@ export default {
     interpretation: '💡 Interpretación',
     max_dd_meaning: '• <strong>Max DD:</strong> Pérdida máxima desde el pico anterior',
     avg_recovery_meaning: '• <strong>Recup. Promedio:</strong> Tiempo medio para recuperar drawdowns',
-    outperformed_benchmark: 'La estrategia <strong style="color: #10b981;">superó al benchmark</strong> en ${formatNumber(outperformance)}%. Esto indica que la selección activa de activos añadió valor respecto a mantener el índice.',
-    underperformed_benchmark: 'La estrategia <strong style="color: #f87171;">quedó por debajo del benchmark</strong> en ${formatNumber(Math.abs(outperformance))}%. Considera revisar los parámetros o usar gestión pasiva.'
+    outperformed_benchmark: 'La estrategia <strong style="color: #10b981;">superó al benchmark</strong> en {{value}}%. Esto indica que la selección activa de activos añadió valor respecto a mantener el índice.',
+    underperformed_benchmark: 'La estrategia <strong style="color: #f87171;">quedó por debajo del benchmark</strong> en {{value}}%. Considera revisar los parámetros o usar gestión pasiva.'
   },
 
   // View modes
@@ -1425,6 +1425,92 @@ export default {
       action_opportunity_sell: 'Esta divergencia podría ser una señal de venta si la sobrevaloración es confirmada por otros indicadores.',
       action_check_news: 'Verifique noticias recientes que puedan explicar el volumen anómalo.',
       action_improve_liquidity: 'Considere reemplazar este activo por alternativas más líquidas.'
+    },
+
+    // ML Insights Section
+    insights: {
+      section_title: "Análisis ML Avanzado",
+
+      // Regime Impact
+      regime_impact_title: "Impacto de Cambio de Régimen",
+      regime_change: "El mercado está transitando de {from} a {to} con {confidence}% de confianza. Este cambio tiene un impacto {impact} para este activo ({assetType}).",
+      defensive_asset: "activo defensivo",
+      aggressive_asset: "activo agresivo",
+      neutral_asset: "activo neutral",
+      impact_favorable: "FAVORABLE",
+      impact_unfavorable: "DESFAVORABLE",
+      impact_neutral: "neutral",
+
+      // Momentum Shift
+      momentum_shift_title: "Cambio de Momentum Detectado",
+      momentum_accelerating: "El activo muestra aceleración {strength} en su momentum. La aceleración es de {acceleration}% con un percentil de {percentile} en el universo.",
+      momentum_decelerating: "El activo muestra desaceleración {strength} en su momentum. La desaceleración es de {acceleration}% con un percentil de {percentile} en el universo.",
+      momentum_strong_positive: "El activo se encuentra en el percentil {percentile} superior del universo con momentum {strength} positivo.",
+      momentum_strong_negative: "El activo se encuentra en el percentil {percentile} inferior del universo con momentum {strength} negativo.",
+      strength_strong: "FUERTE",
+      strength_moderate: "moderada",
+      strength_high: "alta",
+      strength_low: "baja",
+
+      // ML Signals
+      ml_signal_title: "Señal ML",
+      signal_strong_buy: "COMPRA FUERTE - El análisis ML genera una señal de compra fuerte con {confidence}% de confianza (ML Score: {mlScore}/100).",
+      signal_buy: "COMPRA - El análisis ML sugiere una oportunidad de compra con {confidence}% de confianza (ML Score: {mlScore}/100).",
+      signal_hold: "MANTENER - El análisis ML recomienda mantener posiciones actuales con {confidence}% de confianza (ML Score: {mlScore}/100).",
+      signal_sell: "VENTA - El análisis ML sugiere considerar reducir exposición con {confidence}% de confianza (ML Score: {mlScore}/100).",
+      signal_strong_sell: "VENTA FUERTE - El análisis ML genera una señal de venta fuerte con {confidence}% de confianza (ML Score: {mlScore}/100).",
+
+      // ML Risk
+      ml_risk_title: "Evaluación de Riesgo ML",
+      risk_very_high: "RIESGO MUY ALTO - El análisis ML asigna un score de riesgo de {riskScore}/100. Este activo está en el percentil {percentile} de riesgo relativo del universo.",
+      risk_high: "RIESGO ALTO - El análisis ML asigna un score de riesgo de {riskScore}/100. Este activo está en el percentil {percentile} de riesgo relativo del universo.",
+      risk_moderate: "RIESGO MODERADO - El análisis ML asigna un score de riesgo de {riskScore}/100. Este activo está en el percentil {percentile} de riesgo relativo del universo.",
+      risk_low: "RIESGO BAJO - El análisis ML asigna un score de riesgo de {riskScore}/100. Este activo está en el percentil {percentile} de riesgo relativo del universo."
+    },
+
+    // Market Regimes
+    regime: {
+      risk_on: "Risk On (Apetito por Riesgo)",
+      risk_off: "Risk Off (Aversión al Riesgo)",
+      neutral: "Neutral",
+      transition: "Transición"
+    },
+
+    // Portfolio Recommendations (for recommendation-engine.js)
+    portfolio: {
+      rebalance_title: "Rebalancear {ticker}",
+      rebalance_message: "El peso actual ({currentWeight}%) se desvía del objetivo ({targetWeight}%) en {deviation}%",
+      action_sell: "Vender",
+      action_buy: "Comprar",
+
+      high_concentration_title: "Alto Riesgo de Concentración",
+      high_concentration_message: "Las 3 principales posiciones representan {concentration}% del portafolio. Considere diversificar.",
+      action_diversify: "Diversificar",
+
+      elevated_volatility_title: "Volatilidad de Mercado Elevada",
+      elevated_volatility_message: "La volatilidad del mercado está en {volatility}%. Considere reducir exposición o cobertura.",
+      action_review_risk: "Revisar Riesgo",
+
+      buy_opportunity_title: "Oportunidad de Compra: {ticker}",
+      buy_opportunity_message: "Alto quant score ({score}) con fuerte momentum y señales de calidad",
+      action_consider_buying: "Considerar Compra",
+
+      sell_alert_title: "Alerta de Venta: {ticker}",
+      sell_alert_message: "Posición baja {return}% en 60 días. Considere salir.",
+      action_consider_selling: "Considerar Venta",
+
+      low_score_title: "Score Bajo: {ticker}",
+      low_score_message: "Quant score cayó a {score}. Los fundamentos se están debilitando.",
+      action_monitor_closely: "Monitorear Atentamente",
+
+      high_sector_exposure_title: "Alta Exposición a {sector}",
+      high_sector_exposure_message: "El sector {sector} representa {weight}% del portafolio. Considere diversificar.",
+      action_diversify_sectors: "Diversificar Sectores",
+
+      regime_change_title: "Cambio de Régimen de Mercado Detectado",
+      regime_change_message: "Mercado en transición de {from} a {to} con {confidence}% de confianza",
+      action_reduce_risk: "Reducir Riesgo",
+      action_adjust_strategy: "Ajustar Estrategia"
     }
   },
 

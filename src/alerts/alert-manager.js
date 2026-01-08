@@ -243,6 +243,9 @@ export async function notifyStrongSignals(results, strategy, userId = DEFAULT_US
     .map(r => `${r.ticker} (${r.scoreTotal.toFixed(1)})`)
     .join(', ');
 
+  // Get translated strategy name
+  const strategyName = i18n.t(`strategies.${strategy}`, { defaultValue: strategy });
+
   return createAlert({
     userId,
     strategy,
@@ -250,7 +253,7 @@ export async function notifyStrongSignals(results, strategy, userId = DEFAULT_US
     severity: 'info',
     title: i18n.t('alerts.strong_signals_title'),
     message: i18n.t('alerts.strong_signals_message', {
-      strategy,
+      strategy: strategyName,
       signals: signalList
     }),
     metadata: {

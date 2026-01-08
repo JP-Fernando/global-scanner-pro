@@ -34,7 +34,8 @@ import {
   extractRegimeFeatures
 } from '../ml/regime-prediction.js';
 import {
-  generateRecommendations
+  generateRecommendations,
+  analyzeAssetML
 } from '../ml/recommendation-engine.js';
 import {
   detectAllAnomalies as detectMLAnomalies,
@@ -2400,7 +2401,7 @@ function renderMLRecommendations() {
   const html = `
     <div style="background: #1e293b; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #818cf8;">
       <h3 style="color: #818cf8; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-        🤖 ${i18n.t('ml.recommendations.title')}
+        ${i18n.t('ml.recommendations.title')}
         <span style="font-size: 0.7em; background: #334155; padding: 4px 12px; border-radius: 12px; color: #94a3b8;">
           ${i18n.t('ml.recommendations.insights_count', { count: mlRecommendations.length })}
         </span>
@@ -2420,7 +2421,7 @@ function renderMLRecommendations() {
                 <div style="display: flex; gap: 15px; font-size: 0.8em; color: #64748b; flex-wrap: wrap;">
                   <span><strong>${i18n.t('ml.recommendations.action')}:</strong> ${rec.action}</span>
                   <span><strong>${i18n.t('ml.recommendations.confidence')}:</strong> ${(rec.confidence * 100).toFixed(0)}%</span>
-                  <span><strong>${i18n.t('ml.recommendations.type')}:</strong> ${i18n.t('ml.recommendations.type_' + rec.type, rec.type)}</span>
+                  <span><strong>${i18n.t('ml.recommendations.type')}:</strong> ${i18n.t(`ml.recommendations.type_${rec.type}`)}</span>
                 </div>
               </div>
             </div>
@@ -2458,7 +2459,7 @@ function renderMLAnomalies() {
   const html = `
     <div style="background: #1e293b; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #f43f5e;">
       <h3 style="color: #f87171; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-        🔍 ${i18n.t('ml.anomalies.title')}
+        ${i18n.t('ml.anomalies.title')}
         <span style="font-size: 0.7em; background: #334155; padding: 4px 12px; border-radius: 12px; color: #94a3b8;">
           ${i18n.t('ml.anomalies.detected_count', { count: summary.total || 0 })}
         </span>
@@ -2468,7 +2469,7 @@ function renderMLAnomalies() {
         <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
           ${Object.entries(summary.by_severity).map(([severity, count]) => `
             <div style="background: #0f172a; padding: 8px 12px; border-radius: 6px; border: 1px solid ${severityColors[severity]};">
-              <span style="font-size: 0.8em; color: #94a3b8;">${i18n.t('ml.anomalies.severity_' + severity, severity)}:</span>
+              <span style="font-size: 0.8em; color: #94a3b8;">${i18n.t(`ml.anomalies.severity_${severity}`)}:</span>
               <strong style="color: ${severityColors[severity]}; margin-left: 5px;">${count}</strong>
             </div>
           `).join('')}
@@ -2483,7 +2484,7 @@ function renderMLAnomalies() {
                 <span>${severityIcons[anomaly.severity]}</span>
                 <strong style="color: #f8fafc;">${anomaly.ticker || 'N/A'}${anomaly.name ? ` (${anomaly.name})` : ''}</strong>
                 <span style="color: ${severityColors[anomaly.severity]}; font-size: 0.85em; font-weight: 600;">
-                  ${i18n.t('ml.anomalies.type_' + anomaly.type.replace(/_anomaly/g, ''), anomaly.type.replace(/_/g, ' ').toUpperCase())}
+                  ${i18n.t(`ml.anomalies.type_${anomaly.type.replace(/_anomaly/g, '')}`)}
                 </span>
               </div>
               <span style="font-size: 0.75em; color: #64748b;">👁️ ${i18n.t('ml.anomalies.view_details')}</span>
@@ -2606,12 +2607,25 @@ function checkMLAnomaliesForTicker(ticker) {
 /**
  * Generates an intelligent investment recommendation based on quantitative analysis
  * @param {Object} result - The stock analysis result
+ * @param {Object} options - Optional parameters for ML analysis
+ * @param {Object} options.marketData - Market data including regime prediction
+ * @param {Array} options.allAssets - All assets for relative analysis
  * @returns {Object} - Recommendation object with key, params, and style
  */
-function generateInvestmentRecommendation(result) {
+function generateInvestmentRecommendation(result, options = {}) {
   const d = result.details;
   const score = result.scoreTotal;
   const signal = result.signal.text;
+
+  // Perform ML analysis if data is available
+  let mlInsights = null;
+  if (options.marketData || options.allAssets) {
+    try {
+      mlInsights = analyzeAssetML(result, options.marketData, options.allAssets);
+    } catch (e) {
+      console.warn('ML analysis failed for', result.ticker, e.message);
+    }
+  }
 
   // Extract key metrics
   const volatility = parseFloat(d.risk.volatility) || 0;
@@ -2638,7 +2652,7 @@ function generateInvestmentRecommendation(result) {
   const mlAnomalySeverity = mlAnomalyInfo.maxSeverity;
 
   const mlAnomalySeverityLabel = mlAnomalySeverity
-    ? i18n.t('ml.anomalies.severity_' + mlAnomalySeverity, mlAnomalySeverity)
+    ? i18n.t(`ml.anomalies.severity_${mlAnomalySeverity}`)
     : '';
 
   // Determine market position
@@ -2870,8 +2884,129 @@ function generateInvestmentRecommendation(result) {
   return {
     key: recommendationKey,
     params: params,
-    style: style
+    style: style,
+    mlInsights: mlInsights // Include ML insights for enhanced recommendations
   };
+}
+
+/**
+ * Generate HTML for ML insights section
+ */
+function generateMLInsightsHTML(mlInsights) {
+  if (!mlInsights) return '';
+
+  const insights = [];
+
+  // 1. Regime Impact
+  if (mlInsights.regimeImpact) {
+    const ri = mlInsights.regimeImpact;
+    const impactColors = {
+      favorable: '#10b981',
+      unfavorable: '#ef4444',
+      neutral: '#64748b'
+    };
+    const impactColor = impactColors[ri.impact] || '#64748b';
+
+    insights.push(`
+      <div style="background: ${impactColor}15; padding: 12px; border-radius: 6px; border-left: 3px solid ${impactColor}; margin-top: 12px;">
+        <strong style="color: ${impactColor};">🌐 ${i18n.t('ml.insights.regime_impact_title')}</strong>
+        <p style="font-size: 0.85em; margin: 5px 0 0 0; line-height: 1.5; color: #cbd5e1;">
+          ${i18n.t('ml.insights.regime_change', {
+            from: i18n.t(`ml.regime.${ri.previous_regime}`),
+            to: i18n.t(`ml.regime.${ri.regime}`),
+            confidence: (ri.confidence * 100).toFixed(0),
+            impact: i18n.t(`ml.insights.impact_${ri.impact}`),
+            assetType: ri.isDefensive ? i18n.t('ml.insights.defensive_asset') : ri.isAggressive ? i18n.t('ml.insights.aggressive_asset') : i18n.t('ml.insights.neutral_asset')
+          })}
+        </p>
+      </div>
+    `);
+  }
+
+  // 2. Momentum Shift
+  if (mlInsights.momentumShift && mlInsights.momentumShift.shift !== 'stable') {
+    const ms = mlInsights.momentumShift;
+    const shiftColors = {
+      accelerating: '#10b981',
+      decelerating: '#ef4444',
+      strong_positive: '#3b82f6',
+      strong_negative: '#f59e0b'
+    };
+    const shiftColor = shiftColors[ms.shift] || '#64748b';
+
+    insights.push(`
+      <div style="background: ${shiftColor}15; padding: 12px; border-radius: 6px; border-left: 3px solid ${shiftColor}; margin-top: 12px;">
+        <strong style="color: ${shiftColor};">⚡ ${i18n.t('ml.insights.momentum_shift_title')}</strong>
+        <p style="font-size: 0.85em; margin: 5px 0 0 0; line-height: 1.5; color: #cbd5e1;">
+          ${i18n.t(`ml.insights.momentum_${ms.shift}`, {
+            strength: i18n.t(`ml.insights.strength_${ms.strength}`),
+            percentile: ms.percentile,
+            acceleration: ms.acceleration
+          })}
+        </p>
+      </div>
+    `);
+  }
+
+  // 3. ML Signal
+  if (mlInsights.mlSignal) {
+    const sig = mlInsights.mlSignal;
+    const signalColors = {
+      STRONG_BUY: '#10b981',
+      BUY: '#22c55e',
+      HOLD: '#64748b',
+      SELL: '#f59e0b',
+      STRONG_SELL: '#ef4444'
+    };
+    const signalColor = signalColors[sig.signal] || '#64748b';
+
+    insights.push(`
+      <div style="background: ${signalColor}15; padding: 12px; border-radius: 6px; border-left: 3px solid ${signalColor}; margin-top: 12px;">
+        <strong style="color: ${signalColor};">🤖 ${i18n.t('ml.insights.ml_signal_title')}</strong>
+        <p style="font-size: 0.85em; margin: 5px 0 0 0; line-height: 1.5; color: #cbd5e1;">
+          ${i18n.t(`ml.insights.signal_${sig.signal.toLowerCase()}`, {
+            confidence: sig.confidence,
+            mlScore: sig.mlScore
+          })}
+        </p>
+      </div>
+    `);
+  }
+
+  // 4. Risk Score
+  if (mlInsights.riskScore) {
+    const rs = mlInsights.riskScore;
+    const riskColors = {
+      VERY_HIGH: '#dc2626',
+      HIGH: '#f59e0b',
+      MODERATE: '#3b82f6',
+      LOW: '#10b981'
+    };
+    const riskColor = riskColors[rs.riskLevel] || '#64748b';
+
+    insights.push(`
+      <div style="background: ${riskColor}15; padding: 12px; border-radius: 6px; border-left: 3px solid ${riskColor}; margin-top: 12px;">
+        <strong style="color: ${riskColor};">⚠️ ${i18n.t('ml.insights.ml_risk_title')}</strong>
+        <p style="font-size: 0.85em; margin: 5px 0 0 0; line-height: 1.5; color: #cbd5e1;">
+          ${i18n.t(`ml.insights.risk_${rs.riskLevel.toLowerCase()}`, {
+            riskScore: rs.riskScore,
+            percentile: rs.relativeRiskPercentile
+          })}
+        </p>
+      </div>
+    `);
+  }
+
+  if (insights.length === 0) return '';
+
+  return `
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+      <h4 style="color: #a855f7; margin-bottom: 8px; font-size: 0.9em;">
+        🧠 ${i18n.t('ml.insights.section_title')}
+      </h4>
+      ${insights.join('')}
+    </div>
+  `;
 }
 
 function showDetails(result) {
@@ -2917,8 +3052,17 @@ function showDetails(result) {
     `
     : '';
 
-  // Generate investment recommendation
-  const recommendation = generateInvestmentRecommendation(result);
+  // Generate investment recommendation with ML insights
+  const recommendation = generateInvestmentRecommendation(result, {
+    marketData: {
+      regime_prediction: currentRegime ? {
+        regime: currentRegime.regime,
+        confidence: currentRegime.confidence,
+        previous_regime: currentRegime.previous_regime
+      } : null
+    },
+    allAssets: currentResults
+  });
 
   // Generate time horizon recommendations
   const timeHorizonRecommendations = generateTimeHorizonRecommendations(result);
@@ -2932,12 +3076,15 @@ function showDetails(result) {
       </h4>
       <p style="color: #fca5a5; font-size: 0.85em; line-height: 1.6;">
         ${i18n.t('details.ml_anomalies_description', {
-          severity: i18n.t('ml.anomalies.severity_' + mlInfo.maxSeverity),
-          types: mlInfo.types.map(t => i18n.t('ml.anomalies.type_' + t.replace(/_anomaly/g, ''), t)).join(', ')
+          severity: i18n.t(`ml.anomalies.severity_${mlInfo.maxSeverity}`),
+          types: mlInfo.types.map(t => i18n.t(`ml.anomalies.type_${t.replace(/_anomaly/g, '')}`)).join(', ')
         })}
       </p>
     </div>
   ` : '';
+
+  // Generate ML insights section if available
+  const mlInsightsSection = recommendation.mlInsights ? generateMLInsightsHTML(recommendation.mlInsights) : '';
 
   const recommendationSection = `
     <div class="detail-section recommendation-section" style="border-left: 4px solid ${recommendation.style.borderColor}; background: ${recommendation.style.backgroundColor}; padding: 20px; margin-bottom: 20px;">
@@ -2948,6 +3095,7 @@ function showDetails(result) {
       <div style="line-height: 1.8; font-size: 0.95em; color: #e2e8f0;">
         ${i18n.t(recommendation.key, recommendation.params)}
       </div>
+      ${mlInsightsSection}
       ${mlAnomaliesSection}
       ${timeHorizonRecommendations}
     </div>
@@ -3158,7 +3306,7 @@ function showAnomalyDetails(anomalyIndex) {
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
         <strong style="color: #f8fafc; font-size: 1.2em;">${anomaly.ticker}${anomaly.name ? ` (${anomaly.name})` : ''}</strong>
         <span style="color: ${severityColors[anomaly.severity]}; font-size: 0.9em; font-weight: 600;">
-          ${i18n.t('ml.anomalies.severity_' + anomaly.severity, anomaly.severity).toUpperCase()}
+          ${i18n.t(`ml.anomalies.severity_${anomaly.severity}`).toUpperCase()}
         </span>
       </div>
       <div style="color: #cbd5e1; font-size: 0.95em;">
@@ -3191,7 +3339,7 @@ function showAnomalyDetails(anomalyIndex) {
       <h3>🔧 ${i18n.t('ml.anomalies.technical_details')}</h3>
       <ul style="list-style: none; padding: 0;">
         <li style="padding: 8px 0; border-bottom: 1px solid #334155; color: #94a3b8;">
-          <strong>${i18n.t('ml.anomalies.type')}:</strong> ${i18n.t('ml.anomalies.type_' + anomaly.type.replace(/_anomaly/g, ''), anomaly.type)}
+          <strong>${i18n.t('ml.anomalies.type')}:</strong> ${i18n.t(`ml.anomalies.type_${anomaly.type.replace(/_anomaly/g, '')}`)}
         </li>
         ${anomaly.zScore ? `<li style="padding: 8px 0; border-bottom: 1px solid #334155; color: #94a3b8;">
           <strong>Z-Score:</strong> ${anomaly.zScore.toFixed(3)}
