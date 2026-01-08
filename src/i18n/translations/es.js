@@ -1531,8 +1531,8 @@ export default {
     // Critical warnings
     critical_anomaly_warning: "⚠️ ALERTA CRÍTICA: {ticker} presenta anomalías significativas detectadas por nuestro sistema de análisis cuantitativo. Se ha aplicado una penalización de -{penalty} puntos debido a comportamientos anómalos ({anomalyTypes}). RECOMENDACIÓN: Evite este activo hasta que se normalice su comportamiento o investigue exhaustivamente las causas subyacentes antes de invertir.",
 
-    ml_anomaly_override: "🚨 ALERTA DE ANOMALÍAS ML: {ticker} presenta {count} anomalías ML con severidad {severity}. Incluso con un Quant Score de {score}/100 (Corto plazo: {scoreShort}/100, Medio plazo: {scoreMedium}/100, Largo plazo: {scoreLong}/100), este activo tiene un riesgo elevado. RECOMENDACIÓN: Evite aumentar exposición hasta que se resuelvan las anomalías. Si ya tiene posición, considere reducirla o cubrirla.",
-
+    ml_anomaly_override: "🚨 ALERTA DE ANOMALÍAS ML: {ticker} presenta {count} anomalías ML con severidad {severity}. Incluso con un Quant Score de {score}/100 (Corto plazo: {scoreShort}/100, Medio plazo: {scoreMedium}/100, Largo plazo: {scoreLong}/100), este activo tiene un riesgo elevado. RECOMENDACIÓN (agresivo): Puede mantener interés o entrar con tamaño reducido y escalonado, usando stops y validando noticias/volumen. RECOMENDACIÓN (equilibrado): Considere una entrada parcial y espere confirmación de normalización de anomalías. RECOMENDACIÓN (conservador): Evite aumentar exposición hasta que se resuelvan las anomalías; si ya tiene posición, reduzca o cubra.",
+    
     extreme_volatility_crisis: "🚨 RIESGO EXTREMO: {ticker} presenta una volatilidad extremadamente alta del {volatility}% anual combinada con un drawdown máximo del {maxDrawdown}%. Este activo está experimentando turbulencias severas que indican una crisis sectorial o problemas específicos de la compañía. RECOMENDACIÓN: Manténgase alejado de este activo. Si ya tiene posición, considere seriamente reducirla o eliminarla. NO es momento de invertir.",
 
     // Opportunities
