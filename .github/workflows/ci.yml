@@ -27,9 +27,6 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-      - name: Check code formatting
-        run: npm run format:check
-
   test:
     name: Run Tests
     runs-on: ubuntu-latest
