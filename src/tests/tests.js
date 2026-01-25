@@ -44,6 +44,7 @@ import {
   optimizeRiskParity
 } from '../analytics/portfolio-optimizer.js';
 import { runAllMLTests } from './ml-tests.js';
+import { runPhase1Tests } from './phase1-tests.js';
 
 // Phase 6 imports
 import {
@@ -1854,8 +1855,10 @@ export const runAllTests = async () => {
   });
 
 
-  
+
   await chain;
+
+  // Run ML tests
   const mlSummary = await runAllMLTests();
   if (mlSummary?.passed !== undefined) {
     passed += mlSummary.passed;
@@ -1864,11 +1867,20 @@ export const runAllTests = async () => {
     failed += mlSummary.failed;
   }
 
+  // Run Phase 1 tests (Security, Validation, Logging)
+  const phase1Summary = await runPhase1Tests();
+  if (phase1Summary?.passed !== undefined) {
+    passed += phase1Summary.passed;
+  }
+  if (phase1Summary?.failed !== undefined) {
+    failed += phase1Summary.failed;
+  }
+
   console.log('\n╔═══════════════════════════════════════╗');
   console.log(`║  ${i18n.t('test.results').toUpperCase()}: ${passed} ✅  ${failed} ❌`);
   console.log('╚═══════════════════════════════════════╝\n');
 
-  return { passed, failed };
+  return { passed, failed, totalTests: passed + failed };
 };
 
 export default { runAllTests };

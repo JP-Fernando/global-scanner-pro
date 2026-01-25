@@ -1,6 +1,6 @@
 {
   "name": "global-scanner-pro",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Sistema cuantitativo profesional para análisis multi-factor de mercados globales",
   "type": "module",
   "main": "server.js",
@@ -9,7 +9,10 @@
     "data:enrich": "node scripts/enrich_universes.js",
     "dev": "node --watch server.js",
     "test": "node -e \"import('./src/tests/tests.js').then(m => m.runAllTests())\"",
-    "test:api": "curl http://localhost:3000/api/run-tests"
+    "test:api": "curl http://localhost:3000/api/run-tests",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky"
   },
   "keywords": [
     "quantitative",
@@ -24,12 +27,20 @@
   "author": "JP-Fernando",
   "license": "MIT",
   "dependencies": {
+    "@sentry/node": "^10.34.0",
+    "@sentry/profiling-node": "^10.34.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^4.22.1",
-    "jspdf": "^3.0.4",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.2",
     "node-fetch": "^3.3.2",
+    "winston": "^3.19.0",
     "xlsx": "^0.18.5",
-    "yahoo-finance2": "^3.10.2"
+    "yahoo-finance2": "^3.10.2",
+    "zod": "^4.3.5"
   },
   "engines": {
     "node": ">=16.0.0"
@@ -41,5 +52,10 @@
   "bugs": {
     "url": "https://github.com/JP-Fernando/global-scanner-pro/issues"
   },
-  "homepage": "https://github.com/JP-Fernando/global-scanner-pro#readme"
+  "homepage": "https://github.com/JP-Fernando/global-scanner-pro#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "husky": "^9.1.7"
+  }
 }
