@@ -20,12 +20,12 @@ const assert = (condition, message) => {
   return true;
 };
 
-const assertThrows = async (fn, message) => {
+const _assertThrows = async (fn, message) => {
   try {
     await fn();
     console.error(`❌ FAIL: ${message} (expected error but none was thrown)`);
     return false;
-  } catch (error) {
+  } catch {
     console.log(`✅ PASS: ${message}`);
     return true;
   }

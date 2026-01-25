@@ -283,6 +283,7 @@ export function sanitizeRequest() {
           req.query[key] = req.query[key].replace(/\0/g, '');
 
           // Remove control characters except newline and tab
+          // eslint-disable-next-line no-control-regex
           req.query[key] = req.query[key].replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
         }
       }

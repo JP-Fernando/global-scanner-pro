@@ -174,7 +174,7 @@ export class PerformanceOptimizer {
     scrollContainer.appendChild(viewport);
     container.appendChild(scrollContainer);
 
-    let lastScrollTop = 0;
+    let _lastScrollTop = 0;
 
     const updateVisibleRows = this.throttle(() => {
       const scrollTop = container.scrollTop;
@@ -196,7 +196,7 @@ export class PerformanceOptimizer {
         viewport.appendChild(row);
       }
 
-      lastScrollTop = scrollTop;
+      _lastScrollTop = scrollTop;
     }, 50);
 
     container.addEventListener('scroll', updateVisibleRows, { passive: true });
@@ -206,7 +206,7 @@ export class PerformanceOptimizer {
 
     return {
       update: (newItems) => {
-        items = newItems;
+        items = newItems; // eslint-disable-line no-param-reassign
         scrollContainer.style.height = `${newItems.length * rowHeight}px`;
         updateVisibleRows();
       },
@@ -409,7 +409,7 @@ export class PerformanceOptimizer {
    * Worker para cálculos de cartera
    */
   createPortfolioWorker() {
-    return this.createWorker(function(e) {
+    return this.createWorker((e) => {
       const { type, data } = e.data;
 
       if (type === 'calculate_weights') {
@@ -539,8 +539,8 @@ export class PerformanceOptimizer {
 
       // Memory (if available)
       memory: performance.memory ? {
-        used: (performance.memory.usedJSHeapSize / 1048576).toFixed(2) + 'MB',
-        total: (performance.memory.totalJSHeapSize / 1048576).toFixed(2) + 'MB'
+        used: `${(performance.memory.usedJSHeapSize / 1048576).toFixed(2)  }MB`,
+        total: `${(performance.memory.totalJSHeapSize / 1048576).toFixed(2)  }MB`
       } : null
     };
   }

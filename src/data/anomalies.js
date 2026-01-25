@@ -72,7 +72,7 @@ export function detectAnomalies(asset, sectorStats, params = { thresholdZ: 3.0, 
     metrics: {
       volumeZScore: parseFloat(volumeZScore.toFixed(2)),
       sectorRelVolume: parseFloat(sectorRelVolume.toFixed(2)),
-      priceReturn1d: parseFloat((priceReturn1d * 100).toFixed(2)) + "%"
+      priceReturn1d: `${parseFloat((priceReturn1d * 100).toFixed(2))  }%`
     }
   };
 }

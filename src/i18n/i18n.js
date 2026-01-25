@@ -26,16 +26,18 @@ class I18n {
     return 'es';
   }
 
-  setLanguage(lang) {
-    if (!translations[lang]) {
-      console.warn(`Language '${lang}' not available. Falling back to 'es'.`);
-      lang = 'es';
+  setLanguage(newLang) {
+    let langToUse = newLang;
+    if (!translations[langToUse]) {
+      console.warn(`Language '${langToUse}' not available. Falling back to 'es'.`);
+      langToUse = 'es';
     }
-    this.currentLang = lang;
-    localStorage.setItem('language', lang);
+    this.currentLang = langToUse;
+    localStorage.setItem('language', langToUse);
 
-    // Trigger language change event
-    window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
+    // Trigger language change event (CustomEvent is a global browser API)
+    // eslint-disable-next-line no-undef
+    window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang: langToUse } }));
   }
 
   getCurrentLanguage() {

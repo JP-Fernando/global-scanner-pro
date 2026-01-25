@@ -47,7 +47,7 @@ export const EMA = (prices, period, warmupMultiplier = 5) => {
 export const EMA_Array = (prices, period) => {
   validateArray(prices, period + 1, 'EMA_Array input');
   const k = 2 / (period + 1);
-  let emaArr = new Array(prices.length);
+  const emaArr = new Array(prices.length);
   emaArr[0] = prices[0];
   for (let i = 1; i < prices.length; i++) {
     emaArr[i] = prices[i] * k + emaArr[i - 1] * (1 - k);
@@ -81,7 +81,7 @@ export const RSI = (prices, period = 14) => {
 export const ATR = (data, period = 14) => {
   validateArray(data, period + 1, 'ATR input');
 
-  let tr = [];
+  const tr = [];
   for (let i = 1; i < data.length; i++) {
     const high = data[i].h || data[i].c;
     const low = data[i].l || data[i].c;

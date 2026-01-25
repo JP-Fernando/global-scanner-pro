@@ -5,7 +5,7 @@
 
 // NOTE: XLSX and jsPDF are loaded via CDN in HTML
 // Access them via window.XLSX and window.jspdf
-import i18n from '../i18n/i18n.js';
+import _i18n from '../i18n/i18n.js';
 
 /**
  * Base Report Generator Class
@@ -354,7 +354,7 @@ export class ComparativeAnalysisGenerator extends ReportGenerator {
     const rankings = this._calculateRankings();
     const avgRanks = {};
 
-    this.datasets.forEach((d, idx) => {
+    this.datasets.forEach((d, _idx) => {
       const name = d.strategyName || d.name;
       const ranks = Object.values(rankings).map(r =>
         r.find(item => item.name === name)?.rank || 999
@@ -373,7 +373,7 @@ export class ComparativeAnalysisGenerator extends ReportGenerator {
   /**
    * Filter data by period
    */
-  _filterDataByPeriod(start, end) {
+  _filterDataByPeriod(_start, _end) {
     // This would filter equity curve or returns data by date range
     // Implementation depends on data structure
     return this.data;
@@ -382,7 +382,7 @@ export class ComparativeAnalysisGenerator extends ReportGenerator {
   /**
    * Calculate metrics for a specific period
    */
-  _calculatePeriodMetrics(period) {
+  _calculatePeriodMetrics(_period) {
     // Calculate metrics for the filtered period
     // This is a placeholder - implement based on your data structure
     return {};
@@ -421,8 +421,8 @@ export class ExecutiveSummaryGenerator extends ReportGenerator {
     const sharpe = this.safeValue(this.data, 'metrics.sharpeRatio', 0);
 
     return `${strategy} generated a ${this.formatPercent(performance)} annualized return ` +
-           `with a Sharpe ratio of ${this.formatNumber(sharpe)}. ` +
-           this._getPerformanceQualifier(performance, sharpe);
+           `with a Sharpe ratio of ${this.formatNumber(sharpe)}. ${ 
+           this._getPerformanceQualifier(performance, sharpe)}`;
   }
 
   /**

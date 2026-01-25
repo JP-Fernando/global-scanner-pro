@@ -4,7 +4,7 @@
 // =====================================================
 
 import { PDFReportGenerator, ExecutiveSummaryGenerator } from './report-generator.js';
-import i18n from '../i18n/i18n.js';
+import _i18n from '../i18n/i18n.js';
 
 /**
  * AUDIT REPORT TEMPLATE
@@ -42,7 +42,7 @@ export function generateAuditReport(portfolio, governance, riskData, performance
   pdf.addSectionHeader('3. Compliance Status');
   if (governance && governance.compliance) {
     const complianceStatus = governance.compliance.passed ? '✓ PASSED' : '✗ FAILED';
-    const statusColor = governance.compliance.passed ? 'green' : 'red';
+    const _statusColor = governance.compliance.passed ? 'green' : 'red';
     pdf.addText(`Overall Compliance Status: ${complianceStatus}`);
 
     if (governance.compliance.issues && governance.compliance.issues.length > 0) {
@@ -125,9 +125,9 @@ export function generateAuditReport(portfolio, governance, riskData, performance
 
   // Audit Trail
   pdf.addSectionHeader('8. Audit Trail');
-  pdf.addText('Portfolio Created: ' + (portfolio.created_at ? new Date(portfolio.created_at).toLocaleString() : 'Unknown'));
-  pdf.addText('Last Updated: ' + (portfolio.last_updated ? new Date(portfolio.last_updated).toLocaleString() : 'Unknown'));
-  pdf.addText('Last Rebalance: ' + (portfolio.last_rebalance ? new Date(portfolio.last_rebalance).toLocaleString() : 'Never'));
+  pdf.addText(`Portfolio Created: ${  portfolio.created_at ? new Date(portfolio.created_at).toLocaleString() : 'Unknown'}`);
+  pdf.addText(`Last Updated: ${  portfolio.last_updated ? new Date(portfolio.last_updated).toLocaleString() : 'Unknown'}`);
+  pdf.addText(`Last Rebalance: ${  portfolio.last_rebalance ? new Date(portfolio.last_rebalance).toLocaleString() : 'Never'}`);
 
   // Auditor Notes Section
   pdf.addSectionHeader('9. Auditor Notes');
@@ -439,10 +439,10 @@ export function generateAttributionReport(portfolio, attributionData) {
   pdf.addSectionHeader('FACTOR ATTRIBUTION');
   if (attributionData?.factors) {
     const factorRows = [
-      ['Trend', attributionData.factors.trend.total_contribution.toFixed(2) + '%'],
-      ['Momentum', attributionData.factors.momentum.total_contribution.toFixed(2) + '%'],
-      ['Risk', attributionData.factors.risk.total_contribution.toFixed(2) + '%'],
-      ['Liquidity', attributionData.factors.liquidity.total_contribution.toFixed(2) + '%']
+      ['Trend', `${attributionData.factors.trend.total_contribution.toFixed(2)  }%`],
+      ['Momentum', `${attributionData.factors.momentum.total_contribution.toFixed(2)  }%`],
+      ['Risk', `${attributionData.factors.risk.total_contribution.toFixed(2)  }%`],
+      ['Liquidity', `${attributionData.factors.liquidity.total_contribution.toFixed(2)  }%`]
     ];
     pdf.addTable(['Factor', 'Total Contribution'], factorRows);
   } else {
@@ -510,7 +510,7 @@ export function generateAttributionReport(portfolio, attributionData) {
  * BACKTEST RESULTS PDF
  * Comprehensive backtest analysis report
  */
-export function generateBacktestPDF(results, options = {}) {
+export function generateBacktestPDF(results, _options = {}) {
   const pdf = new PDFReportGenerator(results);
 
   // Title

@@ -57,7 +57,7 @@ async function enrichAll() {
             const filePath = path.join(UNIVERSES_DIR, file);
             const suffix = MARKET_SUFFIX_MAP[file] ?? "";
             const rawData = fs.readFileSync(filePath, 'utf-8');
-            let symbols = JSON.parse(rawData);
+            const symbols = JSON.parse(rawData);
             let updatedCount = 0;
 
             console.log(`📂 Procesando: ${file} (Sufijo: "${suffix}")`);

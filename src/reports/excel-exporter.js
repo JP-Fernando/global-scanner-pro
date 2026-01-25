@@ -4,12 +4,12 @@
 // =====================================================
 
 import { ExcelReportGenerator } from './report-generator.js';
-import i18n from '../i18n/i18n.js';
+import _i18n from '../i18n/i18n.js';
 
 /**
  * Export backtest results to Excel with multiple sheets
  */
-export function exportBacktestToExcel(results, options = {}) {
+export function exportBacktestToExcel(results, _options = {}) {
   const generator = new ExcelReportGenerator(results);
 
   // Sheet 1: Performance Summary

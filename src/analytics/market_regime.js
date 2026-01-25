@@ -93,7 +93,8 @@ export const analyzeBenchmarkRegime = (benchmarkPrices, config = REGIME_CONFIG) 
   let volSignal = 0;
   try {
     const recentVol = ind.Volatility(benchmarkPrices.slice(-60), 20);
-    const historicalVol = ind.Volatility(benchmarkPrices, Math.min(252, benchmarkPrices.length - 1));
+    const histLen = Math.min(252, benchmarkPrices.length - 1);
+    const historicalVol = ind.Volatility(benchmarkPrices, histLen);
 
     if (recentVol < config.vol_threshold_low) {
       volSignal = 1; // Low volatility = Risk-On
@@ -247,7 +248,9 @@ export const detectMarketRegime = (benchmarkPrices, scanResults = null, config =
     }
 
     // If both confirm, increase confidence
-    if ((benchmarkSignal >= 1 && breadthSignal === 1) || (benchmarkSignal <= -1 && breadthSignal === -1)) {
+    const bothPositive = benchmarkSignal >= 1 && breadthSignal === 1;
+    const bothNegative = benchmarkSignal <= -1 && breadthSignal === -1;
+    if (bothPositive || bothNegative) {
       finalConfidence = Math.min(0.95, finalConfidence * 1.1);
     }
   }

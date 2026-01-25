@@ -181,7 +181,7 @@ function logError(error, req) {
  * Error handling middleware
  * Catches and formats all errors
  */
-export function errorHandler(err, req, res, next) {
+export function errorHandler(err, req, res, _next) {
   // Add request ID to error
   if (req.id) {
     err.requestId = req.id;

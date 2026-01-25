@@ -437,7 +437,7 @@ export class HelpPanel {
       // Convertir markdown a HTML (simple)
       const html = this.markdownToHtml(markdown);
       contentArea.innerHTML = html;
-    } catch (error) {
+    } catch {
       contentArea.innerHTML = `
         <div class="help-error">
           ❌ ${i18n.t('help.load_error') || 'Error al cargar documentación'}

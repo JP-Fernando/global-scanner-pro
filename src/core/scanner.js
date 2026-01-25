@@ -26,11 +26,11 @@ import {
   adjustScoresBatch,
   PerformanceTracker,
   loadPerformanceTracker,
-  savePerformanceTracker,
-  PerformanceRecord
+  savePerformanceTracker as _savePerformanceTracker,
+  PerformanceRecord as _PerformanceRecord
 } from '../ml/adaptive-scoring.js';
 import {
-  predictRegime as predictRegimeML,
+  predictRegime as _predictRegimeML,
   extractRegimeFeatures
 } from '../ml/regime-prediction.js';
 import {
@@ -82,7 +82,7 @@ const SECTOR_COLORS = {
   999: '#475569'   // Unknown
 };
 
-const ANOMALY_THEME = {
+const _ANOMALY_THEME = {
   CRITICAL_PUMP_RISK: { color: '#ef4444', label: '🚀 PUMP', bg: '#450a0a' },
   HIGH_VOLUME_SPIKE: { color: '#fbbf24', label: '📊 VOL+', bg: '#451a03' },
   CRITICAL_DUMP_RISK: { color: '#f87171', label: '📉 DUMP', bg: '#450a0a' }
@@ -184,7 +184,9 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
     );
     const liquidityResult = scoring.calculateLiquidityScore(volumes, config.filters);
 
-    const scoreShort = scoring.calculateShortTermScore(candleData, prices, volumes, config.indicators);
+    const scoreShort = scoring.calculateShortTermScore(
+      candleData, prices, volumes, config.indicators
+    );
     const scoreMedium = scoring.calculateMediumTermScore(candleData, prices, config.indicators);
     const scoreLong = scoring.calculateLongTermScore(candleData, prices, config.indicators);
 
@@ -201,9 +203,12 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
     const avgVol = ind.SMA(volumes.slice(-50), 50);
     const vRatio = volumes[volumes.length - 1] / avgVol;
 
-    const priceChange60d = prices.length >= 61
-      ? ((prices[prices.length - 1] - prices[prices.length - 61]) / prices[prices.length - 61]) * 100
-      : undefined;
+    let priceChange60d;
+    if (prices.length >= 61) {
+      const current = prices[prices.length - 1];
+      const past = prices[prices.length - 61];
+      priceChange60d = ((current - past) / past) * 100;
+    }
 
     return {
       passed: true,
@@ -227,7 +232,7 @@ async function analyzeStock(stock, suffix, config, benchmarkROCs, benchmarkVol) 
       scoreRisk: Math.round(riskResult.score),
       scoreLiquidity: Math.round(liquidityResult.score),
       signal,
-      vRatio: vRatio,
+      vRatio,
       details: {
         trend: trendResult.details,
         momentum: momentumResult.details,
@@ -563,8 +568,10 @@ function renderBacktestResults(results, rebalanceEvery, benchmarkReturns = null)
 }
 
 function renderBacktestHeader(results, rebalanceEvery, initialCapital = lastBacktestInitialCapital) {
-  const avgSharpe = results.reduce((sum, r) => sum + (r.metrics?.sharpeRatio || 0), 0) / results.length;
-  const avgCAGR = results.reduce((sum, r) => sum + (r.metrics?.cagr || 0), 0) / results.length;
+  const sumSharpe = results.reduce((sum, r) => sum + (r.metrics?.sharpeRatio || 0), 0);
+  const avgSharpe = sumSharpe / results.length;
+  const sumCAGR = results.reduce((sum, r) => sum + (r.metrics?.cagr || 0), 0);
+  const avgCAGR = sumCAGR / results.length;
 
   return `
     <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #6366f1;">
@@ -1167,7 +1174,7 @@ window.runBacktest = async function () {
     renderBacktestResults(results, rebalanceEvery);
   } catch (err) {
     console.error(i18n.t('errors.backtest_error'), err);
-    status.innerText = i18n.t('errors.backtest_failed') + ': ' + err.message;
+    status.innerText = `${i18n.t('errors.backtest_failed')  }: ${  err.message}`;
   }
 };
 
@@ -1348,10 +1355,10 @@ async function scanSingleMarket(file, suffix, config, status, isPartOfAllMarkets
   for (let i = 0; i < universe.length; i += BATCH_SIZE) {
     const batch = universe.slice(i, i + BATCH_SIZE);
 
-    status.innerText = i18n.t('status.analyzing', {
+    status.innerText = `${i18n.t('status.analyzing', {
       current: i + 1,
       total: universe.length
-    }) + ` | ✓ ${analyzed} | ✖ ${filtered}`;
+    })  } | ✓ ${analyzed} | ✖ ${filtered}`;
 
     const batchResults = await Promise.all(
       batch.map(stock =>
@@ -1581,10 +1588,10 @@ export async function runScan() {
     for (let i = 0; i < universe.length; i += BATCH_SIZE) {
       const batch = universe.slice(i, i + BATCH_SIZE);
 
-      status.innerText = i18n.t('status.analyzing', {
+      status.innerText = `${i18n.t('status.analyzing', {
         current: i + 1,
         total: universe.length
-      }) + ` | ✓ ${analyzed} | ✖ ${filtered}`;
+      })  } | ✓ ${analyzed} | ✖ ${filtered}`;
 
       const batchResults = await Promise.all(
         batch.map(stock =>
@@ -1656,7 +1663,7 @@ export async function runScan() {
     status.innerText = i18n.t('status.scan_complete', { count: analyzed });
     filterInfo.innerHTML = i18n.t('filters.info', {
       approved: analyzed,
-      filtered: filtered
+      filtered
     });
 
     appState.scanResults = currentResults;
@@ -1839,7 +1846,8 @@ export async function runScan() {
 
   } catch (error) {
     console.error("Error crítico en escaneo:", error);
-    status.innerText = i18n.t('errors.scan_failed');
+    const statusEl = document.getElementById('status');
+    if (statusEl) statusEl.innerText = i18n.t('errors.scan_failed');
   } finally {
     // 4. Restaurar botón y estado al finalizar (incluso si hubo error)
     isScanning = false;
@@ -2110,9 +2118,9 @@ function renderHeatmap(matrix) {
   tickers.forEach(t => html += `<th>${t.split('.')[0]}</th>`);
   html += '</tr></thead><tbody>';
 
-  matrix.forEach((row, i) => {
+  matrix.forEach((row, _i) => {
     html += `<tr><td><strong>${row.ticker.split('.')[0]}</strong></td>`;
-    row.values.forEach((val, j) => {
+    row.values.forEach((val, _j) => {
       let color = 'transparent';
 
       if (val > 0.8) color = 'rgba(239, 68, 68, 0.8)';
@@ -2599,8 +2607,8 @@ function checkMLAnomaliesForTicker(ticker) {
 
   return {
     hasAnomalies: true,
-    types: types,
-    maxSeverity: maxSeverity,
+    types,
+    maxSeverity,
     count: relevantAnomalies.length,
     anomalies: relevantAnomalies
   };
@@ -2617,7 +2625,7 @@ function checkMLAnomaliesForTicker(ticker) {
 function generateInvestmentRecommendation(result, options = {}) {
   const d = result.details;
   const score = result.scoreTotal;
-  const signal = result.signal.text;
+  const _signal = result.signal.text;
 
   // Perform ML analysis if data is available
   let mlInsights = null;
@@ -2650,7 +2658,7 @@ function generateInvestmentRecommendation(result, options = {}) {
   // Check for ML anomalies related to this ticker
   const mlAnomalyInfo = checkMLAnomaliesForTicker(result.ticker);
   const hasMLAnomalies = mlAnomalyInfo.hasAnomalies;
-  const mlAnomalyTypes = mlAnomalyInfo.types;
+  const _mlAnomalyTypes = mlAnomalyInfo.types;
   const mlAnomalySeverity = mlAnomalyInfo.maxSeverity;
 
   const mlAnomalySeverityLabel = mlAnomalySeverity
@@ -2726,8 +2734,8 @@ function generateInvestmentRecommendation(result, options = {}) {
     params = {
       ticker: result.ticker,
       alpha6m: alpha6m.toFixed(1),
-      weeksUnderperforming: weeksUnderperforming,
-      expectedRecoveryMonths: expectedRecoveryMonths,
+      weeksUnderperforming,
+      expectedRecoveryMonths,
       score: score.toFixed(0),
       scoreShort: scoreShort.toFixed(0),
       scoreMedium: scoreMedium.toFixed(0),
@@ -2885,9 +2893,9 @@ function generateInvestmentRecommendation(result, options = {}) {
 
   return {
     key: recommendationKey,
-    params: params,
-    style: style,
-    mlInsights: mlInsights // Include ML insights for enhanced recommendations
+    params,
+    style,
+    mlInsights // Include ML insights for enhanced recommendations
   };
 }
 

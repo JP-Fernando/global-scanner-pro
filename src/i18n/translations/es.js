@@ -176,7 +176,12 @@ export default {
     volume: 'Volumen',
     marketCap: 'Cap. Mercado',
     actions: 'Acciones',
-    no_results: 'No hay resultados que coincidan con los filtros actuales.'
+    no_results: 'No hay resultados que coincidan con los filtros actuales.',
+    weight: 'Peso %',
+    capital: 'Capital €',
+    no_classification: 'No clasificado',
+    waiting_data: 'Esperando datos de análisis...',
+    unusual_volume: 'Volumen inusual (Z-Score: {zscore})'
   },
 
   // Signals
@@ -376,21 +381,6 @@ export default {
   footer: {
     version: 'Versión {version}',
     rights: 'Todos los derechos reservados'
-  },
-
-  // Table headers
-  table: {
-    rank: 'Rank',
-    ticker: 'Ticker',
-    name: 'Nombre',
-    score: 'Score',
-    volume: 'Volumen',
-    signal: 'Señal',
-    weight: 'Peso %',
-    capital: 'Capital €',
-    no_classification: 'No clasificado',
-    waiting_data: 'Esperando datos de análisis...',
-    unusual_volume: 'Volumen inusual (Z-Score: {zscore})'
   },
 
   // Info messages
@@ -1200,8 +1190,8 @@ export default {
     quick_links: 'Enlaces Rápidos',
     beginner_guide: 'Guía de Principiantes',
     strategies: 'Estrategias',
-    portfolio: 'Gestión de Cartera',
-    governance: 'Gobernanza',
+    portfolio_link: 'Gestión de Cartera',
+    governance_link: 'Gobernanza',
     loading: 'Cargando...',
     load_error: 'Error al cargar documentación',
     no_results: 'No se encontraron resultados',

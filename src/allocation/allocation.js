@@ -2,7 +2,7 @@
 // CAPITAL ALLOCATION SYSTEM
 // =====================================================
 
-import * as ind from '../indicators/indicators.js';
+import * as _ind from '../indicators/indicators.js';
 import i18n from '../i18n/i18n.js';
 
 // =====================================================
@@ -60,7 +60,7 @@ export const equalWeightAllocation = (assets) => {
   return assets.map(asset => ({
     ticker: asset.ticker,
     name: asset.name,
-    weight: weight,
+    weight,
     weight_pct: (weight * 100).toFixed(2),
     score: asset.scoreTotal,
     volatility: asset.details?.risk?.volatility || 'N/A'
@@ -130,7 +130,9 @@ export const volatilityTargeting = (assets, config = ALLOCATION_CONFIG) => {
 
   weights = weights.map((w, i) => {
     const adjustedWeight = w * (targetVol / volatilities[i]) * scalingFactor;
-    return Math.max(config.min_position_weight, Math.min(adjustedWeight, config.max_position_weight));
+    const minW = config.min_position_weight;
+    const maxW = config.max_position_weight;
+    return Math.max(minW, Math.min(adjustedWeight, maxW));
   });
 
   const total = weights.reduce((sum, w) => sum + w, 0);
@@ -172,6 +174,26 @@ export const hybridAllocation = (assets, config = ALLOCATION_CONFIG) => {
 // AGGREGATE RISK CALCULATION
 // =====================================================
 
+const calculateSimplePortfolioVolatility = (volatilities, weights) => {
+  const weightedVariance = weights.reduce((sum, w, i) =>
+    sum + (w * w * volatilities[i] * volatilities[i]), 0
+  );
+
+  const avgCorrelation = 0.3;
+  let covariance = 0;
+
+  for (let i = 0; i < weights.length; i++) {
+    for (let j = i + 1; j < weights.length; j++) {
+      const cov = 2 * weights[i] * weights[j] *
+        volatilities[i] * volatilities[j] * avgCorrelation;
+      covariance += cov;
+    }
+  }
+
+  const portfolioVariance = weightedVariance + covariance;
+  return Math.sqrt(portfolioVariance);
+};
+
 export const calculatePortfolioRisk = (allocatedAssets) => {
   const weights = allocatedAssets.map(a => a.weight);
   const volatilities = allocatedAssets.map(a => parseFloat(a.volatility) || 20);
@@ -201,26 +223,8 @@ export const calculatePortfolioRisk = (allocatedAssets) => {
     effectiveNAssets: effectiveN.toFixed(1),
     concentration: (herfindahl * 100).toFixed(2),
     estimatedMaxDD: portfolioMaxDD.toFixed(2),
-    marginalRisk: marginalRisk
+    marginalRisk
   };
-};
-
-const calculateSimplePortfolioVolatility = (volatilities, weights) => {
-  const weightedVariance = weights.reduce((sum, w, i) =>
-    sum + (w * w * volatilities[i] * volatilities[i]), 0
-  );
-
-  const avgCorrelation = 0.3;
-  let covariance = 0;
-
-  for (let i = 0; i < weights.length; i++) {
-    for (let j = i + 1; j < weights.length; j++) {
-      covariance += 2 * weights[i] * weights[j] * volatilities[i] * volatilities[j] * avgCorrelation;
-    }
-  }
-
-  const portfolioVariance = weightedVariance + covariance;
-  return Math.sqrt(portfolioVariance);
 };
 
 // =====================================================

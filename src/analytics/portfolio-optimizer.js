@@ -11,8 +11,8 @@
  * - Governance constraints (concentration, sector limits)
  */
 
-import i18n from '../i18n/i18n.js';
-import { calculateCorrelationMatrix } from './risk_engine.js';
+import _i18n from '../i18n/i18n.js';
+import { calculateCorrelationMatrix as _calculateCorrelationMatrix } from './risk_engine.js';
 
 // =====================================================
 // OPTIMIZATION FUNCTIONS
@@ -207,28 +207,28 @@ export const optimizeMaxSharpe = (positions, constraints = {}) => {
   return {
     optimizationType: 'Maximum Sharpe Ratio',
     constraints: {
-      minWeight: (minWeight * 100).toFixed(1) + '%',
-      maxWeight: (maxWeight * 100).toFixed(1) + '%',
-      maxSectorWeight: (maxSectorWeight * 100).toFixed(1) + '%',
-      riskFreeRate: (riskFreeRate * 100).toFixed(2) + '%'
+      minWeight: `${(minWeight * 100).toFixed(1)  }%`,
+      maxWeight: `${(maxWeight * 100).toFixed(1)  }%`,
+      maxSectorWeight: `${(maxSectorWeight * 100).toFixed(1)  }%`,
+      riskFreeRate: `${(riskFreeRate * 100).toFixed(2)  }%`
     },
     optimalWeights: positions.map((p, i) => ({
       ticker: p.ticker,
       name: p.name,
       sector: p.sector,
       weight: bestWeights[i].toFixed(4),
-      weightPct: (bestWeights[i] * 100).toFixed(2) + '%'
+      weightPct: `${(bestWeights[i] * 100).toFixed(2)  }%`
     })).sort((a, b) => parseFloat(b.weight) - parseFloat(a.weight)),
     metrics: {
-      expectedReturn: (optimalReturn * 100).toFixed(2) + '%',
-      volatility: (optimalStdDev * 100).toFixed(2) + '%',
+      expectedReturn: `${(optimalReturn * 100).toFixed(2)  }%`,
+      volatility: `${(optimalStdDev * 100).toFixed(2)  }%`,
       sharpeRatio: bestSharpe.toFixed(3),
-      riskFreeRate: (riskFreeRate * 100).toFixed(2) + '%'
+      riskFreeRate: `${(riskFreeRate * 100).toFixed(2)  }%`
     },
     sectorAllocations: Object.entries(sectorAllocations).map(([sector, weight]) => ({
       sector: parseInt(sector),
       weight: weight.toFixed(4),
-      weightPct: (weight * 100).toFixed(2) + '%'
+      weightPct: `${(weight * 100).toFixed(2)  }%`
     })).sort((a, b) => parseFloat(b.weight) - parseFloat(a.weight))
   };
 };
@@ -332,26 +332,26 @@ export const optimizeMinVariance = (positions, constraints = {}) => {
   return {
     optimizationType: 'Minimum Variance',
     constraints: {
-      minWeight: (minWeight * 100).toFixed(1) + '%',
-      maxWeight: (maxWeight * 100).toFixed(1) + '%',
-      maxSectorWeight: (maxSectorWeight * 100).toFixed(1) + '%'
+      minWeight: `${(minWeight * 100).toFixed(1)  }%`,
+      maxWeight: `${(maxWeight * 100).toFixed(1)  }%`,
+      maxSectorWeight: `${(maxSectorWeight * 100).toFixed(1)  }%`
     },
     optimalWeights: positions.map((p, i) => ({
       ticker: p.ticker,
       name: p.name,
       sector: p.sector,
       weight: bestWeights[i].toFixed(4),
-      weightPct: (bestWeights[i] * 100).toFixed(2) + '%'
+      weightPct: `${(bestWeights[i] * 100).toFixed(2)  }%`
     })).sort((a, b) => parseFloat(b.weight) - parseFloat(a.weight)),
     metrics: {
-      expectedReturn: (optimalReturn * 100).toFixed(2) + '%',
-      volatility: (optimalStdDev * 100).toFixed(2) + '%',
+      expectedReturn: `${(optimalReturn * 100).toFixed(2)  }%`,
+      volatility: `${(optimalStdDev * 100).toFixed(2)  }%`,
       variance: bestVariance.toFixed(6)
     },
     sectorAllocations: Object.entries(sectorAllocations).map(([sector, weight]) => ({
       sector: parseInt(sector),
       weight: weight.toFixed(4),
-      weightPct: (weight * 100).toFixed(2) + '%'
+      weightPct: `${(weight * 100).toFixed(2)  }%`
     })).sort((a, b) => parseFloat(b.weight) - parseFloat(a.weight))
   };
 };
@@ -449,27 +449,27 @@ export const optimizeRiskParity = (positions, constraints = {}) => {
   return {
     optimizationType: 'Risk Parity',
     constraints: {
-      minWeight: (minWeight * 100).toFixed(1) + '%',
-      maxWeight: (maxWeight * 100).toFixed(1) + '%',
-      maxSectorWeight: (maxSectorWeight * 100).toFixed(1) + '%'
+      minWeight: `${(minWeight * 100).toFixed(1)  }%`,
+      maxWeight: `${(maxWeight * 100).toFixed(1)  }%`,
+      maxSectorWeight: `${(maxSectorWeight * 100).toFixed(1)  }%`
     },
     optimalWeights: positions.map((p, i) => ({
       ticker: p.ticker,
       name: p.name,
       sector: p.sector,
-      volatility: (volatilities[i] * 100).toFixed(2) + '%',
+      volatility: `${(volatilities[i] * 100).toFixed(2)  }%`,
       weight: weights[i].toFixed(4),
-      weightPct: (weights[i] * 100).toFixed(2) + '%',
-      riskContribution: (weights[i] * volatilities[i] / portfolioStdDev * 100).toFixed(2) + '%'
+      weightPct: `${(weights[i] * 100).toFixed(2)  }%`,
+      riskContribution: `${(weights[i] * volatilities[i] / portfolioStdDev * 100).toFixed(2)  }%`
     })).sort((a, b) => parseFloat(b.weight) - parseFloat(a.weight)),
     metrics: {
-      expectedReturn: (portfolioReturn * 100).toFixed(2) + '%',
-      volatility: (portfolioStdDev * 100).toFixed(2) + '%'
+      expectedReturn: `${(portfolioReturn * 100).toFixed(2)  }%`,
+      volatility: `${(portfolioStdDev * 100).toFixed(2)  }%`
     },
     sectorAllocations: Object.entries(finalSectorAllocations).map(([sector, weight]) => ({
       sector: parseInt(sector),
       weight: weight.toFixed(4),
-      weightPct: (weight * 100).toFixed(2) + '%'
+      weightPct: `${(weight * 100).toFixed(2)  }%`
     })).sort((a, b) => parseFloat(b.weight) - parseFloat(a.weight))
   };
 };

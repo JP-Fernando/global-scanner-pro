@@ -27,9 +27,9 @@ import {
   calculateR2,
   calculateMAE,
   calculateRMSE,
-  standardizeArray
+  standardizeArray as _standardizeArray
 } from './ml-engine.js';
-import i18n from '../i18n/i18n.js';
+import _i18n from '../i18n/i18n.js';
 
 // =====================================================
 // CONFIGURATION
@@ -81,8 +81,8 @@ export const FACTOR_WEIGHTS_CONFIG = {
 /**
  * Extract factor features from asset data
  */
-export function extractFactorFeatures(asset, marketData) {
-  const { prices, volumes, scores } = asset;
+export function extractFactorFeatures(asset, _marketData) {
+  const { prices, volumes, scores: _scores } = asset;
 
   if (!prices || prices.length < 50) {
     return null; // Not enough data
@@ -297,8 +297,8 @@ export function trainFactorWeightingModel(X, y, config = FACTOR_WEIGHTS_CONFIG) 
   }
 
   // Standardize features
-  const X_standardized = X.map((row, i) => {
-    const featureArrays = X.map(r => r.map((val, j) => val));
+  const X_standardized = X.map((row, _i) => {
+    const featureArrays = X.map(r => r.map((val, _j) => val));
     return row.map((val, j) => {
       const column = featureArrays.map(r => r[j]);
       const mean = column.reduce((sum, v) => sum + v, 0) / column.length;

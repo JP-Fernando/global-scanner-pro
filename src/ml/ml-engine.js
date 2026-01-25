@@ -16,7 +16,7 @@
  * No external ML libraries required - pure JavaScript implementation.
  */
 
-import i18n from '../i18n/i18n.js';
+import _i18n from '../i18n/i18n.js';
 
 // =====================================================
 // UTILITY FUNCTIONS
@@ -129,7 +129,7 @@ export function trainTestSplit(X, y, testRatio = 0.2, shuffle = true) {
   const testSize = Math.floor(n * testRatio);
   const trainSize = n - testSize;
 
-  let indices = Array.from({ length: n }, (_, i) => i);
+  const indices = Array.from({ length: n }, (_, i) => i);
 
   if (shuffle) {
     // Fisher-Yates shuffle
@@ -202,10 +202,10 @@ export class LinearRegression {
 
     // Gradient descent
     for (let epoch = 0; epoch < this.epochs; epoch++) {
-      let predictions = this.predict(X);
+      const predictions = this.predict(X);
 
       // Calculate gradients
-      let dWeights = Array(m).fill(0);
+      const dWeights = Array(m).fill(0);
       let dBias = 0;
 
       for (let i = 0; i < n; i++) {
@@ -599,7 +599,7 @@ export class KMeans {
    */
   _initializeCentroids(X) {
     const n = X.length;
-    const m = X[0].length;
+    const _m = X[0].length;
     const centroids = [];
 
     // First centroid: random point
@@ -617,7 +617,7 @@ export class KMeans {
       const sum = distances.reduce((acc, d) => acc + d, 0);
       const probabilities = distances.map(d => d / sum);
 
-      let r = Math.random();
+      const r = Math.random();
       let cumulativeProb = 0;
       let selectedIdx = 0;
 

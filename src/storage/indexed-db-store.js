@@ -3,6 +3,8 @@
  * Provides persistence for portfolios, snapshots, and rebalancing history
  */
 
+/* global indexedDB */
+
 const DB_NAME = 'GlobalQuantScannerDB';
 const DB_VERSION = 2;
 

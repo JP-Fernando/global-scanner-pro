@@ -11,7 +11,7 @@
 
 import { SECTOR_TAXONOMY } from '../data/sectors.js';
 import { getBenchmarkSectorWeights } from '../data/benchmark-sector-weights.js';
-import i18n from '../i18n/i18n.js';
+import _i18n from '../i18n/i18n.js';
 
 /**
  * Brinson-Fachler Attribution Model
@@ -122,7 +122,9 @@ export class AttributionAnalyzer {
       // Brinson-Fachler decomposition
       const allocation = (portfolioWeight - benchmarkWeight) * benchmarkSectorReturn;
       const selection = benchmarkWeight * (portfolioSectorReturn - benchmarkSectorReturn);
-      const interaction = (portfolioWeight - benchmarkWeight) * (portfolioSectorReturn - benchmarkSectorReturn);
+      const weightDiff = portfolioWeight - benchmarkWeight;
+      const returnDiff = portfolioSectorReturn - benchmarkSectorReturn;
+      const interaction = weightDiff * returnDiff;
 
       allocationEffect.push({
         sector: sectorName,
@@ -153,18 +155,20 @@ export class AttributionAnalyzer {
     const totalSelection = selectionEffect.reduce((sum, e) => sum + e.contribution, 0);
     const totalInteraction = interactionEffect.reduce((sum, e) => sum + e.contribution, 0);
 
+    const sortByAbsContribution = (a, b) => Math.abs(b.contribution) - Math.abs(a.contribution);
+
     return {
       allocation_effect: {
         total: totalAllocation,
-        by_sector: allocationEffect.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
+        by_sector: allocationEffect.sort(sortByAbsContribution)
       },
       selection_effect: {
         total: totalSelection,
-        by_sector: selectionEffect.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
+        by_sector: selectionEffect.sort(sortByAbsContribution)
       },
       interaction_effect: {
         total: totalInteraction,
-        by_sector: interactionEffect.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
+        by_sector: interactionEffect.sort(sortByAbsContribution)
       },
       total_active_return: totalAllocation + totalSelection + totalInteraction,
       interpretation: this._interpretBrinsonResults(totalAllocation, totalSelection)
@@ -237,41 +241,41 @@ export class AttributionAnalyzer {
     });
 
     // Calculate totals
-    const trendTotal = factorContributions.trend.reduce((sum, e) => sum + e.contribution, 0);
-    const momentumTotal = factorContributions.momentum.reduce((sum, e) => sum + e.contribution, 0);
-    const riskTotal = factorContributions.risk.reduce((sum, e) => sum + e.contribution, 0);
-    const liquidityTotal = factorContributions.liquidity.reduce((sum, e) => sum + e.contribution, 0);
+    const sumContribs = (arr) => arr.reduce((sum, e) => sum + e.contribution, 0);
+    const trendTotal = sumContribs(factorContributions.trend);
+    const momentumTotal = sumContribs(factorContributions.momentum);
+    const riskTotal = sumContribs(factorContributions.risk);
+    const liquidityTotal = sumContribs(factorContributions.liquidity);
+
+    const sortAndSlice = (arr) => arr
+      .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
+      .slice(0, 5);
+
+    const totalSum = trendTotal + momentumTotal + riskTotal + liquidityTotal;
+    const calcPct = (val) => (val / totalSum * 100) || 0;
 
     return {
       trend: {
         total_contribution: trendTotal,
-        top_contributors: factorContributions.trend
-          .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
-          .slice(0, 5)
+        top_contributors: sortAndSlice(factorContributions.trend)
       },
       momentum: {
         total_contribution: momentumTotal,
-        top_contributors: factorContributions.momentum
-          .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
-          .slice(0, 5)
+        top_contributors: sortAndSlice(factorContributions.momentum)
       },
       risk: {
         total_contribution: riskTotal,
-        top_contributors: factorContributions.risk
-          .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
-          .slice(0, 5)
+        top_contributors: sortAndSlice(factorContributions.risk)
       },
       liquidity: {
         total_contribution: liquidityTotal,
-        top_contributors: factorContributions.liquidity
-          .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
-          .slice(0, 5)
+        top_contributors: sortAndSlice(factorContributions.liquidity)
       },
       summary: {
-        trend_pct: (trendTotal / (trendTotal + momentumTotal + riskTotal + liquidityTotal) * 100) || 0,
-        momentum_pct: (momentumTotal / (trendTotal + momentumTotal + riskTotal + liquidityTotal) * 100) || 0,
-        risk_pct: (riskTotal / (trendTotal + momentumTotal + riskTotal + liquidityTotal) * 100) || 0,
-        liquidity_pct: (liquidityTotal / (trendTotal + momentumTotal + riskTotal + liquidityTotal) * 100) || 0
+        trend_pct: calcPct(trendTotal),
+        momentum_pct: calcPct(momentumTotal),
+        risk_pct: calcPct(riskTotal),
+        liquidity_pct: calcPct(liquidityTotal)
       }
     };
   }
@@ -425,13 +429,15 @@ export class AttributionAnalyzer {
       };
     });
 
+    const avgExcessReturn = eventAnalysis.reduce((s, e) => s + e.excess_return, 0) / events.length;
+
     return {
       events: eventAnalysis,
       summary: {
         total_events: events.length,
         outperformed: eventAnalysis.filter(e => e.excess_return > 0).length,
         underperformed: eventAnalysis.filter(e => e.excess_return < 0).length,
-        average_excess_return: eventAnalysis.reduce((sum, e) => sum + e.excess_return, 0) / events.length
+        average_excess_return: avgExcessReturn
       }
     };
   }
@@ -577,10 +583,11 @@ export class AttributionAnalyzer {
         case 'month':
           key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
           break;
-        case 'quarter':
+        case 'quarter': {
           const quarter = Math.floor(date.getMonth() / 3) + 1;
           key = `${date.getFullYear()}-Q${quarter}`;
           break;
+        }
         case 'year':
           key = `${date.getFullYear()}`;
           break;
@@ -663,7 +670,8 @@ export class AttributionAnalyzer {
     }
 
     const avgReturn = dailyReturns.reduce((sum, r) => sum + r, 0) / dailyReturns.length;
-    const variance = dailyReturns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / dailyReturns.length;
+    const sumSquaredDiff = dailyReturns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0);
+    const variance = sumSquaredDiff / dailyReturns.length;
     const stdDev = Math.sqrt(variance);
 
     const dailyRiskFreeRate = riskFreeRate / 252;

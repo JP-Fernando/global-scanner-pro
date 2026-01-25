@@ -87,6 +87,38 @@ const calculateLogReturns = (prices) => {
 };
 
 /**
+ * Length-based alignment (fallback if no timestamps)
+ */
+const alignSeriesByLength = (assets) => {
+  const minLength = Math.min(...assets.map(a => a.prices.length));
+
+  if (minLength < 30) {
+    throw new Error(`Insufficient history: ${minLength} days (minimum 30)`);
+  }
+
+  const alignedAssets = assets.map(asset => ({
+    ticker: asset.ticker,
+    weight: parseFloat(asset.weight || 0),
+    prices: asset.prices.slice(-minLength)
+  }));
+
+  const assetReturns = alignedAssets.map(a => calculateLogReturns(a.prices));
+  const nRows = assetReturns[0].length;
+  const returnsMatrix = [];
+
+  for (let i = 0; i < nRows; i++) {
+    returnsMatrix.push(assetReturns.map(retArray => retArray[i]));
+  }
+
+  return {
+    returnsMatrix,
+    tickers: alignedAssets.map(a => a.ticker),
+    weights: alignedAssets.map(a => a.weight),
+    nObservations: nRows
+  };
+};
+
+/**
  * Date-based alignment (Inner Join) - IMPROVED VERSION
  * Requires scanner.js to pass prices as: [{ date: 'YYYY-MM-DD', close: number }]
  */
@@ -150,38 +182,6 @@ const alignSeriesByDate = (assets) => {
     weights: alignedAssets.map(a => a.weight),
     nObservations: nRows,
     dates: commonDates.slice(1) // Returns start at t=1
-  };
-};
-
-/**
- * Length-based alignment (fallback if no timestamps)
- */
-const alignSeriesByLength = (assets) => {
-  const minLength = Math.min(...assets.map(a => a.prices.length));
-
-  if (minLength < 30) {
-    throw new Error(`Insufficient history: ${minLength} days (minimum 30)`);
-  }
-
-  const alignedAssets = assets.map(asset => ({
-    ticker: asset.ticker,
-    weight: parseFloat(asset.weight || 0),
-    prices: asset.prices.slice(-minLength)
-  }));
-
-  const assetReturns = alignedAssets.map(a => calculateLogReturns(a.prices));
-  const nRows = assetReturns[0].length;
-  const returnsMatrix = [];
-
-  for (let i = 0; i < nRows; i++) {
-    returnsMatrix.push(assetReturns.map(retArray => retArray[i]));
-  }
-
-  return {
-    returnsMatrix,
-    tickers: alignedAssets.map(a => a.ticker),
-    weights: alignedAssets.map(a => a.weight),
-    nObservations: nRows
   };
 };
 
@@ -461,7 +461,7 @@ export const calculatePortfolioVaR = (allocatedAssets, totalCapital, confidence 
     };
 
   } catch (e) {
-    console.error("❌ " + i18n.t('risk_engine.error_var_calculation') + ":", e);
+    console.error(`❌ ${  i18n.t('risk_engine.error_var_calculation')  }:`, e);
     return {
       undiversifiedVaR: "0.00",
       diversifiedVaR: "0.00",
@@ -504,7 +504,7 @@ export const calculatePortfolioCVaR = (allocatedAssets, totalCapital, confidence
     };
 
   } catch (e) {
-    console.error("❌ " + i18n.t('risk_engine.error_cvar_calculation') + ":", e);
+    console.error(`❌ ${  i18n.t('risk_engine.error_cvar_calculation')  }:`, e);
     return { cvar: "0.00", cvarPct: "0.00", error: e.message };
   }
 };
@@ -550,7 +550,7 @@ export const calculateCorrelationMatrix = (assets) => {
     };
 
   } catch (e) {
-    console.warn("⚠️ " + i18n.t('risk_engine.error_correlation_matrix') + ":", e);
+    console.warn(`⚠️ ${  i18n.t('risk_engine.error_correlation_matrix')  }:`, e);
     return { matrix: [], stats: { average: 0 } };
   }
 };
@@ -571,7 +571,11 @@ export const calculatePortfolioMetrics = (allocatedAssets, totalCapital = 10000,
  */
 export const runStressTest = (portfolio, totalCapital) => {
   const scenarios = [
-    { name: i18n.t('stress_scenarios.minor_correction'), marketDrop: -0.05, description: i18n.t('stress_scenarios.minor_correction_desc') },
+    {
+      name: i18n.t('stress_scenarios.minor_correction'),
+      marketDrop: -0.05,
+      description: i18n.t('stress_scenarios.minor_correction_desc')
+    },
     { name: i18n.t('stress_scenarios.moderate_correction'), marketDrop: -0.10, description: i18n.t('stress_scenarios.moderate_correction_desc') },
     { name: i18n.t('stress_scenarios.market_crash'), marketDrop: -0.20, description: i18n.t('stress_scenarios.market_crash_desc') },
     { name: i18n.t('stress_scenarios.systemic_crisis'), marketDrop: -0.40, description: i18n.t('stress_scenarios.systemic_crisis_desc') }
@@ -592,7 +596,7 @@ export const runStressTest = (portfolio, totalCapital) => {
 
       assetImpacts.push({
         ticker: asset.ticker,
-        impact: (drop * 100).toFixed(1) + '%',
+        impact: `${(drop * 100).toFixed(1)  }%`,
         loss: loss.toFixed(2)
       });
     });
@@ -600,9 +604,9 @@ export const runStressTest = (portfolio, totalCapital) => {
     return {
       scenario: scenario.name,
       description: scenario.description,
-      marketDrop: (scenario.marketDrop * 100).toFixed(0) + '%',
+      marketDrop: `${(scenario.marketDrop * 100).toFixed(0)  }%`,
       estimatedLoss: Math.abs(estimatedPortfolioLoss).toFixed(2),
-      lossPct: ((estimatedPortfolioLoss / totalCapital) * 100).toFixed(2) + '%',
+      lossPct: `${((estimatedPortfolioLoss / totalCapital) * 100).toFixed(2)  }%`,
       remainingCapital: (totalCapital + estimatedPortfolioLoss).toFixed(2),
       topImpacts: assetImpacts.sort((a, b) => parseFloat(a.loss) - parseFloat(b.loss)).slice(0, 3)
     };
@@ -645,7 +649,7 @@ export const generateRiskReport = (portfolio, totalCapital) => {
           ticker: riskiestAsset.ticker,
           name: riskiestAsset.name,
           volatility: riskiestAsset.volatility,
-          weight: ((riskiestAsset.weight || 0) * 100).toFixed(2) + '%'
+          weight: `${((riskiestAsset.weight || 0) * 100).toFixed(2)  }%`
         },
         concentrationRisk: topWeight > 0.20 ? i18n.t('risk_levels.high') : topWeight > 0.10 ? i18n.t('risk_levels.medium') : i18n.t('risk_levels.low'),
         diversificationScore: correlationData.stats.average

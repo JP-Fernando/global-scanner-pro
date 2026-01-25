@@ -54,7 +54,7 @@ export function initializeSentry(app = null) {
       release: `global-scanner-pro@${process.env.npm_package_version || '0.0.5'}`,
 
       // Before send hook - filter or modify events before sending
-      beforeSend(event, hint) {
+      beforeSend(event, _hint) {
         // Filter out operational errors (4xx status codes)
         const statusCode = event.contexts?.response?.status_code;
         if (statusCode && statusCode >= 400 && statusCode < 500) {

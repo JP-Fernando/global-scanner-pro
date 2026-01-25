@@ -11,7 +11,7 @@
  * - Probability distributions for outcomes
  */
 
-import i18n from '../i18n/i18n.js';
+import _i18n from '../i18n/i18n.js';
 
 // =====================================================
 // MONTE CARLO SIMULATION
@@ -87,7 +87,7 @@ export const runMonteCarloSimulation = (positions, initialCapital, options = {})
     numSimulations = 10000,
     timeHorizonDays = 252, // 1 year
     confidenceLevel = 0.95,
-    randomSeed = null
+    randomSeed: _randomSeed = null
   } = options;
 
   // Calculate portfolio statistics
@@ -153,25 +153,25 @@ export const runMonteCarloSimulation = (positions, initialCapital, options = {})
       initialCapital: initialCapital.toFixed(2)
     },
     statistics: {
-      dailyMean: (stats.dailyMean * 100).toFixed(4) + '%',
-      dailyStdDev: (stats.dailyStdDev * 100).toFixed(4) + '%',
-      annualizedReturn: (stats.annualizedReturn * 100).toFixed(2) + '%',
-      annualizedVolatility: (stats.annualizedVolatility * 100).toFixed(2) + '%',
+      dailyMean: `${(stats.dailyMean * 100).toFixed(4)  }%`,
+      dailyStdDev: `${(stats.dailyStdDev * 100).toFixed(4)  }%`,
+      annualizedReturn: `${(stats.annualizedReturn * 100).toFixed(2)  }%`,
+      annualizedVolatility: `${(stats.annualizedVolatility * 100).toFixed(2)  }%`,
       observations: stats.observations
     },
     results: {
       expectedValue: expectedValue.toFixed(2),
-      expectedReturn: ((expectedValue / initialCapital - 1) * 100).toFixed(2) + '%',
+      expectedReturn: `${((expectedValue / initialCapital - 1) * 100).toFixed(2)  }%`,
       median: median.toFixed(2),
       percentile5: percentile5.toFixed(2),
       percentile25: percentile25.toFixed(2),
       percentile75: percentile75.toFixed(2),
       percentile95: percentile95.toFixed(2),
-      probabilityOfLoss: (probabilityOfLoss * 100).toFixed(2) + '%',
+      probabilityOfLoss: `${(probabilityOfLoss * 100).toFixed(2)  }%`,
       var95: var95.toFixed(2),
-      var95Pct: (var95 / initialCapital * 100).toFixed(2) + '%',
+      var95Pct: `${(var95 / initialCapital * 100).toFixed(2)  }%`,
       cvar95: cvar95.toFixed(2),
-      cvar95Pct: (cvar95 / initialCapital * 100).toFixed(2) + '%'
+      cvar95Pct: `${(cvar95 / initialCapital * 100).toFixed(2)  }%`
     },
     distribution: {
       min: finalValues[0].toFixed(2),
@@ -179,7 +179,7 @@ export const runMonteCarloSimulation = (positions, initialCapital, options = {})
       range: (finalValues[finalValues.length - 1] - finalValues[0]).toFixed(2)
     },
     paths: simulations.slice(0, 100), // Return first 100 paths for visualization
-    finalValues: finalValues
+    finalValues
   };
 };
 
@@ -216,7 +216,7 @@ export const runHistoricalScenarios = (positions, initialCapital, scenarios) => 
         name: position.name,
         sector,
         currentValue: positionValue.toFixed(2),
-        shock: (shock * 100).toFixed(1) + '%',
+        shock: `${(shock * 100).toFixed(1)  }%`,
         impact: impact.toFixed(2),
         newValue: (positionValue + impact).toFixed(2)
       });
@@ -227,7 +227,7 @@ export const runHistoricalScenarios = (positions, initialCapital, scenarios) => 
       description,
       period: `${startDate} to ${endDate}`,
       totalImpact: totalImpact.toFixed(2),
-      impactPct: (totalImpact / initialCapital * 100).toFixed(2) + '%',
+      impactPct: `${(totalImpact / initialCapital * 100).toFixed(2)  }%`,
       newPortfolioValue: (initialCapital + totalImpact).toFixed(2),
       positionImpacts: positionImpacts.sort((a, b) => parseFloat(a.impact) - parseFloat(b.impact))
     });

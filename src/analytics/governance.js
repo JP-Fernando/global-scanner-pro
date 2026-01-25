@@ -240,8 +240,8 @@ export const validateCompliance = (portfolio, rules = INVESTMENT_RULES) => {
         type: 'MAX_POSITION',
         severity: 'HIGH',
         asset: asset.ticker,
-        value: (asset.weight * 100).toFixed(2) + '%',
-        limit: (rules.max_position_weight * 100) + '%',
+        value: `${(asset.weight * 100).toFixed(2)  }%`,
+        limit: `${rules.max_position_weight * 100  }%`,
         message: i18n.t('governance_module.violation_max_position', { ticker: asset.ticker })
       });
     }
@@ -251,8 +251,8 @@ export const validateCompliance = (portfolio, rules = INVESTMENT_RULES) => {
         type: 'MIN_POSITION',
         severity: 'LOW',
         asset: asset.ticker,
-        value: (asset.weight * 100).toFixed(2) + '%',
-        limit: (rules.min_position_weight * 100) + '%',
+        value: `${(asset.weight * 100).toFixed(2)  }%`,
+        limit: `${rules.min_position_weight * 100  }%`,
         message: i18n.t('governance_module.warning_min_position', { ticker: asset.ticker })
       });
     }
@@ -266,8 +266,8 @@ export const validateCompliance = (portfolio, rules = INVESTMENT_RULES) => {
     violations.push({
       type: 'TOP3_CONCENTRATION',
       severity: 'MEDIUM',
-      value: (top3Weight * 100).toFixed(2) + '%',
-      limit: (rules.max_top3_concentration * 100) + '%',
+      value: `${(top3Weight * 100).toFixed(2)  }%`,
+      limit: `${rules.max_top3_concentration * 100  }%`,
       message: i18n.t('governance_module.violation_top3_concentration')
     });
   }
@@ -281,8 +281,8 @@ export const validateCompliance = (portfolio, rules = INVESTMENT_RULES) => {
     violations.push({
       type: 'PORTFOLIO_VOLATILITY',
       severity: 'HIGH',
-      value: portfolioVol.toFixed(2) + '%',
-      limit: rules.max_portfolio_volatility + '%',
+      value: `${portfolioVol.toFixed(2)  }%`,
+      limit: `${rules.max_portfolio_volatility  }%`,
       message: i18n.t('governance_module.violation_portfolio_volatility')
     });
   }
@@ -310,7 +310,7 @@ export const validateCompliance = (portfolio, rules = INVESTMENT_RULES) => {
         type: 'HIGH_RISK',
         severity: 'HIGH',
         asset: asset.ticker,
-        value: vol.toFixed(2) + '%',
+        value: `${vol.toFixed(2)  }%`,
         limit: '50%',
         message: i18n.t('governance_module.warning_extreme_volatility', { ticker: asset.ticker })
       });
@@ -343,8 +343,8 @@ export const applyComplianceCorrections = (portfolio, rules = INVESTMENT_RULES) 
       corrections.push({
         asset: asset.ticker,
         action: i18n.t('governance_module.action_reduce_weight'),
-        from: (asset.weight * 100).toFixed(2) + '%',
-        to: (rules.max_position_weight * 100) + '%'
+        from: `${(asset.weight * 100).toFixed(2)  }%`,
+        to: `${rules.max_position_weight * 100  }%`
       });
 
       return {

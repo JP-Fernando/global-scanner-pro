@@ -17,8 +17,8 @@
  * - Provides prediction confidence
  */
 
-import { RandomForestRegressor, DecisionTree, standardizeArray } from './ml-engine.js';
-import i18n from '../i18n/i18n.js';
+import { RandomForestRegressor as _RandomForestRegressor, DecisionTree, standardizeArray as _standardizeArray } from './ml-engine.js';
+import _i18n from '../i18n/i18n.js';
 
 // =====================================================
 // CONFIGURATION
@@ -338,7 +338,7 @@ export function trainRegimeClassifier(X, y, config = REGIME_PREDICTION_CONFIG) {
   }
 
   // Standardize features
-  const X_standardized = X.map((row, i) => {
+  const X_standardized = X.map((row, _i) => {
     return row.map((val, j) => {
       const column = X.map(r => r[j]);
       const mean = column.reduce((sum, v) => sum + v, 0) / column.length;

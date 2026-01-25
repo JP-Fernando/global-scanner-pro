@@ -18,7 +18,7 @@
  * - Market microstructure anomalies
  */
 
-import { KMeans, calculateCorrelation, normalizeArray, standardizeArray } from './ml-engine.js';
+import { KMeans, calculateCorrelation as _calculateCorrelation, normalizeArray as _normalizeArray, standardizeArray as _standardizeArray } from './ml-engine.js';
 import i18n from '../i18n/i18n.js';
 
 // =====================================================

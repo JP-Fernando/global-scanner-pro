@@ -12,7 +12,7 @@
  * - Combined multi-factor stress tests
  */
 
-import i18n from '../i18n/i18n.js';
+import _i18n from '../i18n/i18n.js';
 import { SECTOR_TAXONOMY } from '../data/sectors.js';
 
 // =====================================================
@@ -299,7 +299,7 @@ export const runSectorStressTest = (portfolio, totalCapital, scenario) => {
       name: position.name,
       sector: getSectorName(positionSector),
       currentValue: positionValue.toFixed(2),
-      shock: (shock * 100).toFixed(1) + '%',
+      shock: `${(shock * 100).toFixed(1)  }%`,
       estimatedLoss: loss.toFixed(2),
       newValue: (positionValue + loss).toFixed(2)
     });
@@ -309,10 +309,10 @@ export const runSectorStressTest = (portfolio, totalCapital, scenario) => {
     scenario: scenario.name,
     description: scenario.description,
     targetSector: getSectorName(scenario.sectorId),
-    portfolioExposure: (targetSectorWeight * 100).toFixed(1) + '%',
-    shockMagnitude: (scenario.shockMagnitude * 100).toFixed(1) + '%',
+    portfolioExposure: `${(targetSectorWeight * 100).toFixed(1)  }%`,
+    shockMagnitude: `${(scenario.shockMagnitude * 100).toFixed(1)  }%`,
     totalLoss: Math.abs(totalLoss).toFixed(2),
-    lossPct: (Math.abs(totalLoss) / totalCapital * 100).toFixed(2) + '%',
+    lossPct: `${(Math.abs(totalLoss) / totalCapital * 100).toFixed(2)  }%`,
     newPortfolioValue: (totalCapital + totalLoss).toFixed(2),
     positionImpacts: positionImpacts.sort((a, b) =>
       parseFloat(a.estimatedLoss) - parseFloat(b.estimatedLoss)
@@ -321,6 +321,28 @@ export const runSectorStressTest = (portfolio, totalCapital, scenario) => {
       parseFloat(pos.estimatedLoss) < parseFloat(worst.estimatedLoss) ? pos : worst
     , positionImpacts[0])
   };
+};
+
+/**
+ * Calculate currency exposure breakdown
+ */
+const calculateCurrencyExposure = (positionImpacts, totalCapital) => {
+  const exposure = {};
+
+  positionImpacts.forEach(pos => {
+    if (!exposure[pos.currency]) {
+      exposure[pos.currency] = 0;
+    }
+    exposure[pos.currency] += parseFloat(pos.currentValue);
+  });
+
+  const result = Object.entries(exposure).map(([currency, value]) => ({
+    currency,
+    value: value.toFixed(2),
+    pct: `${(value / totalCapital * 100).toFixed(1)}%`
+  }));
+
+  return result.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
 };
 
 /**
@@ -353,9 +375,9 @@ export const runCurrencyStressTest = (portfolio, totalCapital, scenario) => {
     positionImpacts.push({
       ticker: position.ticker,
       name: position.name,
-      currency: currency,
+      currency,
       currentValue: positionValue.toFixed(2),
-      fxShock: (fxShock * 100).toFixed(1) + '%',
+      fxShock: `${(fxShock * 100).toFixed(1)  }%`,
       impact: impact.toFixed(2),
       newValue: (positionValue + impact).toFixed(2)
     });
@@ -366,33 +388,11 @@ export const runCurrencyStressTest = (portfolio, totalCapital, scenario) => {
     description: scenario.description,
     trigger: scenario.trigger,
     totalImpact: totalImpact.toFixed(2),
-    impactPct: (totalImpact / totalCapital * 100).toFixed(2) + '%',
+    impactPct: `${(totalImpact / totalCapital * 100).toFixed(2)  }%`,
     newPortfolioValue: (totalCapital + totalImpact).toFixed(2),
     positionImpacts: positionImpacts.sort((a, b) => parseFloat(a.impact) - parseFloat(b.impact)),
     currencyExposure: calculateCurrencyExposure(positionImpacts, totalCapital)
   };
-};
-
-/**
- * Calculate currency exposure breakdown
- */
-const calculateCurrencyExposure = (positionImpacts, totalCapital) => {
-  const exposure = {};
-
-  positionImpacts.forEach(pos => {
-    if (!exposure[pos.currency]) {
-      exposure[pos.currency] = 0;
-    }
-    exposure[pos.currency] += parseFloat(pos.currentValue);
-  });
-
-  const result = Object.entries(exposure).map(([currency, value]) => ({
-    currency,
-    value: value.toFixed(2),
-    pct: (value / totalCapital * 100).toFixed(1) + '%'
-  }));
-
-  return result.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
 };
 
 /**
@@ -435,12 +435,12 @@ export const runGeopoliticalStressTest = (portfolio, totalCapital, scenario) => 
       name: position.name,
       sector: getSectorName(positionSector),
       currentValue: positionValue.toFixed(2),
-      shock: (shock * 100).toFixed(1) + '%',
+      shock: `${(shock * 100).toFixed(1)  }%`,
       estimatedLoss: loss.toFixed(2),
       newValue: (positionValue + loss).toFixed(2),
-      volatilityBefore: baseVolatility.toFixed(1) + '%',
-      volatilityAfter: newVolatility.toFixed(1) + '%',
-      volatilityIncrease: ((newVolatility - baseVolatility) / baseVolatility * 100).toFixed(0) + '%'
+      volatilityBefore: `${baseVolatility.toFixed(1)  }%`,
+      volatilityAfter: `${newVolatility.toFixed(1)  }%`,
+      volatilityIncrease: `${((newVolatility - baseVolatility) / baseVolatility * 100).toFixed(0)  }%`
     });
   });
 
@@ -448,11 +448,11 @@ export const runGeopoliticalStressTest = (portfolio, totalCapital, scenario) => 
     scenario: scenario.name,
     description: scenario.description,
     duration: scenario.duration,
-    marketShock: (scenario.marketShock * 100).toFixed(1) + '%',
-    volatilityIncrease: ((scenario.volatilityMultiplier - 1) * 100).toFixed(0) + '%',
+    marketShock: `${(scenario.marketShock * 100).toFixed(1)  }%`,
+    volatilityIncrease: `${((scenario.volatilityMultiplier - 1) * 100).toFixed(0)  }%`,
     correlationTarget: scenario.correlationTarget,
     totalLoss: Math.abs(totalLoss).toFixed(2),
-    lossPct: (Math.abs(totalLoss) / totalCapital * 100).toFixed(2) + '%',
+    lossPct: `${(Math.abs(totalLoss) / totalCapital * 100).toFixed(2)  }%`,
     newPortfolioValue: (totalCapital + totalLoss).toFixed(2),
     positionImpacts: positionImpacts.sort((a, b) =>
       parseFloat(a.estimatedLoss) - parseFloat(b.estimatedLoss)
@@ -492,7 +492,8 @@ export const runLiquidityStressTest = (portfolio, totalCapital, scenario) => {
     }
 
     // Calculate days to liquidate at stressed volume
-    const quantity = position.quantity || (positionValue / (position.entry_price || position.current_price || 100));
+    const entryPrice = position.entry_price || position.current_price || 100;
+    const quantity = position.quantity || (positionValue / entryPrice);
     const daysToLiquidate = Math.ceil(quantity / stressedVolume);
 
     // Additional price impact from forced selling
@@ -508,10 +509,10 @@ export const runLiquidityStressTest = (portfolio, totalCapital, scenario) => {
       currentValue: positionValue.toFixed(2),
       normalVolume: avgVolume.toFixed(0),
       stressedVolume: stressedVolume.toFixed(0),
-      volumeReduction: (scenario.volumeReduction * 100).toFixed(0) + '%',
-      bidAskSpread: 'x' + scenario.bidAskSpreadMultiplier.toFixed(1),
-      daysToLiquidate: daysToLiquidate,
-      priceImpact: (totalPriceImpact * 100).toFixed(1) + '%',
+      volumeReduction: `${(scenario.volumeReduction * 100).toFixed(0)  }%`,
+      bidAskSpread: `x${  scenario.bidAskSpreadMultiplier.toFixed(1)}`,
+      daysToLiquidate,
+      priceImpact: `${(totalPriceImpact * 100).toFixed(1)  }%`,
       estimatedLoss: impact.toFixed(2),
       liquidationValue: (positionValue + impact).toFixed(2),
       liquidityRisk: daysToLiquidate > 5 ? 'High' : daysToLiquidate > 2 ? 'Medium' : 'Low'
@@ -521,17 +522,73 @@ export const runLiquidityStressTest = (portfolio, totalCapital, scenario) => {
   return {
     scenario: scenario.name,
     description: scenario.description,
-    volumeReduction: (scenario.volumeReduction * 100).toFixed(0) + '%',
-    spreadIncrease: 'x' + scenario.bidAskSpreadMultiplier.toFixed(1),
-    recoveryPeriod: scenario.recoveryDays + ' days',
+    volumeReduction: `${(scenario.volumeReduction * 100).toFixed(0)  }%`,
+    spreadIncrease: `x${  scenario.bidAskSpreadMultiplier.toFixed(1)}`,
+    recoveryPeriod: `${scenario.recoveryDays  } days`,
     totalImpact: Math.abs(totalImpact).toFixed(2),
-    impactPct: (Math.abs(totalImpact) / totalCapital * 100).toFixed(2) + '%',
+    impactPct: `${(Math.abs(totalImpact) / totalCapital * 100).toFixed(2)  }%`,
     liquidationValue: (totalCapital + totalImpact).toFixed(2),
     liquidationAnalysis: liquidationAnalysis.sort((a, b) => b.daysToLiquidate - a.daysToLiquidate),
     highRiskPositions: liquidationAnalysis.filter(p => p.liquidityRisk === 'High'),
     avgDaysToLiquidate: (liquidationAnalysis.reduce((sum, p) => sum + p.daysToLiquidate, 0) /
                          liquidationAnalysis.length).toFixed(1)
   };
+};
+
+/**
+ * Generate recommendations based on stress test results
+ */
+const generateStressTestRecommendations = (allTests, totalCapital) => {
+  const recommendations = [];
+
+  // Find high-impact scenarios (> 15% loss)
+  const highImpactTests = allTests.filter(test => {
+    const loss = parseFloat(test.totalLoss || 0);
+    return (loss / totalCapital) > 0.15;
+  });
+
+  if (highImpactTests.length > 0) {
+    recommendations.push({
+      severity: 'High',
+      type: 'Diversification',
+      message: `Portfolio is vulnerable to ${highImpactTests.length} severe scenarios. ` +
+        'Consider diversifying across sectors and geographies.',
+      scenarios: highImpactTests.map(t => t.scenario)
+    });
+  }
+
+  // Check for sector concentration
+  const sectorTests = allTests.filter(t => t.category === 'Sector');
+  const sumSectorLoss = sectorTests.reduce((sum, t) => sum + parseFloat(t.totalLoss || 0), 0);
+  const avgSectorLoss = sumSectorLoss / sectorTests.length;
+
+  if (avgSectorLoss / totalCapital > 0.12) {
+    recommendations.push({
+      severity: 'Medium',
+      type: 'Sector Exposure',
+      message: 'High sector concentration risk detected. ' +
+        'Consider rebalancing to reduce single-sector dependency.',
+      avgLoss: `${(avgSectorLoss / totalCapital * 100).toFixed(1)}%`
+    });
+  }
+
+  // Check liquidity risk
+  const liquidityTests = allTests.filter(t => t.category === 'Liquidity');
+  const highLiquidityRisk = liquidityTests.some(t =>
+    parseFloat(t.avgDaysToLiquidate || 0) > 5
+  );
+
+  if (highLiquidityRisk) {
+    recommendations.push({
+      severity: 'Medium',
+      type: 'Liquidity Risk',
+      message: 'Some positions may be difficult to liquidate quickly. ' +
+        'Consider maintaining higher cash reserves or reducing illiquid positions.',
+      action: 'Increase allocation to liquid assets'
+    });
+  }
+
+  return recommendations;
 };
 
 /**
@@ -591,58 +648,6 @@ export const runMultiFactorStressTest = (portfolio, totalCapital) => {
     liquidityStressTests: liquidityTests,
     recommendations: generateStressTestRecommendations(allTests, totalCapital)
   };
-};
-
-/**
- * Generate recommendations based on stress test results
- */
-const generateStressTestRecommendations = (allTests, totalCapital) => {
-  const recommendations = [];
-
-  // Find high-impact scenarios (> 15% loss)
-  const highImpactTests = allTests.filter(test => {
-    const loss = parseFloat(test.totalLoss || 0);
-    return (loss / totalCapital) > 0.15;
-  });
-
-  if (highImpactTests.length > 0) {
-    recommendations.push({
-      severity: 'High',
-      type: 'Diversification',
-      message: `Portfolio is vulnerable to ${highImpactTests.length} severe scenarios. Consider diversifying across sectors and geographies.`,
-      scenarios: highImpactTests.map(t => t.scenario)
-    });
-  }
-
-  // Check for sector concentration
-  const sectorTests = allTests.filter(t => t.category === 'Sector');
-  const avgSectorLoss = sectorTests.reduce((sum, t) => sum + parseFloat(t.totalLoss || 0), 0) / sectorTests.length;
-
-  if (avgSectorLoss / totalCapital > 0.12) {
-    recommendations.push({
-      severity: 'Medium',
-      type: 'Sector Exposure',
-      message: 'High sector concentration risk detected. Consider rebalancing to reduce single-sector dependency.',
-      avgLoss: (avgSectorLoss / totalCapital * 100).toFixed(1) + '%'
-    });
-  }
-
-  // Check liquidity risk
-  const liquidityTests = allTests.filter(t => t.category === 'Liquidity');
-  const highLiquidityRisk = liquidityTests.some(t =>
-    parseFloat(t.avgDaysToLiquidate || 0) > 5
-  );
-
-  if (highLiquidityRisk) {
-    recommendations.push({
-      severity: 'Medium',
-      type: 'Liquidity Risk',
-      message: 'Some positions may be difficult to liquidate quickly. Consider maintaining higher cash reserves or reducing illiquid positions.',
-      action: 'Increase allocation to liquid assets'
-    });
-  }
-
-  return recommendations;
 };
 
 // =====================================================

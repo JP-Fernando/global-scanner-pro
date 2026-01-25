@@ -26,7 +26,7 @@ export class PerformanceTracker {
     }
 
     // Try to get from IndexedDB cache first
-    let cached = await dbStore.getPriceCache(ticker, fromDate, toDate);
+    const cached = await dbStore.getPriceCache(ticker, fromDate, toDate);
 
     if (cached.length > 0) {
       this.priceCache.set(cacheKey, cached);
@@ -327,8 +327,9 @@ export class PerformanceTracker {
    * @param {Array} historicalData - Historical price data for each position
    * @returns {Promise<Object>} Risk metrics
    */
-  async calculateRiskMetrics(portfolio, historicalData = null) {
+  async calculateRiskMetrics(portfolio, initialHistoricalData = null) {
     // If historical data not provided, fetch it
+    let historicalData = initialHistoricalData;
     if (!historicalData) {
       historicalData = [];
       const sixMonthsAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -383,7 +384,7 @@ export class PerformanceTracker {
     const { alpha, beta } = this._calculateAlphaBeta(portfolioEquity, benchmarkEquity);
 
     // Calculate tracking error
-    const trackingError = this._calculateTrackingError(portfolioEquity, benchmarkEquity);
+    const trackingErrorVal = this._calculateTrackingError(portfolioEquity, benchmarkEquity);
 
     const portfolioReturn = portfolioEquity[portfolioEquity.length - 1].return_pct;
     const benchmarkReturn = benchmarkEquity[benchmarkEquity.length - 1].return_pct;
@@ -395,7 +396,7 @@ export class PerformanceTracker {
       excess_return_pct: portfolioReturn - benchmarkReturn,
       alpha,
       beta,
-      tracking_error,
+      tracking_error: trackingErrorVal,
       benchmark_equity: benchmarkEquity
     };
   }

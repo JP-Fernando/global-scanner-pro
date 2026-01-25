@@ -256,7 +256,9 @@ const buildAssetSnapshot = (asset, endIndex, strategyConfig) => {
     return null;
   }
 
-  const filterResult = scoring.applyHardFilters(candleData, prices, volumes, strategyConfig.filters);
+  const filterResult = scoring.applyHardFilters(
+    candleData, prices, volumes, strategyConfig.filters
+  );
   if (!filterResult.passed) {
     return null;
   }
@@ -360,7 +362,7 @@ export const runStrategyBacktest = ({
     turnover /= 2;
     totalTurnover += turnover;
 
-    const periodReturns = selected.map((asset, idx) => {
+    const periodReturns = selected.map((asset, _idx) => {
       const original = universeData.find(item => item.ticker === asset.ticker);
       const current = original?.data?.[i]?.close;
       const next = original?.data?.[i + rebalanceEvery]?.close;

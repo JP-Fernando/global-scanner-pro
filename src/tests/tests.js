@@ -405,7 +405,7 @@ export const testValidation = () => {
     ind.SMA([], 5);
     console.error(`❌ ${i18n.t('test.fail')}: ${i18n.t('test.insufficient_data_rejected')}`);
     passed = false;
-  } catch (e) {
+  } catch {
     console.log(`✅ ${i18n.t('test.pass')}: ${i18n.t('test.rejects_empty_array')}`);
   }
 
@@ -414,7 +414,7 @@ export const testValidation = () => {
     ind.SMA([1, 2, NaN, 4, 5], 5);
     console.error(`❌ ${i18n.t('test.fail')}: Should reject NaN`);
     passed = false;
-  } catch (e) {
+  } catch {
     console.log(`✅ ${i18n.t('test.pass')}: ${i18n.t('test.rejects_nan')}`);
   }
 
@@ -423,7 +423,7 @@ export const testValidation = () => {
     ind.RSI([100, 101, null, 103], 3);
     console.error(`❌ ${i18n.t('test.fail')}: Should reject null`);
     passed = false;
-  } catch (e) {
+  } catch {
     console.log(`✅ ${i18n.t('test.pass')}: ${i18n.t('test.rejects_null')}`);
   }
 
@@ -432,7 +432,7 @@ export const testValidation = () => {
     ind.RSI([100, 101, 102], 14);
     console.error(`❌ ${i18n.t('test.fail')}: ${i18n.t('test.insufficient_data_rejected')}`);
     passed = false;
-  } catch (e) {
+  } catch {
     console.log(`✅ ${i18n.t('test.pass')}: ${i18n.t('test.rejects_insufficient_length')}`);
   }
 
@@ -534,7 +534,7 @@ export const testRiskEngineEdgeCases = () => {
     }];
     const result = calculatePortfolioVaR(singleAsset, 10000, 0.95);
     assert(result.error !== undefined, i18n.t('test.single_asset_error'));
-  } catch (e) {
+  } catch {
     console.log(`✅ ${i18n.t('test.pass')}: ${i18n.t('test.single_asset_rejected')}`);
   }
 
@@ -649,7 +649,7 @@ const testExcelReportGenerator = () => {
         workbook.Sheets[sheetName] = worksheet;
       }
     },
-    writeFile: (workbook, filename) => {
+    writeFile: (_workbook, _filename) => {
       // Mock write - do nothing
     }
   };
@@ -694,23 +694,23 @@ const testPDFReportGenerator = () => {
       },
       getNumberOfPages: () => this._pages
     };
-    setFontSize(size) {}
-    setFont(font, style) {}
-    setTextColor(...args) {}
-    setFillColor(...args) {}
-    text(text, x, y) {}
-    splitTextToSize(text, width) {
-      return [text];
+    setFontSize(_size) {}
+    setFont(_font, _style) {}
+    setTextColor(..._args) {}
+    setFillColor(..._args) {}
+    text(_text, _x, _y) {}
+    splitTextToSize(_text, _width) {
+      return [_text];
     }
-    rect(x, y, w, h, style) {}
+    rect(_x, _y, _w, _h, _style) {}
     addPage() {
       this._pages++;
     }
-    setPage(num) {}
-    autoTable(config) {
+    setPage(_num) {}
+    autoTable(_config) {
       this.lastAutoTable.finalY = 150;
     }
-    save(filename) {}
+    save(_filename) {}
   }
 
   window.jspdf = {
@@ -822,23 +822,23 @@ const testAttributionReportExports = () => {
       },
       getNumberOfPages: () => this._pages
     };
-    setFontSize(size) {}
-    setFont(font, style) {}
-    setTextColor(...args) {}
-    setFillColor(...args) {}
-    text(text, x, y) {}
-    splitTextToSize(text, width) {
-      return [text];
+    setFontSize(_size) {}
+    setFont(_font, _style) {}
+    setTextColor(..._args) {}
+    setFillColor(..._args) {}
+    text(_text, _x, _y) {}
+    splitTextToSize(_text, _width) {
+      return [_text];
     }
-    rect(x, y, w, h, style) {}
+    rect(_x, _y, _w, _h, _style) {}
     addPage() {
       this._pages++;
     }
-    setPage(num) {}
-    autoTable(config) {
+    setPage(_num) {}
+    autoTable(_config) {
       this.lastAutoTable.finalY = 150;
     }
-    save(filename) {}
+    save(_filename) {}
   }
 
   window.jspdf = window.jspdf || { jsPDF: MockJsPDF };
@@ -983,7 +983,7 @@ const testCompareTwoPeriods = () => {
     volatility: 0.15
   };
 
-  const generator = new ComparativeAnalysisGenerator([period1, period2]);
+  const _generator = new ComparativeAnalysisGenerator([period1, period2]);
 
   // Test period comparison
   const comparison = {

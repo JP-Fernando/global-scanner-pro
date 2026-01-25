@@ -18,7 +18,7 @@
  * - Penalises obsolete signals
  */
 
-import i18n from '../i18n/i18n.js';
+import _i18n from '../i18n/i18n.js';
 import { calculateCorrelation } from './ml-engine.js';
 
 // =====================================================

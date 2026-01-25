@@ -179,7 +179,12 @@ export default {
     volume: 'Volume',
     marketCap: 'Market Cap',
     actions: 'Actions',
-    no_results: 'No results match the current filters.'
+    no_results: 'No results match the current filters.',
+    weight: 'Weight %',
+    capital: 'Capital €',
+    no_classification: 'Unclassified',
+    waiting_data: 'Waiting for analysis data...',
+    unusual_volume: 'Unusual volume (Z-Score: {zscore})'
   },
 
   // Signals
@@ -311,7 +316,7 @@ export default {
     no_historical_data: '⚠️ Could not load historical data for universe',
     select_market_first: 'Select a market before running backtest',
     no_benchmark_market: 'No benchmark defined for this market',
-    insufficient_data: 'Insufficient benchmark data',
+    insufficient_benchmark_data: 'Insufficient benchmark data',
     benchmark_calculation_failed: 'Error calculating benchmark metrics:',
     backtest_error: 'Backtest error',
     regime_full_benchmark_load_failed: 'Full benchmark data could not be loaded for regime',
@@ -378,21 +383,6 @@ export default {
   footer: {
     version: 'Version {version}',
     rights: 'All rights reserved'
-  },
-
-  // Table headers
-  table: {
-    rank: 'Rank',
-    ticker: 'Ticker',
-    name: 'Name',
-    score: 'Score',
-    volume: 'Volume',
-    signal: 'Signal',
-    weight: 'Weight %',
-    capital: 'Capital €',
-    no_classification: 'Unclassified',
-    waiting_data: 'Waiting for analysis data...',
-    unusual_volume: 'Unusual volume (Z-Score: {zscore})'
   },
 
   // Info messages

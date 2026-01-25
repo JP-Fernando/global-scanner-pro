@@ -3,6 +3,8 @@
  * Manages the portfolio tracking dashboard UI and interactions
  */
 
+/* global Chart */
+
 import { portfolioManager } from '../portfolio/portfolio-manager.js';
 import { performanceTracker } from '../portfolio/performance-tracker.js';
 import i18n from '../i18n/i18n.js';
@@ -689,7 +691,7 @@ function createEquityCurveChart(ctx, equityCurve) {
         y: {
           ticks: {
             color: '#94a3b8',
-            callback: value => '$' + value.toLocaleString()
+            callback: value => `$${  value.toLocaleString()}`
           },
           grid: { color: '#334155' }
         }
@@ -745,7 +747,7 @@ function createDrawdownChart(ctx, equityCurve) {
         y: {
           ticks: {
             color: '#94a3b8',
-            callback: value => value.toFixed(2) + '%'
+            callback: value => `${value.toFixed(2)  }%`
           },
           grid: { color: '#334155' }
         }
@@ -814,7 +816,7 @@ function createBenchmarkComparisonChart(ctx, equityCurve, benchmarkComparison) {
         y: {
           ticks: {
             color: '#94a3b8',
-            callback: value => value.toFixed(2) + '%'
+            callback: value => `${value.toFixed(2)  }%`
           },
           grid: { color: '#334155' }
         }

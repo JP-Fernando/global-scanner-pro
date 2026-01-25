@@ -26,7 +26,7 @@ export const calculateRelativeVolatility = (assetVol, benchmarkVol) => {
 // SCORES TEMPORALES (CORTO, MEDIO, LARGO)
 // =====================================================
 
-export const calculateShortTermScore = (data, prices, volumes, config) => {
+export const calculateShortTermScore = (data, prices, volumes, _config) => {
   // Horizonte: 6 meses (126 días)
   const lastPrice = prices[prices.length - 1];
   let score = 0;
@@ -40,7 +40,7 @@ export const calculateShortTermScore = (data, prices, volumes, config) => {
       else if (distance >= 10) score += 35;
       else if (distance > -5) score += 20;
     }
-  } catch (e) {
+  } catch {
     score += 25; // Neutro
   }
 
@@ -52,7 +52,7 @@ export const calculateShortTermScore = (data, prices, volumes, config) => {
       else if (rsi > 65 && rsi < 75) score += 15;
       else if (rsi >= 40) score += 12;
     }
-  } catch (e) {
+  } catch {
     score += 12;
   }
 
@@ -65,14 +65,14 @@ export const calculateShortTermScore = (data, prices, volumes, config) => {
       else if (vRatio > 1.0) score += 15;
       else if (vRatio > 0.8) score += 8;
     }
-  } catch (e) {
+  } catch {
     score += 12;
   }
 
   return Math.round(Math.min(100, score));
 };
 
-export const calculateMediumTermScore = (data, prices, config) => {
+export const calculateMediumTermScore = (data, prices, _config) => {
   // Horizonte: 18 meses (378 días ≈ 1.5 años)
   const lastPrice = prices[prices.length - 1];
   let score = 0;
@@ -89,7 +89,7 @@ export const calculateMediumTermScore = (data, prices, config) => {
     } else if (ema50) {
       if (lastPrice > ema50) score += 25;
     }
-  } catch (e) {
+  } catch {
     score += 25;
   }
 
@@ -101,7 +101,7 @@ export const calculateMediumTermScore = (data, prices, config) => {
       else if (roc > 5) score += 20;
       else if (roc > 0) score += 10;
     }
-  } catch (e) {
+  } catch {
     score += 15;
   }
 
@@ -113,14 +113,14 @@ export const calculateMediumTermScore = (data, prices, config) => {
       else if (vol < 30) score += 12;
       else if (vol < 40) score += 6;
     }
-  } catch (e) {
+  } catch {
     score += 10;
   }
 
   return Math.round(Math.min(100, score));
 };
 
-export const calculateLongTermScore = (data, prices, config) => {
+export const calculateLongTermScore = (data, prices, _config) => {
   // Horizonte: 4 años (1008 días)
   const lastPrice = prices[prices.length - 1];
   let score = 0;
@@ -134,7 +134,7 @@ export const calculateLongTermScore = (data, prices, config) => {
       else if (roc12m > 5) score += 12;
       else if (roc12m > 0) score += 6;
     }
-  } catch (e) {
+  } catch {
     score += 15;
   }
 
@@ -147,7 +147,7 @@ export const calculateLongTermScore = (data, prices, config) => {
       else if (distance >= 20) score += 20;
       else if (distance > -10) score += 10;
     }
-  } catch (e) {
+  } catch {
     score += 15;
   }
 
@@ -160,7 +160,7 @@ export const calculateLongTermScore = (data, prices, config) => {
       else if (vol < 35) score += 10;
       else if (vol < 50) score += 5;
     }
-  } catch (e) {
+  } catch {
     score += 10;
   }
 
@@ -172,7 +172,7 @@ export const calculateLongTermScore = (data, prices, config) => {
       else if (daysAbove > 50) score += 15;
       else if (daysAbove > 30) score += 8;
     }
-  } catch (e) {
+  } catch {
     score += 10;
   }
 
@@ -191,13 +191,13 @@ export const calculateTrendScore = (data, prices, config) => {
 
   try {
     ema50 = ind.EMA(prices, config.ema_medium);
-  } catch (e) {
+  } catch {
     // No hay suficiente data para EMA50
   }
 
   try {
     ema200 = ind.EMA(prices, config.ema_long);
-  } catch (e) {
+  } catch {
     // No hay suficiente data para EMA200
   }
 
@@ -226,7 +226,7 @@ export const calculateTrendScore = (data, prices, config) => {
     try {
       const daysAbove = ind.DaysAboveEMA(prices, config.ema_long, Math.min(200, prices.length - config.ema_long));
       consistencyScore = (daysAbove / 100) * 30;
-    } catch (e) {
+    } catch {
       consistencyScore = 15; // Score neutro
     }
   } else {
@@ -239,7 +239,7 @@ export const calculateTrendScore = (data, prices, config) => {
     try {
       const adx = ind.ADX(data, Math.min(config.adx_period, data.length - 1));
       adxScore = Math.min(30, (adx / 40) * 30);
-    } catch (e) {
+    } catch {
       // Mantener score neutro
     }
   }
@@ -257,7 +257,7 @@ export const calculateTrendScore = (data, prices, config) => {
 };
 
 export const calculateMomentumScore = (prices, config, benchmarkROC6m = null, benchmarkROC12m = null) => {
-  const lastPrice = prices[prices.length - 1];
+  const _lastPrice = prices[prices.length - 1];
 
   // ROC 6 meses y 12 meses con manejo de errores
   let roc6m = 0, roc12m = 0;
@@ -266,7 +266,7 @@ export const calculateMomentumScore = (prices, config, benchmarkROC6m = null, be
     if (prices.length >= config.roc_short + 1) {
       roc6m = ind.ROC(prices, config.roc_short);
     }
-  } catch (e) {
+  } catch {
     // No hay suficiente data
   }
 
@@ -274,7 +274,7 @@ export const calculateMomentumScore = (prices, config, benchmarkROC6m = null, be
     if (prices.length >= config.roc_long + 1) {
       roc12m = ind.ROC(prices, config.roc_long);
     }
-  } catch (e) {
+  } catch {
     // No hay suficiente data
   }
 
@@ -305,7 +305,7 @@ export const calculateMomentumScore = (prices, config, benchmarkROC6m = null, be
       else if (roc20d > 2) thrustScore = 12;
       else if (roc20d > 0) thrustScore = 5;
     }
-  } catch (e) {
+  } catch {
     thrustScore = 5; // Neutro
   }
 
@@ -319,7 +319,7 @@ export const calculateMomentumScore = (prices, config, benchmarkROC6m = null, be
       else if (rsi >= 40) rsiScore = 12;
       else rsiScore = 5;
     }
-  } catch (e) {
+  } catch {
     // Mantener default
   }
 
@@ -340,7 +340,7 @@ export const calculateMomentumScore = (prices, config, benchmarkROC6m = null, be
 };
 
 export const calculateRiskScore = (data, prices, config, benchmarkVol = null) => {
-  const lastPrice = prices[prices.length - 1];
+  const _lastPrice = prices[prices.length - 1];
 
   // 1. ATR% - menor es mejor (30 puntos)
   let atrPct = 5, atrScore = 15;
@@ -352,7 +352,7 @@ export const calculateRiskScore = (data, prices, config, benchmarkVol = null) =>
       else if (atrPct < 6) atrScore = 10;
       else if (atrPct < 10) atrScore = 5;
       else atrScore = 2;
-    } catch (e) {
+    } catch {
       // Mantener default
     }
   }
@@ -369,7 +369,7 @@ export const calculateRiskScore = (data, prices, config, benchmarkVol = null) =>
       else if (relVol < 1.5) volScore = 12;
       else if (relVol < 2.0) volScore = 6;
       else volScore = 3;
-    } catch (e) {
+    } catch {
       // Mantener default
     }
   }
@@ -384,7 +384,7 @@ export const calculateRiskScore = (data, prices, config, benchmarkVol = null) =>
       else if (maxDD < 35) ddScore = 12;
       else if (maxDD < 50) ddScore = 6;
       else ddScore = 3;
-    } catch (e) {
+    } catch {
       // Mantener default
     }
   }
@@ -413,7 +413,7 @@ export const calculateLiquidityScore = (volumes, config) => {
       else if (avgVol20 > config.min_volume_20d * 1.5) vol20Score = 25;
       else if (avgVol20 > config.min_volume_20d) vol20Score = 15;
       else vol20Score = 5;
-    } catch (e) {
+    } catch {
       // Mantener default
     }
   }
@@ -427,7 +427,7 @@ export const calculateLiquidityScore = (volumes, config) => {
       else if (avgVol60 > config.min_volume_60d * 1.2) vol60Score = 20;
       else if (avgVol60 > config.min_volume_60d) vol60Score = 10;
       else vol60Score = 5;
-    } catch (e) {
+    } catch {
       // Mantener default
     }
   }
@@ -441,7 +441,7 @@ export const calculateLiquidityScore = (volumes, config) => {
       else if (volRatio > 1.1) ratioScore = 20;
       else if (volRatio > 0.9) ratioScore = 12;
       else ratioScore = 8;
-    } catch (e) {
+    } catch {
       // Mantener default
     }
   }
@@ -498,7 +498,7 @@ export const applyHardFilters = (data, prices, volumes, config) => {
         // No rechazamos, solo avisamos.
         reasons.push(`⚠️ Alta Volatilidad (${atrPct.toFixed(2)}%)`);
       }
-    } catch (e) {}
+    } catch { /* ignored */ }
   }
 
   // 4. Drawdown: SOLO ADVERTENCIA
@@ -508,7 +508,7 @@ export const applyHardFilters = (data, prices, volumes, config) => {
       if (maxDD > config.max_drawdown_52w) {
         reasons.push(`⚠️ DD Profundo (${maxDD.toFixed(1)}%)`);
       }
-    } catch (e) {}
+    } catch { /* ignored */ }
   }
 
   return {

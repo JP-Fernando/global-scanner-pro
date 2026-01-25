@@ -2,7 +2,7 @@
 // ML COMPONENTS TEST SUITE
 // =====================================================
 
-import { i18n } from './setup-globals.js';
+import { i18n as _i18n } from './setup-globals.js';
 
 // ML imports
 import {
@@ -15,22 +15,22 @@ import {
 } from '../ml/ml-engine.js';
 
 import {
-  trainAndOptimizeFactorWeights,
+  trainAndOptimizeFactorWeights as _trainAndOptimizeFactorWeights,
   extractFactorFeatures,
-  FACTOR_WEIGHTS_CONFIG
+  FACTOR_WEIGHTS_CONFIG as _FACTOR_WEIGHTS_CONFIG
 } from '../ml/factor-weighting.js';
 
 import {
   PerformanceTracker,
   PerformanceRecord,
   adjustScoreAdaptively,
-  adjustScoresBatch
+  adjustScoresBatch as _adjustScoresBatch
 } from '../ml/adaptive-scoring.js';
 
 import {
-  RandomForestClassifier,
+  RandomForestClassifier as _RandomForestClassifier,
   trainRegimeClassifier,
-  predictRegime
+  predictRegime as _predictRegime
 } from '../ml/regime-prediction.js';
 
 import {

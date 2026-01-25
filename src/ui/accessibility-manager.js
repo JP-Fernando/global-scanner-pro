@@ -181,7 +181,7 @@ export class AccessibilityManager {
       });
 
       // Row headers
-      table.querySelectorAll('tbody tr').forEach((row, idx) => {
+      table.querySelectorAll('tbody tr').forEach((row, _idx) => {
         row.setAttribute('role', 'row');
         const firstCell = row.querySelector('td:first-child');
         if (firstCell && !firstCell.hasAttribute('scope')) {
@@ -318,12 +318,12 @@ export class AccessibilityManager {
 
   setupFocusRestoration() {
     // Save focus before modal opens
-    document.addEventListener('modalopen', (e) => {
+    document.addEventListener('modalopen', (_e) => {
       this.focusStack.push(document.activeElement);
     });
 
     // Restore focus when modal closes
-    document.addEventListener('modalclose', (e) => {
+    document.addEventListener('modalclose', (_e) => {
       const previousFocus = this.focusStack.pop();
       if (previousFocus) {
         previousFocus.focus();
@@ -492,7 +492,7 @@ export class AccessibilityManager {
 
     errorDiv.textContent = message;
     field.setAttribute('aria-invalid', 'true');
-    field.setAttribute('aria-describedby', errorDiv.id || 'error-' + field.id);
+    field.setAttribute('aria-describedby', errorDiv.id || `error-${  field.id}`);
 
     this.announce(message, 'assertive');
   }

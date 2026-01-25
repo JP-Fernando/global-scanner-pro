@@ -18,7 +18,7 @@
  * - Weight optimisation
  */
 
-import { calculateCorrelation } from './ml-engine.js';
+import { calculateCorrelation as _calculateCorrelation } from './ml-engine.js';
 import i18n from '../i18n/i18n.js';
 
 // =====================================================
@@ -516,7 +516,7 @@ function detectMomentumShiftML(result, allAssets) {
 /**
  * Generate ML-based buy/sell signal
  */
-function generateMLSignal(result, marketData) {
+function generateMLSignal(result, _marketData) {
   const score = result.scoreTotal || 0;
   const scoreMomentum = result.scoreMomentum || 0;
   const scoreTrend = result.scoreTrend || 0;

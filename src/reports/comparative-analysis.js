@@ -121,7 +121,7 @@ export function generateComparativePDF(datasets, title = 'Comparative Analysis')
 /**
  * Generate comparative Excel report
  */
-export function generateComparativeExcel(datasets, title = 'Comparative Analysis') {
+export function generateComparativeExcel(datasets, _title = 'Comparative Analysis') {
   const excel = new ExcelReportGenerator(datasets);
 
   // Sheet 1: Summary Comparison
