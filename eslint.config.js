@@ -88,9 +88,32 @@ export default [
     },
   },
 
-  // Override rules for test files
+  // Override rules for test files (legacy)
   {
     files: ['src/tests/**/*.js'],
+    rules: {
+      'no-console': 'off',
+      'max-len': 'off',
+    },
+  },
+
+  // Override rules for Vitest test files
+  {
+    files: ['src/tests/unit/**/*.test.js'],
+    languageOptions: {
+      globals: {
+        // Vitest globals (enabled via vitest.config.js globals: true)
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        vi: 'readonly',
+        beforeAll: 'readonly',
+        beforeEach: 'readonly',
+        afterAll: 'readonly',
+        afterEach: 'readonly',
+        test: 'readonly',
+      },
+    },
     rules: {
       'no-console': 'off',
       'max-len': 'off',

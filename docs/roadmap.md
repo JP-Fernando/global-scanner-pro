@@ -162,22 +162,6 @@ For a quick overview, see the Phase 1 section in the main [README.md](../README.
 - Security vulnerabilities flagged automatically
 - Deployment process fully automated
 
-#### 1.2.2 Branch Protection Rules
-**Actions**:
-- Configure main branch protection on GitHub:
-  - Require PR reviews (minimum 1 approver)
-  - Require status checks to pass before merging
-  - Require branches to be up to date before merging
-  - Prevent force pushes
-  - Prevent deletions
-- Create development branch for ongoing work
-- Document branching strategy (Git Flow or GitHub Flow)
-
-**Success Criteria**:
-- Main branch protected from direct commits
-- All changes go through PR review process
-- CI must pass before merge possible
-
 ### 1.3 Error Handling and Logging Infrastructure
 
 > **✅ COMPLETED** - See [Logging and Monitoring Guide](logging-monitoring.md) for full details
@@ -372,32 +356,52 @@ for (const envVar of requiredEnvVars) {
 ### 2.1 Test Framework Migration and Enhancement
 
 #### 2.1.1 Migrate to Modern Test Framework
+**Status**: ✅ COMPLETED - January 2026
+
 **Current Gap**: Custom assertion framework in [tests/tests.js](../src/tests/tests.js) instead of industry-standard testing framework.
 
 **Actions**:
-- Evaluate test framework options (Vitest recommended for ES modules, Jest alternative)
-- Install Vitest and related dependencies:
-  - vitest
-  - @vitest/ui (for interactive test UI)
-  - @vitest/coverage-v8 (for coverage reporting)
-  - happy-dom or jsdom (for DOM testing)
-- Create `vitest.config.js` configuration:
-  - Configure test environment
-  - Set up coverage thresholds (80% target)
-  - Configure global test utilities
-  - Set up test file patterns
-- Migrate existing tests from [tests/tests.js](../src/tests/tests.js) to Vitest:
-  - Convert custom assertions to Vitest's expect API
-  - Organise tests into separate files by module
-  - Use describe/it structure
-  - Implement proper test isolation
-- Migrate ML tests from [tests/ml-tests.js](../src/tests/ml-tests.js)
+- ✅ Evaluate test framework options — Vitest selected for ES module support
+- ✅ Install Vitest and related dependencies:
+  - vitest 4.x
+  - @vitest/ui (interactive test UI)
+  - @vitest/coverage-v8 (V8-based coverage reporting)
+- ✅ Create [`vitest.config.js`](../vitest.config.js) configuration:
+  - Node environment with browser global mocks
+  - Coverage thresholds (baseline: 38/20/40/38 — target 80 in Phase 2.1.2)
+  - Global test utilities (`describe`, `it`, `expect`, `vi`)
+  - Test file pattern: `src/tests/unit/**/*.test.js`
+- ✅ Migrate all tests to Vitest — 12 test files, 107 tests:
+  - [indicators.test.js](../src/tests/unit/indicators.test.js) — 23 tests (SMA, EMA, RSI, ATR, Bollinger, ADX, Williams %R, ROC, Volatility, MaxDrawdown, DaysAboveEMA, VolumeRatio, validation)
+  - [backtesting.test.js](../src/tests/unit/backtesting.test.js) — 2 tests (strategy backtest, walk-forward)
+  - [risk-engine.test.js](../src/tests/unit/risk-engine.test.js) — 8 tests (VaR, CVaR, correlation matrix, symmetry, shrinkage, edge cases)
+  - [reports.test.js](../src/tests/unit/reports.test.js) — 13 tests (base generator, Excel, PDF, comparative analysis, executive summary, period comparison)
+  - [attribution.test.js](../src/tests/unit/attribution.test.js) — 2 tests (Brinson attribution, report exports)
+  - [alerts.test.js](../src/tests/unit/alerts.test.js) — 3 tests (default settings, webhook delivery, strong signals)
+  - [stress-testing.test.js](../src/tests/unit/stress-testing.test.js) — 7 tests (sector, currency, geopolitical, liquidity, multi-factor, edge cases)
+  - [optimization.test.js](../src/tests/unit/optimization.test.js) — 5 tests (Monte Carlo, historical scenarios, max Sharpe, min variance, risk parity)
+  - [dynamic-governance.test.js](../src/tests/unit/dynamic-governance.test.js) — 14 tests (volatility/correlation regime detection, dynamic limits, stress scenarios, edge cases)
+  - [ml.test.js](../src/tests/unit/ml.test.js) — 11 tests (linear regression, random forest, K-Means, factor weighting, adaptive scoring, regime prediction, recommendations, anomaly detection)
+  - [security.test.js](../src/tests/unit/security.test.js) — 16 tests (Zod schemas, sanitisation, custom errors, environment config)
+  - [ui.test.js](../src/tests/unit/ui.test.js) — 3 tests (debouncing, throttling, ARIA)
+- ✅ Create shared test infrastructure:
+  - [vitest.setup.js](../src/tests/vitest.setup.js) — browser mocks, i18n init, custom `toBeApprox` matcher
+  - [helpers.js](../src/tests/helpers.js) — data builders, fixtures, mocking utilities, report mocks
+- ✅ Update CI workflow with coverage reporting and artifact upload
+- ✅ Update ESLint config with Vitest globals
+- ✅ Update package.json scripts (`test`, `test:watch`, `test:ui`, `test:coverage`)
+
+**Results**:
+- 107 tests passing across 12 test files
+- Coverage baseline: Stmts 40% | Branch 23% | Funcs 45% | Lines 40%
+- Legacy test runner preserved as `npm run test:legacy`
+- CI workflow runs coverage and uploads report artifacts
 
 **Success Criteria**:
-- All existing tests migrated and passing
-- Tests run faster than before
-- Coverage reports generated automatically
-- Test UI available for debugging
+- ✅ All existing tests migrated and passing
+- ✅ Tests run faster than before (~700ms total)
+- ✅ Coverage reports generated automatically
+- ✅ Test UI available for debugging (`npm run test:ui`)
 
 #### 2.1.2 Expand Unit Test Coverage
 **Current Gap**: Only ~50 tests covering happy paths; edge cases and error conditions not tested.
@@ -1410,7 +1414,27 @@ for (const envVar of requiredEnvVars) {
 - Security vulnerabilities patched quickly
 - Dependency bloat prevented
 
-### 5.2 Performance Monitoring and Optimisation
+### 5.2 Branch Protection and Git Workflow Maturity
+
+#### 5.2.1 Branch Protection Rules
+**Prerequisite**: Complete Phases 2, 3, and 4 (Team collaboration and code review processes established)
+
+**Actions**:
+- Configure main branch protection on GitHub:
+  - Require PR reviews (minimum 1 approver)
+  - Require status checks to pass before merging
+  - Require branches to be up to date before merging
+  - Prevent force pushes
+  - Prevent deletions
+- Create development branch for ongoing work
+- Document branching strategy (Git Flow or GitHub Flow)
+
+**Success Criteria**:
+- Main branch protected from direct commits
+- All changes go through PR review process
+- CI must pass before merge possible
+
+### 5.3 Performance Monitoring and Optimisation
 
 #### 5.2.1 Ongoing Performance Monitoring
 **Actions**:
@@ -1454,9 +1478,9 @@ for (const envVar of requiredEnvVars) {
 - Costs optimised without impacting performance
 - Budget stays within targets
 
-### 5.3 Feature Development Pipeline
+### 5.4 Feature Development Pipeline
 
-#### 5.3.1 Feature Flags and Gradual Rollout
+#### 5.4.1 Feature Flags and Gradual Rollout
 **Actions**:
 - Implement feature flag system (LaunchDarkly, Unleash, or custom):
   - Define feature flags
@@ -1478,7 +1502,7 @@ for (const envVar of requiredEnvVars) {
 - New features rolled out gradually
 - Features can be disabled quickly if issues arise
 
-#### 5.3.2 User Feedback Collection
+#### 5.4.2 User Feedback Collection
 **Actions**:
 - Implement feedback mechanisms:
   - In-app feedback widget
@@ -1503,9 +1527,9 @@ for (const envVar of requiredEnvVars) {
 - Analytics inform product decisions
 - Users feel heard
 
-### 5.4 Advanced Features (Future Roadmap)
+### 5.5 Advanced Features (Future Roadmap)
 
-#### 5.4.1 Multi-Tenancy Support
+#### 5.5.1 Multi-Tenancy Support
 **Actions** (Future):
 - Design multi-tenant architecture:
   - Tenant isolation strategy (separate databases or schemas)
@@ -1522,7 +1546,7 @@ for (const envVar of requiredEnvVars) {
 
 **Future Deliverable**: Multi-tenant architecture
 
-#### 5.4.2 Real-Time Collaboration
+#### 5.5.2 Real-Time Collaboration
 **Actions** (Future):
 - Implement WebSocket infrastructure:
   - Install Socket.io or native WebSockets
@@ -1540,7 +1564,7 @@ for (const envVar of requiredEnvVars) {
 
 **Future Deliverable**: Real-time collaboration features
 
-#### 5.4.3 Mobile Application
+#### 5.5.3 Mobile Application
 **Actions** (Future):
 - Evaluate mobile strategy:
   - Option A: Progressive Web App (PWA)
@@ -1558,7 +1582,7 @@ for (const envVar of requiredEnvVars) {
 
 **Future Deliverable**: Mobile application
 
-#### 5.4.4 Advanced ML Features
+#### 5.5.4 Advanced ML Features
 **Actions** (Future):
 - Enhance existing ML capabilities:
   - Implement deep learning models (TensorFlow.js)
@@ -1576,7 +1600,7 @@ for (const envVar of requiredEnvVars) {
 
 **Future Deliverable**: Advanced ML features
 
-#### 5.4.5 Third-Party Integrations
+#### 5.5.5 Third-Party Integrations
 **Actions** (Future):
 - Integrate with trading platforms:
   - Interactive Brokers API
@@ -1601,7 +1625,7 @@ for (const envVar of requiredEnvVars) {
 
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Test Coverage | ~30% (estimated) | 80%+ | End of Phase 2 |
+| Test Coverage | 40% (measured) | 80%+ | End of Phase 2 |
 | Security Vulnerabilities | Unknown | 0 Critical, 0 High | End of Phase 1 |
 | API Response Time (p95) | Not measured | < 500ms | End of Phase 3 |
 | Uptime | Not monitored | 99.9% | End of Phase 3 |

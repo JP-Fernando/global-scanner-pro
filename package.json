@@ -8,7 +8,11 @@
     "start": "node server.js",
     "data:enrich": "node scripts/enrich_universes.js",
     "dev": "node --watch server.js",
-    "test": "node -e \"import('./src/tests/tests.js').then(m => m.runAllTests())\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:legacy": "node -e \"import('./src/tests/tests.js').then(m => m.runAllTests())\"",
     "test:api": "curl http://localhost:3000/api/run-tests",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -55,7 +59,10 @@
   "homepage": "https://github.com/JP-Fernando/global-scanner-pro#readme",
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
     "eslint": "^9.39.2",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "vitest": "^4.0.18"
   }
 }

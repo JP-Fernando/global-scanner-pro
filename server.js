@@ -51,8 +51,10 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Print configuration on startup
-printConfig();
+// Print full configuration only in debug mode
+if (config.development.debug) {
+  printConfig();
+}
 
 // Setup global error handlers
 setupErrorHandlers();
@@ -106,12 +108,7 @@ app.get(
     const { symbol, from, to } = req.query;
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${from}&period2=${to}&interval=1d`;
 
-    log.debug(`Fetching Yahoo Finance data for ${symbol}`, {
-      requestId: req.id,
-      symbol,
-      from,
-      to
-    });
+    log.debug(`Yahoo Finance: fetching ${symbol}`, { requestId: req.id, symbol, from, to });
 
     try {
       const response = await fetch(url, {
@@ -131,10 +128,8 @@ app.get(
 
       const data = await response.json();
 
-      log.info(`Successfully fetched data for ${symbol}`, {
-        requestId: req.id,
-        symbol,
-        dataPoints: data?.chart?.result?.[0]?.timestamp?.length || 0
+      log.debug(`Yahoo Finance: ${symbol} OK (${data?.chart?.result?.[0]?.timestamp?.length || 0} pts)`, {
+        requestId: req.id, symbol
       });
 
       res.json(data);
@@ -155,16 +150,13 @@ app.get(
   '/api/run-tests',
   validate(testRunnerSchema, 'query'),
   asyncHandler(async (req, res) => {
-    log.info('Running test suite', { requestId: req.id });
+    log.debug('Running test suite', { requestId: req.id });
 
     const { runAllTests } = await import('./src/tests/tests.js');
     const results = runAllTests();
 
-    log.info('Test suite completed', {
-      requestId: req.id,
-      totalTests: results.totalTests,
-      passed: results.passed,
-      failed: results.failed
+    log.debug('Test suite completed', {
+      requestId: req.id, totalTests: results.totalTests, passed: results.passed, failed: results.failed
     });
 
     res.json(results);
@@ -222,27 +214,34 @@ const MAX_PORT_ATTEMPTS = 10;
  * @param {number} port - Port number
  */
 const logServerStart = (port) => {
-  console.log('\n╔════════════════════════════════════════════════════════════╗');
-  console.log('║   🎯 GLOBAL QUANT SCANNER PRO                              ║');
-  console.log('║   Professional Edition v0.0.5                              ║');
-  console.log('╚════════════════════════════════════════════════════════════╝\n');
-  console.log('  ✅ Scanner iniciado correctamente\n');
-  console.log('  📊 Interfaz principal:');
-  console.log(`     → http://localhost:${port}/index.html\n`);
-  console.log('  🔌 API Endpoints:');
-  console.log(`     → http://localhost:${port}/api/health (Health Check)`);
-  console.log(`     → http://localhost:${port}/api/run-tests (Test Suite)`);
-  console.log(`     → http://localhost:${port}/api/yahoo (Yahoo Finance Proxy)\n`);
-  console.log('  📝 Logs:');
-  console.log(`     → ${config.logging.filePath}/combined.log`);
-  console.log(`     → ${config.logging.filePath}/error.log\n`);
-  console.log('  💡 Tip: Ctrl+Click en las URLs para abrirlas\n');
+  const base = `http://localhost:${port}`;
 
-  log.info('Server started successfully', {
-    port,
-    environment: config.server.env,
-    nodeVersion: process.version
-  });
+  // ANSI colors
+  const rst = '\x1b[0m';
+  const bld = '\x1b[1m';
+  const dim = '\x1b[2m';
+  const cyn = '\x1b[36m';
+  const grn = '\x1b[32m';
+  const ylw = '\x1b[33m';
+  const mag = '\x1b[35m';
+
+  console.log('');
+  console.log(`  ${cyn}${bld} ██████╗  ██████╗ ███████╗${rst}   ${mag}${bld}██████╗ ██████╗  ██████╗ ${rst}`);
+  console.log(`  ${cyn}${bld}██╔════╝ ██╔═══██╗██╔════╝${rst}   ${mag}${bld}██╔══██╗██╔══██╗██╔═══██╗${rst}`);
+  console.log(`  ${cyn}${bld}██║  ███╗██║   ██║███████╗${rst}   ${mag}${bld}██████╔╝██████╔╝██║   ██║${rst}`);
+  console.log(`  ${cyn}${bld}██║   ██║██║▄▄ ██║╚════██║${rst}   ${mag}${bld}██╔═══╝ ██╔══██╗██║   ██║${rst}`);
+  console.log(`  ${cyn}${bld}╚██████╔╝╚██████╔╝███████║${rst}   ${mag}${bld}██║     ██║  ██║╚██████╔╝${rst}`);
+  console.log(`  ${cyn}${bld} ╚═════╝  ╚══▀▀═╝ ╚══════╝${rst}   ${mag}${bld}╚═╝     ╚═╝  ╚═╝ ╚═════╝ ${rst}`);
+  console.log('');
+  console.log(`  ${dim}Global Quant Scanner Pro${rst} ${ylw}${bld}v0.0.5${rst}`);
+  console.log(`  ${dim}───────────────────────────────────────────────────${rst}`);
+  console.log('');
+  console.log(`  ${grn}${bld}➜${rst}  ${bld}Local:${rst}  ${cyn}${base}/index.html${rst}`);
+  console.log('');
+  console.log(`  ${dim}API  /api/health · /api/yahoo · /api/run-tests${rst}`);
+  console.log('');
+
+  log.info('Server started', { port, environment: config.server.env });
 };
 
 /**
