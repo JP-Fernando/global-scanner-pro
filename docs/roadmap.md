@@ -371,28 +371,32 @@ for (const envVar of requiredEnvVars) {
   - Coverage thresholds (baseline: 38/20/40/38 — target 80 in Phase 2.1.2)
   - Global test utilities (`describe`, `it`, `expect`, `vi`)
   - Test file pattern: `src/tests/unit/**/*.test.js`
-- ✅ Migrate all tests to Vitest — 12 test files, 107 tests:
+- ✅ Migrate all tests to Vitest — 15 test files:
   - [indicators.test.js](../src/tests/unit/indicators.test.js) — 23 tests (SMA, EMA, RSI, ATR, Bollinger, ADX, Williams %R, ROC, Volatility, MaxDrawdown, DaysAboveEMA, VolumeRatio, validation)
   - [backtesting.test.js](../src/tests/unit/backtesting.test.js) — 2 tests (strategy backtest, walk-forward)
   - [risk-engine.test.js](../src/tests/unit/risk-engine.test.js) — 8 tests (VaR, CVaR, correlation matrix, symmetry, shrinkage, edge cases)
   - [reports.test.js](../src/tests/unit/reports.test.js) — 13 tests (base generator, Excel, PDF, comparative analysis, executive summary, period comparison)
   - [attribution.test.js](../src/tests/unit/attribution.test.js) — 2 tests (Brinson attribution, report exports)
-  - [alerts.test.js](../src/tests/unit/alerts.test.js) — 3 tests (default settings, webhook delivery, strong signals)
+  - [alerts.test.js](../src/tests/unit/alerts.test.js) — comprehensive tests (settings, logs, delivery, notifications, webhooks)
   - [stress-testing.test.js](../src/tests/unit/stress-testing.test.js) — 7 tests (sector, currency, geopolitical, liquidity, multi-factor, edge cases)
   - [optimization.test.js](../src/tests/unit/optimization.test.js) — 5 tests (Monte Carlo, historical scenarios, max Sharpe, min variance, risk parity)
   - [dynamic-governance.test.js](../src/tests/unit/dynamic-governance.test.js) — 14 tests (volatility/correlation regime detection, dynamic limits, stress scenarios, edge cases)
   - [ml.test.js](../src/tests/unit/ml.test.js) — 11 tests (linear regression, random forest, K-Means, factor weighting, adaptive scoring, regime prediction, recommendations, anomaly detection)
   - [security.test.js](../src/tests/unit/security.test.js) — 16 tests (Zod schemas, sanitisation, custom errors, environment config)
   - [ui.test.js](../src/tests/unit/ui.test.js) — 3 tests (debouncing, throttling, ARIA)
+  - [error-handler.test.js](../src/tests/unit/error-handler.test.js) — comprehensive tests (error middleware, custom errors, logging, sanitisation)
+  - [scoring.test.js](../src/tests/unit/scoring.test.js) — comprehensive tests (score calculation, normalization, edge cases)
+  - [validation-middleware.test.js](../src/tests/unit/validation-middleware.test.js) — comprehensive tests (Zod validation, request sanitisation, error responses)
 - ✅ Create shared test infrastructure:
   - [vitest.setup.js](../src/tests/vitest.setup.js) — browser mocks, i18n init, custom `toBeApprox` matcher
   - [helpers.js](../src/tests/helpers.js) — data builders, fixtures, mocking utilities, report mocks
 - ✅ Update CI workflow with coverage reporting and artifact upload
 - ✅ Update ESLint config with Vitest globals
 - ✅ Update package.json scripts (`test`, `test:watch`, `test:ui`, `test:coverage`)
+- ✅ Fix Zod validation API: use `.issues` instead of `.errors` in validation middleware (February 2026)
 
 **Results**:
-- 107 tests passing across 12 test files
+- 15 test files with comprehensive coverage
 - Coverage baseline: Stmts 40% | Branch 23% | Funcs 45% | Lines 40%
 - Legacy test runner preserved as `npm run test:legacy`
 - CI workflow runs coverage and uploads report artifacts
