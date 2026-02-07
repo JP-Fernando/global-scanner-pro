@@ -112,7 +112,8 @@ export const BollingerBands = (prices, period = 20, stdDevMultiplier = 2) => {
     middle: sma,
     lower: sma - (stdDevMultiplier * stdDev),
     bandwidth: (4 * stdDev) / sma * 100,
-    percentB: ((prices[prices.length - 1] - (sma - stdDevMultiplier * stdDev)) / (4 * stdDev)) || 0.5
+    percentB:
+      ((prices[prices.length - 1] - (sma - stdDevMultiplier * stdDev)) / (4 * stdDev)) || 0.5
   };
 };
 

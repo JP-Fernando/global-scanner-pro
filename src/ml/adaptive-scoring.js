@@ -220,7 +220,9 @@ export class PerformanceTracker {
 /**
  * Calculate adaptive multiplier based on historical performance
  */
-export function calculateAdaptiveMultiplier(performanceTracker, strategy, regime, config = ADAPTIVE_SCORING_CONFIG) {
+export function calculateAdaptiveMultiplier(
+  performanceTracker, strategy, regime, config = ADAPTIVE_SCORING_CONFIG
+) {
   // Get performance for this strategy/regime combination
   const now = Date.now();
   const lookback = config.lookback_periods.medium;
@@ -277,7 +279,9 @@ export function calculateAdaptiveMultiplier(performanceTracker, strategy, regime
 /**
  * Calculate signal decay multiplier based on age
  */
-export function calculateSignalDecay(signalTimestamp, currentTimestamp, config = ADAPTIVE_SCORING_CONFIG) {
+export function calculateSignalDecay(
+  signalTimestamp, currentTimestamp, config = ADAPTIVE_SCORING_CONFIG
+) {
   if (!config.decay_config.enabled) {
     return 1.0;
   }
@@ -350,7 +354,9 @@ export function adjustScoreAdaptively(
 /**
  * Adjust scores for a batch of assets
  */
-export function adjustScoresBatch(assets, strategy, regime, performanceTracker, config = ADAPTIVE_SCORING_CONFIG) {
+export function adjustScoresBatch(
+  assets, strategy, regime, performanceTracker, config = ADAPTIVE_SCORING_CONFIG
+) {
   return assets.map(asset => {
     const { quant_score, signal_timestamp } = asset;
 

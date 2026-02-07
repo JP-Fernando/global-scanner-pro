@@ -527,7 +527,8 @@ export class PerformanceOptimizer {
 
     return {
       // Navigation timing
-      domContentLoaded: navigation?.domContentLoadedEventEnd - navigation?.domContentLoadedEventStart,
+      domContentLoaded:
+        navigation?.domContentLoadedEventEnd - navigation?.domContentLoadedEventStart,
       loadComplete: navigation?.loadEventEnd - navigation?.loadEventStart,
 
       // Paint timing

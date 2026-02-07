@@ -567,7 +567,9 @@ function renderBacktestResults(results, rebalanceEvery, benchmarkReturns = null)
   container.style.display = 'block';
 }
 
-function renderBacktestHeader(results, rebalanceEvery, initialCapital = lastBacktestInitialCapital) {
+function renderBacktestHeader(
+  results, rebalanceEvery, initialCapital = lastBacktestInitialCapital
+) {
   const sumSharpe = results.reduce((sum, r) => sum + (r.metrics?.sharpeRatio || 0), 0);
   const avgSharpe = sumSharpe / results.length;
   const sumCAGR = results.reduce((sum, r) => sum + (r.metrics?.cagr || 0), 0);
@@ -1911,7 +1913,8 @@ window.buildPortfolio = function () {
     );
 
     // 3. Aplicar gobernanza
-    const selectedRules = governance.RISK_PROFILES[riskProfile]?.rules || governance.INVESTMENT_RULES;
+    const selectedRules =
+      governance.RISK_PROFILES[riskProfile]?.rules || governance.INVESTMENT_RULES;
     // Validar cumplimiento
     const complianceCheck = governance.validateCompliance(withCapital, selectedRules);
 

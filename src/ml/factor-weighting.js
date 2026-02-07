@@ -428,7 +428,10 @@ function crossValidate(modelClass, X, y, config) {
   return {
     mean: scores.reduce((sum, s) => sum + s, 0) / scores.length,
     std: Math.sqrt(
-      scores.reduce((sum, s) => sum + Math.pow(s - scores.reduce((a, b) => a + b, 0) / scores.length, 2), 0) / scores.length
+      scores.reduce((sum, s) => {
+        const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+        return sum + Math.pow(s - mean, 2);
+      }, 0) / scores.length
     ),
     scores
   };
@@ -477,7 +480,8 @@ export function featureImportanceToFactorWeights(featureImportance, featureNames
 
   const factorWeights = {};
   for (const [factor, score] of Object.entries(factorScores)) {
-    factorWeights[factor] = total > 0 ? score / total : FACTOR_WEIGHTS_CONFIG.default_weights[factor];
+    factorWeights[factor] =
+      total > 0 ? score / total : FACTOR_WEIGHTS_CONFIG.default_weights[factor];
   }
 
   // Apply smoothing with default weights (60% ML, 40% default)
@@ -541,7 +545,9 @@ export function optimizeFactorWeights(trainingResult) {
 /**
  * Full pipeline: train model and optimize factor weights
  */
-export async function trainAndOptimizeFactorWeights(historicalAssets, config = FACTOR_WEIGHTS_CONFIG) {
+export async function trainAndOptimizeFactorWeights(
+  historicalAssets, config = FACTOR_WEIGHTS_CONFIG
+) {
   // 1. Prepare training data
   const { X, y } = prepareTrainingData(historicalAssets, config);
 

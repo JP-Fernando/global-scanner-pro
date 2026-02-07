@@ -156,7 +156,10 @@ app.get(
     const results = runAllTests();
 
     log.debug('Test suite completed', {
-      requestId: req.id, totalTests: results.totalTests, passed: results.passed, failed: results.failed
+      requestId: req.id,
+      totalTests: results.totalTests,
+      passed: results.passed,
+      failed: results.failed
     });
 
     res.json(results);

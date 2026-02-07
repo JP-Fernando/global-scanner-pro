@@ -156,7 +156,8 @@ export async function refreshDashboard() {
     const perfMetrics = performanceTracker.calculatePerformanceMetrics(equityCurve);
 
     // Compare to benchmark
-    const benchmarkComparison = await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
+    const benchmarkComparison =
+      await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
 
     // Update UI
     updateSummaryCards(pnlData, perfMetrics, benchmarkComparison);
@@ -527,7 +528,8 @@ async function handleAlertSettingsSave() {
     ...existingSettings,
     strategy: strategyKey,
     thresholds: {
-      volatility_pct: Number.isNaN(volValue) ? existingSettings.thresholds.volatility_pct : volValue,
+      volatility_pct:
+        Number.isNaN(volValue) ? existingSettings.thresholds.volatility_pct : volValue,
       drawdown_pct: Number.isNaN(ddValue) ? existingSettings.thresholds.drawdown_pct : ddValue,
       score: Number.isNaN(scoreValue) ? existingSettings.thresholds.score : scoreValue
     },
@@ -638,7 +640,8 @@ function updateChart(tab, data) {
       portfolioChart = createDrawdownChart(ctx, data.equityCurve);
       break;
     case 'benchmark':
-      portfolioChart = createBenchmarkComparisonChart(ctx, data.equityCurve, data.benchmarkComparison);
+      portfolioChart =
+        createBenchmarkComparisonChart(ctx, data.equityCurve, data.benchmarkComparison);
       break;
     case 'allocation':
       portfolioChart = createAllocationChart(ctx, data.pnlData.positions);
@@ -984,7 +987,8 @@ async function exportPortfolioExcel() {
     const pnlData = await performanceTracker.calculatePnL(currentPortfolio);
     const equityCurve = await performanceTracker.calculateEquityCurve(currentPortfolio);
     const perfMetrics = performanceTracker.calculatePerformanceMetrics(equityCurve);
-    const benchmarkComparison = await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
+    const benchmarkComparison =
+      await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
 
     const performanceData = {
       ...pnlData,
@@ -1023,7 +1027,8 @@ async function exportAuditReport() {
     const pnlData = await performanceTracker.calculatePnL(currentPortfolio);
     const equityCurve = await performanceTracker.calculateEquityCurve(currentPortfolio);
     const perfMetrics = performanceTracker.calculatePerformanceMetrics(equityCurve);
-    const benchmarkComparison = await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
+    const benchmarkComparison =
+      await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
 
     const performanceData = {
       ...pnlData,
@@ -1066,7 +1071,8 @@ async function exportInvestmentCommitteeReport() {
     const pnlData = await performanceTracker.calculatePnL(currentPortfolio);
     const equityCurve = await performanceTracker.calculateEquityCurve(currentPortfolio);
     const perfMetrics = performanceTracker.calculatePerformanceMetrics(equityCurve);
-    const benchmarkComparison = await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
+    const benchmarkComparison =
+      await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
 
     const performanceData = {
       ...pnlData,
@@ -1107,7 +1113,8 @@ async function exportClientReport() {
     const pnlData = await performanceTracker.calculatePnL(currentPortfolio);
     const equityCurve = await performanceTracker.calculateEquityCurve(currentPortfolio);
     const perfMetrics = performanceTracker.calculatePerformanceMetrics(equityCurve);
-    const benchmarkComparison = await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
+    const benchmarkComparison =
+      await performanceTracker.compareToBenchmark(currentPortfolio, equityCurve);
 
     const performanceData = {
       ...pnlData,

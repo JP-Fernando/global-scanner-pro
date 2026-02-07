@@ -224,7 +224,9 @@ export const calculateTrendScore = (data, prices, config) => {
   let consistencyScore = 0;
   if (ema200 && prices.length >= 200) {
     try {
-      const daysAbove = ind.DaysAboveEMA(prices, config.ema_long, Math.min(200, prices.length - config.ema_long));
+      const daysAbove = ind.DaysAboveEMA(
+        prices, config.ema_long, Math.min(200, prices.length - config.ema_long)
+      );
       consistencyScore = (daysAbove / 100) * 30;
     } catch {
       consistencyScore = 15; // Score neutro
@@ -256,7 +258,9 @@ export const calculateTrendScore = (data, prices, config) => {
   };
 };
 
-export const calculateMomentumScore = (prices, config, benchmarkROC6m = null, benchmarkROC12m = null) => {
+export const calculateMomentumScore = (
+  prices, config, benchmarkROC6m = null, benchmarkROC12m = null
+) => {
   const _lastPrice = prices[prices.length - 1];
 
   // ROC 6 meses y 12 meses con manejo de errores
@@ -362,7 +366,9 @@ export const calculateRiskScore = (data, prices, config, benchmarkVol = null) =>
   if (prices.length >= 60) {
     try {
       volatility = ind.Volatility(prices, Math.min(252, prices.length - 1));
-      relVol = benchmarkVol !== null ? calculateRelativeVolatility(volatility, benchmarkVol) : volatility / 20;
+      relVol = benchmarkVol !== null
+        ? calculateRelativeVolatility(volatility, benchmarkVol)
+        : volatility / 20;
 
       if (relVol < 0.8) volScore = 35;
       else if (relVol < 1.2) volScore = 25;
@@ -521,14 +527,17 @@ export const applyHardFilters = (data, prices, volumes, config) => {
 // SCORING TOTAL PONDERADO
 // =====================================================
 
-export const calculateFinalScore = (trendScore, momentumScore, riskScore, liquidityScore, weights) => {
+export const calculateFinalScore = (
+  trendScore, momentumScore, riskScore, liquidityScore, weights
+) => {
   const normalizedTrend = (trendScore / 100) * weights.trend;
   const normalizedMomentum = (momentumScore / 100) * weights.momentum;
   const normalizedRisk = (riskScore / 100) * weights.risk;
   const normalizedLiquidity = (liquidityScore / 100) * weights.liquidity;
 
   const totalWeight = weights.trend + weights.momentum + weights.risk + weights.liquidity;
-  const finalScore = ((normalizedTrend + normalizedMomentum + normalizedRisk + normalizedLiquidity) / totalWeight) * 100;
+  const weightedSum = normalizedTrend + normalizedMomentum + normalizedRisk + normalizedLiquidity;
+  const finalScore = (weightedSum / totalWeight) * 100;
 
   return Math.round(Math.min(100, Math.max(0, finalScore)));
 };

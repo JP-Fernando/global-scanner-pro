@@ -21,7 +21,8 @@ export function generateAuditReport(portfolio, governance, riskData, performance
 
   // Executive Summary
   pdf.addSectionHeader('1. Executive Summary');
-  const summary = new ExecutiveSummaryGenerator({ ...performanceData, positions: portfolio.positions });
+  const summaryData = { ...performanceData, positions: portfolio.positions };
+  const summary = new ExecutiveSummaryGenerator(summaryData);
   const execSummary = summary.generate();
   pdf.addText(execSummary.overview);
   pdf.currentY += 5;
@@ -146,7 +147,9 @@ export function generateAuditReport(portfolio, governance, riskData, performance
  * INVESTMENT COMMITTEE REPORT TEMPLATE
  * Strategic report for investment decision makers
  */
-export function generateInvestmentCommitteeReport(portfolio, performanceData, riskData, marketContext) {
+export function generateInvestmentCommitteeReport(
+  portfolio, performanceData, riskData, marketContext
+) {
   const pdf = new PDFReportGenerator({ portfolio, performanceData, riskData, marketContext });
 
   // Title Page

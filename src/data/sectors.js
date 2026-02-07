@@ -116,7 +116,8 @@ export const SECTOR_TAXONOMY = [
   {
     sectorId: 800,
     name: "Information Technology",
-    // Mappings: Software, hardware, chips. OJO: Google/Meta NO suelen estar aquí (son Comm Services), pero Microsoft/Apple sí.
+    // Mappings: Software, hardware, chips.
+    // OJO: Google/Meta NO suelen estar aquí (son Comm Services), pero Microsoft/Apple sí.
     mappings: ["information technology", "technology", "tech", "software", "hardware", "semiconductors", "semis", "it services", "electronic equipment"],
     industries: [
       { industryId: 810, name: "Software" },

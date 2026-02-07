@@ -38,7 +38,7 @@ export function validate(schema, source = 'query') {
     } catch (error) {
       // Handle Zod validation errors
       if (error instanceof ZodError) {
-        const errors = error.errors.map(err => ({
+        const errors = error.issues.map(err => ({
           field: err.path.join('.'),
           message: err.message,
           code: err.code
@@ -92,7 +92,7 @@ export function validateMultiple(schemas) {
           req[source] = validatedData;
         } catch (error) {
           if (error instanceof ZodError) {
-            errors.push(...error.errors.map(err => ({
+            errors.push(...error.issues.map(err => ({
               source,
               field: err.path.join('.'),
               message: err.message,

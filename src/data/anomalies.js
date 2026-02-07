@@ -10,7 +10,9 @@ const math = {
   }
 };
 
-export function detectAnomalies(asset, sectorStats, params = { thresholdZ: 3.0, sectorRatio: 5.0 }) {
+export function detectAnomalies(
+  asset, sectorStats, params = { thresholdZ: 3.0, sectorRatio: 5.0 }
+) {
   const anomalies = [];
   const warnings = [];
 
@@ -24,7 +26,8 @@ export function detectAnomalies(asset, sectorStats, params = { thresholdZ: 3.0, 
   const stdVol = math.std(volumes, avgVol);
 
   // 1. Cálculo de Z-Score con protección contra división por cero
-  // Si stdVol es 0, el volumen ha sido constante; cualquier volumen actual > avgVol es una anomalía infinita
+  // Si stdVol es 0, el volumen ha sido constante;
+  // cualquier volumen actual > avgVol es una anomalía infinita
   let volumeZScore = 0;
   if (stdVol > 0) {
     volumeZScore = (asset.volume - avgVol) / stdVol;

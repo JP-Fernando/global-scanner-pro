@@ -558,7 +558,9 @@ export const calculateCorrelationMatrix = (assets) => {
 /**
  * Portfolio Risk Metrics (VaR, CVaR, Correlations)
  */
-export const calculatePortfolioMetrics = (allocatedAssets, totalCapital = 10000, confidence = 0.95) => {
+export const calculatePortfolioMetrics = (
+  allocatedAssets, totalCapital = 10000, confidence = 0.95
+) => {
   return {
     varMetrics: calculatePortfolioVaR(allocatedAssets, totalCapital, confidence),
     cvarMetrics: calculatePortfolioCVaR(allocatedAssets, totalCapital, confidence),

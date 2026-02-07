@@ -232,7 +232,9 @@ function euclideanDistance(a, b) {
 /**
  * Detect correlation anomalies (unusual correlations)
  */
-export function detectCorrelationAnomalies(assets, correlationMatrix, config = ANOMALY_DETECTION_CONFIG) {
+export function detectCorrelationAnomalies(
+  assets, correlationMatrix, config = ANOMALY_DETECTION_CONFIG
+) {
   const anomalies = [];
 
   if (!correlationMatrix || correlationMatrix.length < 2) return anomalies;

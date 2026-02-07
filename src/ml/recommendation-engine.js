@@ -582,7 +582,8 @@ function calculateMLRiskScore(result, allAssets) {
   let relativeRiskPercentile = 50;
   if (allAssets && allAssets.length > 0) {
     const allVolatilities = allAssets.map(a => parseFloat(a.details?.risk?.volatility) || 0);
-    relativeRiskPercentile = (allVolatilities.filter(v => v > volatility).length / allVolatilities.length) * 100;
+    const higherVolCount = allVolatilities.filter(v => v > volatility).length;
+    relativeRiskPercentile = (higherVolCount / allVolatilities.length) * 100;
   }
 
   // Composite risk assessment
@@ -641,7 +642,9 @@ function calculateMLRiskScore(result, allAssets) {
 /**
  * Filter recommendations by priority
  */
-export function filterByPriority(recommendations, minPriority = RECOMMENDATION_PRIORITY.MEDIUM.level) {
+export function filterByPriority(
+  recommendations, minPriority = RECOMMENDATION_PRIORITY.MEDIUM.level
+) {
   return recommendations.filter(rec => rec.priority.level >= minPriority);
 }
 

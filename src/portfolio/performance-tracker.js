@@ -195,7 +195,8 @@ export class PerformanceTracker {
         value,
         return_pct: returnPct,
         daily_return_pct: equityCurve.length > 0
-          ? ((value - equityCurve[equityCurve.length - 1].value) / equityCurve[equityCurve.length - 1].value) * 100
+          ? ((value - equityCurve[equityCurve.length - 1].value) /
+             equityCurve[equityCurve.length - 1].value) * 100
           : 0
       });
     }
@@ -276,7 +277,8 @@ export class PerformanceTracker {
 
     const returns = equityCurve.map(p => p.daily_return_pct / 100);
     const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-    const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+    const variance =
+      returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
     const volatility = Math.sqrt(variance);
 
     // Annualized metrics (assuming daily data)
@@ -306,7 +308,8 @@ export class PerformanceTracker {
 
     // Total return
     const totalReturn = equityCurve.length > 0
-      ? ((equityCurve[equityCurve.length - 1].value - equityCurve[0].value) / equityCurve[0].value) * 100
+      ? ((equityCurve[equityCurve.length - 1].value - equityCurve[0].value) /
+         equityCurve[0].value) * 100
       : 0;
 
     return {
