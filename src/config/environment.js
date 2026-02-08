@@ -19,7 +19,7 @@ dotenv.config();
  */
 const envSchema = z.object({
   // Server Configuration
-  NODE_ENV: z.enum(['development', 'staging', 'production']).default('development'),
+  NODE_ENV: z.enum(['development', 'staging', 'production', 'test']).default('development'),
   PORT: z.preprocess(
     (val) => val || '3000',
     z.string().regex(/^\d+$/).transform(Number)
@@ -153,7 +153,7 @@ function validateEnv() {
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('❌ Environment validation failed:');
-      error.errors.forEach(err => {
+      (error.issues || []).forEach(err => {
         console.error(`   - ${err.path.join('.')}: ${err.message}`);
       });
       throw new Error('Invalid environment configuration');
@@ -174,9 +174,10 @@ export const config = {
   server: {
     port: env.PORT,
     env: env.NODE_ENV,
-    isDevelopment: env.NODE_ENV === 'development',
+    isDevelopment: env.NODE_ENV === 'development' || env.NODE_ENV === 'test',
     isProduction: env.NODE_ENV === 'production',
-    isStaging: env.NODE_ENV === 'staging'
+    isStaging: env.NODE_ENV === 'staging',
+    isTest: env.NODE_ENV === 'test'
   },
 
   security: {

@@ -408,16 +408,28 @@ for (const envVar of requiredEnvVars) {
 - ✅ Test UI available for debugging (`npm run test:ui`)
 
 #### 2.1.2 Expand Unit Test Coverage
-**Current Gap**: Only ~50 tests covering happy paths; edge cases and error conditions not tested.
+**Status**: 🔄 IN PROGRESS - February 2026
+
+**Current Gap**: Coverage at ~43% overall; many critical modules untested.
 
 **Actions**:
-- Analyse current test coverage with `vitest run --coverage`
-- Create test plan targeting 80%+ coverage for critical modules:
+- ✅ Analyse current test coverage with `vitest run --coverage`
+- ✅ Fix vitest coverage config to exclude non-JS files from coverage report
+- ✅ Fix Zod v4 compatibility bug: use `.issues` instead of `.errors` in `config/environment.js`
+- ✅ Add `test` as valid `NODE_ENV` in environment schema for Vitest compatibility
+- ✅ Write unit tests for critical modules (7 new test files, 187 new tests):
+  - [environment.test.js](../src/tests/unit/environment.test.js) — 24 tests (env validation, config object, features, logging, performance, printConfig)
+  - [market-regime.test.js](../src/tests/unit/market-regime.test.js) — 26 tests (benchmark analysis, market breadth, regime detection, strategy adjustment, regime history)
+  - [governance.test.js](../src/tests/unit/governance.test.js) — 26 tests (investment rules, risk profiles, compliance validation, corrections, governance reports)
+  - [security-middleware.test.js](../src/tests/unit/security-middleware.test.js) — 18 tests (Helmet, CORS, rate limiting, HTTPS enforcement, security headers, request ID, sanitization)
+  - [performance-tracker.test.js](../src/tests/unit/performance-tracker.test.js) — 25 tests (drawdowns, max drawdown, Sharpe/Sortino/Calmar ratios, equity curves, alpha/beta, tracking error)
+  - [portfolio-manager.test.js](../src/tests/unit/portfolio-manager.test.js) — 33 tests (CRUD, position management, rebalancing, snapshots, equity curves)
+  - [allocation.test.js](../src/tests/unit/allocation.test.js) — 35 tests (equal weight, score-weighted, ERC, vol targeting, hybrid, portfolio risk, capital recommendations)
+- Create test plan targeting 80%+ coverage for remaining critical modules:
   - Core scanning logic ([core/scanner.js](../src/core/scanner.js))
-  - Risk analytics ([analytics/risk_engine.js](../src/analytics/risk_engine.js))
-  - Portfolio optimisation ([analytics/portfolio-optimizer.js](../src/analytics/portfolio-optimizer.js))
   - ML components ([ml/](../src/ml/))
-  - Alert system ([alerts/alert-manager.js](../src/alerts/alert-manager.js))
+  - Report generators ([reports/](../src/reports/))
+  - Storage layer ([storage/indexed-db-store.js](../src/storage/indexed-db-store.js))
 - Write tests for edge cases:
   - Empty data sets
   - Malformed input data
@@ -429,6 +441,18 @@ for (const envVar of requiredEnvVars) {
   - Verify error messages are descriptive
   - Verify graceful degradation when possible
 - Add property-based testing for numerical calculations (using fast-check)
+
+**Results** (February 2026 Progress):
+- 22 test files with 391 tests (was 15 files / ~200 tests)
+- Coverage: Stmts 52% | Branch 33% | Funcs 60% | Lines 52% (up from 43/27/48/43)
+- Key module improvements:
+  - `allocation/allocation.js`: 40% → 100% statements
+  - `analytics/governance.js`: 10% → 100% statements
+  - `analytics/market_regime.js`: 0% → 89% statements
+  - `config/environment.js`: 0% → 81% statements
+  - `middleware/security.js`: 0% → 70% statements
+  - `portfolio/portfolio-manager.js`: 0% → 76% statements
+  - `portfolio/performance-tracker.js`: 0% → 53% statements
 
 **Success Criteria**:
 - Code coverage reaches 80% overall
