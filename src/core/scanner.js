@@ -3713,6 +3713,27 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// Internal exports for unit testing
+export {
+  formatPct,
+  formatNumber,
+  formatCapital,
+  getMetricColor,
+  getRSIDescription,
+  getRegimeInterpretation,
+  generateInvestmentRecommendation,
+  generateTimeHorizonRecommendations,
+  checkMLAnomaliesForTicker,
+  generateMLInsightsHTML,
+  analyzeStock,
+  loadBenchmark,
+  loadYahooData,
+  exportBacktestToCSV,
+  SECTOR_COLORS,
+  SECTOR_NAMES,
+  appState,
+};
+
 window.runScan = runScan;
 window.updateView = updateView;
 window.closeModal = closeModal;

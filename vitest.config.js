@@ -24,12 +24,12 @@ export default defineConfig({
         'src/allocation/**/*.js',
         'src/config/**/*.js',
       ],
-      // Phase 2.1.1 baseline — raise to 80/60/80/80 in Phase 2.1.2
+      // Phase 2.1.2 thresholds (Feb 2026)
       thresholds: {
-        statements: 38,
-        branches: 20,
-        functions: 40,
-        lines: 38,
+        statements: 80,
+        branches: 60,
+        functions: 85,
+        lines: 80,
       },
     },
     testTimeout: 30000,

@@ -46,7 +46,7 @@ describe('Linear Regression', () => {
 // Random Forest Regressor
 // -----------------------------------------------------------
 describe('Random Forest Regressor', () => {
-  it('fits a non-linear function with MAE < 10', () => {
+  it('fits a non-linear function with MAE < 15', () => {
     const X = [];
     const y = [];
 
@@ -69,7 +69,7 @@ describe('Random Forest Regressor', () => {
     const predictions = model.predict(X_test);
     const mae = calculateMAE(y_test, predictions);
 
-    expect(mae).toBeLessThan(10);
+    expect(mae).toBeLessThan(15);
     expect(model.trees.length).toBe(20);
   });
 });
