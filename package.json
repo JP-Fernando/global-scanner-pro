@@ -9,6 +9,8 @@
     "data:enrich": "node scripts/enrich_universes.js",
     "dev": "node --watch server.js",
     "test": "vitest run",
+    "test:unit": "vitest run --testPathPattern=unit",
+    "test:integration": "vitest run --testPathPattern=integration",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
