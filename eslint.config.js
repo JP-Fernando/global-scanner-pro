@@ -97,6 +97,22 @@ export default [
     },
   },
 
+  // Override rules for Playwright E2E test files
+  {
+    files: ['src/tests/e2e/**/*.js', 'src/tests/e2e/**/*.spec.js'],
+    languageOptions: {
+      globals: {
+        test: 'readonly',
+        expect: 'readonly',
+        Event: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      'max-len': 'off',
+    },
+  },
+
   // Override rules for Vitest test files
   {
     files: ['src/tests/unit/**/*.test.js'],

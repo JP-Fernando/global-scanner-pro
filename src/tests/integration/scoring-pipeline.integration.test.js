@@ -6,7 +6,6 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import * as ind from '../../indicators/indicators.js';
 import {
   calculateTrendScore,
   calculateMomentumScore,
@@ -21,9 +20,7 @@ import {
 } from '../../indicators/scoring.js';
 import {
   allocateCapital,
-  calculatePortfolioRisk,
   calculateCapitalRecommendations,
-  ALLOCATION_CONFIG,
 } from '../../allocation/allocation.js';
 import { buildOHLCVSeries, buildScoredAssets, buildStrategyConfig } from './helpers.js';
 
@@ -291,7 +288,7 @@ describe('Scoring → Allocation integration', () => {
 describe('Allocation → Portfolio risk metrics', () => {
   it('diversification ratio > 1 for diversified portfolio', () => {
     const assets = buildScoredAssets(5);
-    const { allocation, portfolioRisk } = allocateCapital(assets, 'equal_weight');
+    const { portfolioRisk } = allocateCapital(assets, 'equal_weight');
     expect(parseFloat(portfolioRisk.diversificationRatio)).toBeGreaterThan(1);
   });
 
@@ -395,7 +392,7 @@ describe('Edge cases', () => {
 
   it('scoring with very short price series degrades gracefully', () => {
     const config = buildStrategyConfig();
-    const { data, prices, volumes } = buildOHLCVSeries(25, 100);
+    const { data, prices } = buildOHLCVSeries(25, 100);
     // Should not throw — missing indicators fall back to neutral scores
     const trend = calculateTrendScore(data, prices, config.indicators);
     const risk = calculateRiskScore(data, prices, config.indicators);

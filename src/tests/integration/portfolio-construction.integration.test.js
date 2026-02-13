@@ -8,7 +8,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   allocateCapital,
-  calculatePortfolioRisk,
   calculateCapitalRecommendations,
 } from '../../allocation/allocation.js';
 import {

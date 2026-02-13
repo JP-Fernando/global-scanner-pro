@@ -5,6 +5,7 @@
  * data structures matching the contracts between modules.
  */
 
+import { vi } from 'vitest';
 export { buildPriceSeries, buildAssetSeries, buildStrategyConfig, setupReportMocks } from '../helpers.js';
 
 // ------------------------------------------------------------------

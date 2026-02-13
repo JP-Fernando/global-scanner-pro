@@ -510,35 +510,52 @@ for (const envVar of requiredEnvVars) {
 - ✅ All 1138 tests passing (unit + integration)
 
 #### 2.1.4 Implement End-to-End (E2E) Tests
-**Current Gap**: No E2E tests to verify user-facing functionality.
+**Status**: ✅ COMPLETED - February 2026
+
+**Current Gap** (at start): No E2E tests to verify user-facing functionality.
 
 **Actions**:
-- Select E2E framework (Playwright recommended over Cypress for better parallel execution)
-- Install and configure Playwright:
-  - playwright
-  - @playwright/test
-  - Configure browsers (Chromium, Firefox, WebKit)
-- Create E2E test infrastructure:
-  - `tests/e2e/` directory
-  - Page Object Model for UI components
-  - Test utilities for common actions
-  - Screenshot and video capture on failure
-- Write E2E tests for critical user journeys:
-  - Market selection and scanning
-  - Strategy configuration
-  - Portfolio construction and optimisation
-  - Report generation and export
-  - Alert configuration
-  - Dashboard navigation
-- Test responsive design across viewport sizes
-- Test accessibility with axe-core integration
-- Configure E2E tests to run in CI with headless browsers
+- ✅ Selected Playwright as E2E framework (superior parallel execution, multi-browser support, built-in auto-wait)
+- ✅ Installed and configured Playwright:
+  - `@playwright/test` and `@axe-core/playwright` as dev dependencies
+  - [playwright.config.js](../playwright.config.js) — 3 browser projects (Chromium, Firefox, WebKit), `webServer` auto-start, screenshots/video on failure
+  - npm scripts: `test:e2e`, `test:e2e:headed`, `test:e2e:chromium`, `test:e2e:report`
+- ✅ Created E2E test infrastructure:
+  - [src/tests/e2e/](../src/tests/e2e/) directory
+  - **Page Object Models** (7 POMs): [BasePage](../src/tests/e2e/pages/BasePage.js), [ScannerPage](../src/tests/e2e/pages/ScannerPage.js), [FiltersPage](../src/tests/e2e/pages/FiltersPage.js), [PortfolioPage](../src/tests/e2e/pages/PortfolioPage.js), [DashboardPage](../src/tests/e2e/pages/DashboardPage.js), [BacktestPage](../src/tests/e2e/pages/BacktestPage.js), [AlertsPage](../src/tests/e2e/pages/AlertsPage.js)
+  - [api-mocks.js](../src/tests/e2e/helpers/api-mocks.js) — `page.route()` interceptors for `/api/yahoo` and `universes/*.json`
+  - [test-utils.js](../src/tests/e2e/helpers/test-utils.js) — `setupWithCompletedScan()`, `clearBrowserState()`, `getVisibleResultCount()`
+  - [yahoo-responses.js](../src/tests/e2e/fixtures/yahoo-responses.js) — deterministic OHLCV data builder with symbol-seeded variation
+- ✅ Wrote E2E tests for all critical user journeys (11 spec files, 76 tests):
+  - [smoke.spec.js](../src/tests/e2e/smoke.spec.js) — 8 tests: page load, health API, critical elements, defaults
+  - [scan-journey.spec.js](../src/tests/e2e/scan-journey.spec.js) — 10 tests: market/strategy selection, scan execution, results, view modes
+  - [filters.spec.js](../src/tests/e2e/filters.spec.js) — 9 tests: search, signal, score, volume, combined, clear, summary
+  - [portfolio-construction.spec.js](../src/tests/e2e/portfolio-construction.spec.js) — 8 tests: allocation methods (equal/score/hybrid), risk profiles
+  - [portfolio-dashboard.spec.js](../src/tests/e2e/portfolio-dashboard.spec.js) — 7 tests: save/load, chart tabs, positions, metrics, refresh
+  - [backtest.spec.js](../src/tests/e2e/backtest.spec.js) — 7 tests: params, execution, results sections, methods, export buttons
+  - [alerts.spec.js](../src/tests/e2e/alerts.spec.js) — 6 tests: thresholds, channels, notifications, save
+  - [export.spec.js](../src/tests/e2e/export.spec.js) — 4 tests: scan export, download event, backtest/portfolio exports
+  - [language.spec.js](../src/tests/e2e/language.spec.js) — 6 tests: default Spanish, switch en/es, button text, html lang, filters
+  - [responsive.spec.js](../src/tests/e2e/responsive.spec.js) — 7 tests: desktop/tablet/mobile viewports, overflow, touch targets
+  - [accessibility.spec.js](../src/tests/e2e/accessibility.spec.js) — 4 tests: axe-core audit, baseline tracking, keyboard focus
+- ✅ Tested responsive design across desktop (1280×720), tablet (768×1024), and mobile (375×667) viewports
+- ✅ Integrated axe-core for automated accessibility auditing
+- ✅ Configured CI with headless Chromium in [ci.yml](../.github/workflows/ci.yml) `e2e` job
+- ✅ Updated [.gitignore](../.gitignore) and [eslint.config.js](../eslint.config.js) for Playwright artifacts and globals
+
+**API Mocking Strategy**: All external API calls intercepted at browser level via `page.route()` — no production server code changes required. Uses deterministic fixture data adapted from integration test helpers.
+
+**Results** (February 2026):
+- 11 E2E spec files with 76 tests, all passing on Chromium (~1.6 min)
+- Total test suite: **64 files, 1214 tests** (1025 unit + 113 integration + 76 E2E)
+- Coverage maintained (E2E tests complement but don't duplicate unit/integration coverage)
+- E2E tests run in CI after lint+test jobs, with report and screenshot artifact upload
 
 **Success Criteria**:
-- All critical user journeys tested
-- E2E tests run in CI on every PR
-- Tests capture screenshots/videos on failure
-- Accessibility violations detected automatically
+- ✅ All critical user journeys tested (scan, filters, portfolio, dashboard, backtest, alerts, export, language)
+- ✅ E2E tests run in CI on every PR (GitHub Actions `e2e` job with Chromium)
+- ✅ Tests capture screenshots/videos on failure (Playwright `only-on-failure` config)
+- ✅ Accessibility violations detected automatically (axe-core integration with baseline tracking)
 
 #### 2.1.5 Performance and Load Testing
 **Current Gap**: No performance testing infrastructure.
@@ -1675,7 +1692,7 @@ for (const envVar of requiredEnvVars) {
 
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Test Coverage | 81.5% stmts / 81.8% lines (1138 tests) | 80%+ | ✅ End of Phase 2.1.3 |
+| Test Coverage | 81.5% stmts / 81.8% lines (1214 tests: 1025 unit + 113 integration + 76 E2E) | 80%+ | ✅ End of Phase 2.1.4 |
 | Security Vulnerabilities | Unknown | 0 Critical, 0 High | End of Phase 1 |
 | API Response Time (p95) | Not measured | < 500ms | End of Phase 3 |
 | Uptime | Not monitored | 99.9% | End of Phase 3 |
