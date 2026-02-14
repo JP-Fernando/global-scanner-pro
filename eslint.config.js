@@ -136,6 +136,25 @@ export default [
     },
   },
 
+  // Override rules for Vitest benchmark files
+  {
+    files: ['src/tests/performance/benchmarks/**/*.bench.js'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        bench: 'readonly',
+        beforeAll: 'readonly',
+        beforeEach: 'readonly',
+        afterAll: 'readonly',
+        afterEach: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      'max-len': 'off',
+    },
+  },
+
   // Override rules for server.js
   {
     files: ['server.js'],

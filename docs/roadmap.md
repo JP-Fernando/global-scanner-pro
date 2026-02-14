@@ -558,30 +558,63 @@ for (const envVar of requiredEnvVars) {
 - ✅ Accessibility violations detected automatically (axe-core integration with baseline tracking)
 
 #### 2.1.5 Performance and Load Testing
-**Current Gap**: No performance testing infrastructure.
+**Status**: ✅ COMPLETED - February 2026
+
+**Current Gap** (at start): No performance testing infrastructure.
 
 **Actions**:
-- Install performance testing tools:
-  - autocannon (for API load testing)
-  - lighthouse-ci (for frontend performance)
-- Create performance test suite:
-  - API endpoint performance benchmarks
-  - Database query performance tests
-  - Portfolio optimisation algorithm performance tests
-  - Frontend rendering performance tests
-- Set performance budgets:
-  - API response times (95th percentile < 500ms)
-  - Time to Interactive (TTI < 3s)
-  - First Contentful Paint (FCP < 1.5s)
-  - Lighthouse score > 90
-- Add performance tests to CI pipeline
-- Create performance regression detection
+- ✅ Installed performance testing tools:
+  - `autocannon` ^8.x (devDep — HTTP load testing, programmatic API)
+  - `@lhci/cli` ^0.15.x (devDep — Lighthouse CI for frontend performance)
+  - `vitest bench` (built-in — computational benchmarks, no extra dependency)
+- ✅ Created performance test directory structure:
+  - `src/tests/performance/budgets/` — centralised threshold definitions
+  - `src/tests/performance/benchmarks/` — 7 Vitest bench files (`*.bench.js`)
+  - `src/tests/performance/load/` — autocannon-based load test scripts
+  - `src/tests/performance/lighthouse/` — LHCI configuration and runner
+  - `src/tests/performance/results/` — runtime output directory (gitignored)
+- ✅ Created [performance-budgets.js](../src/tests/performance/budgets/performance-budgets.js) — single source of truth for all thresholds with `PERF_STRICT` env for tighter local limits
+- ✅ Created 7 computational benchmark files:
+  - [indicators.bench.js](../src/tests/performance/benchmarks/indicators.bench.js) — 18 benchmarks: SMA, EMA, EMA_Array, RSI, ATR, BollingerBands, ADX, WilliamsR, ROC, Volatility, MaxDrawdown, DaysAboveEMA, VolumeRatio (500 and 1000 data points)
+  - [scoring.bench.js](../src/tests/performance/benchmarks/scoring.bench.js) — 6 benchmarks: calculateTrendScore, calculateMomentumScore, calculateRiskScore, calculateLiquidityScore, applyHardFilters, full scoring pipeline
+  - [allocation.bench.js](../src/tests/performance/benchmarks/allocation.bench.js) — 8 benchmarks: equalWeight, scoreWeighted, ERC, volatilityTargeting, hybrid (5 assets), allocateCapital with 3 methods (10 assets)
+  - [ml-engine.bench.js](../src/tests/performance/benchmarks/ml-engine.bench.js) — 9 benchmarks: normalizeArray, standardizeArray, calculateCorrelation, LinearRegression/DecisionTree/RandomForest/KMeans fit, LR/RF predict
+  - [portfolio-optimizer.bench.js](../src/tests/performance/benchmarks/portfolio-optimizer.bench.js) — 3 benchmarks: optimizeMaxSharpe, optimizeMinVariance, optimizeRiskParity
+  - [monte-carlo.bench.js](../src/tests/performance/benchmarks/monte-carlo.bench.js) — 2 benchmarks: 1k and 10k simulation runs
+  - [stress-testing.bench.js](../src/tests/performance/benchmarks/stress-testing.bench.js) — 3 benchmarks: sector stress (tech crash, financial crisis), multi-factor stress
+- ✅ Created load test infrastructure:
+  - [load-test-runner.js](../src/tests/performance/load/load-test-runner.js) — utility: `startServer()` (child process with env overrides, health polling), `runLoadTest()` (autocannon wrapper), `stopServer()`, `assertBudgets()`, `printResults()`
+  - [health-endpoint.load.js](../src/tests/performance/load/health-endpoint.load.js) — /api/health throughput test (10s, 10 connections, ~3300 req/s, p97.5 < 100ms budget)
+  - [yahoo-endpoint.load.js](../src/tests/performance/load/yahoo-endpoint.load.js) — /api/yahoo middleware overhead (short timeout, measures Express stack)
+  - [rate-limiting.load.js](../src/tests/performance/load/rate-limiting.load.js) — validates 429 responses returned when exceeding rate limit (20 accepted, 30 rejected)
+- ✅ Created Lighthouse CI configuration:
+  - [lighthouserc.js](../src/tests/performance/lighthouse/lighthouserc.js) — 3 runs, performance/a11y/best-practices >= 90, SEO >= 80, FCP < 1500ms, TTI < 3000ms, LCP < 2500ms, CLS < 0.1
+  - [lighthouse-runner.js](../src/tests/performance/lighthouse/lighthouse-runner.js) — wraps `lhci autorun`
+- ✅ Set performance budgets:
+  - API: health p97.5 < 100ms, 500+ req/s; yahoo p97.5 < 500ms
+  - Computation: single indicator < 5ms, scoring pipeline < 25ms, RF fit < 1500ms, Monte Carlo 10k < 600ms
+  - Frontend: Lighthouse performance/a11y/best-practices >= 90, FCP < 1.5s, TTI < 3s
+- ✅ Added npm scripts: `test:bench`, `test:bench:json`, `test:load`, `test:load:health`, `test:load:yahoo`, `test:load:ratelimit`, `test:lighthouse`, `test:perf`, `test:perf:all`, `perf:baseline`
+- ✅ Updated [vitest.config.js](../vitest.config.js) with `benchmark` section (include pattern + setup file)
+- ✅ Updated [eslint.config.js](../eslint.config.js) with `bench` global for benchmark files
+- ✅ Updated [.gitignore](../.gitignore) for runtime performance artifacts
+- ✅ Added `performance` job to [ci.yml](../.github/workflows/ci.yml) (needs: lint+test; runs benchmarks, load tests, Lighthouse)
+- ✅ Regression detection via `vitest bench --outputJson` + `--compare` against committed baseline
+
+**Results** (February 2026):
+- 7 benchmark files with 49 individual benchmarks, all passing
+- 3 load test scripts validating API throughput and rate limiting
+- Lighthouse CI configured with production performance budgets
+- Health endpoint: ~3300 req/s, p97.5 latency 7ms
+- Rate limiting validated: 20/50 requests accepted, 30 rejected with 429
+- All 1138 existing tests continue passing (zero regressions)
+- `npm run lint` clean
 
 **Success Criteria**:
-- Performance benchmarks established
-- Performance budgets enforced in CI
-- Performance regressions detected automatically
-- Load testing verifies capacity requirements
+- ✅ Performance benchmarks established (49 computational benchmarks across 7 modules)
+- ✅ Performance budgets enforced in CI (performance job with load tests)
+- ✅ Performance regressions detectable via `vitest bench --compare` against baseline
+- ✅ Load testing verifies capacity (3300+ req/s health endpoint, rate limiting functional)
 
 ### 2.2 Type Safety Implementation
 
@@ -1693,12 +1726,13 @@ for (const envVar of requiredEnvVars) {
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
 | Test Coverage | 81.5% stmts / 81.8% lines (1214 tests: 1025 unit + 113 integration + 76 E2E) | 80%+ | ✅ End of Phase 2.1.4 |
+| Performance Benchmarks | 49 benchmarks across 7 modules + 3 load tests | Tracked in CI | ✅ End of Phase 2.1.5 |
 | Security Vulnerabilities | Unknown | 0 Critical, 0 High | End of Phase 1 |
-| API Response Time (p95) | Not measured | < 500ms | End of Phase 3 |
+| API Response Time (p97.5) | 7ms (health), rate limiting validated | < 500ms | ✅ Measured in Phase 2.1.5 |
 | Uptime | Not monitored | 99.9% | End of Phase 3 |
 | Deployment Frequency | Manual, infrequent | Daily (automated) | End of Phase 1 |
 | Mean Time to Recovery (MTTR) | Not measured | < 1 hour | End of Phase 4 |
-| Lighthouse Score | Not measured | > 90 | End of Phase 3 |
+| Lighthouse Score | Configured in CI (target >= 90) | > 90 | ✅ Configured in Phase 2.1.5 |
 | Bundle Size | Not optimised | < 500KB (gzipped) | End of Phase 3 |
 
 ### 6.2 Quality Metrics

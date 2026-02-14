@@ -40,6 +40,10 @@ playwright-report/
 test-results/
 blob-report/
 
+# Performance test results (generated at runtime)
+src/tests/performance/results/bench-results.json
+.lighthouseci/
+
 # Cache
 .eslintcache
 .cache/
