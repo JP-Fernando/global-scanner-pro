@@ -5,6 +5,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "start": "node server.js",
     "data:enrich": "node scripts/enrich_universes.js",
     "dev": "node --watch server.js",
@@ -73,16 +75,26 @@
     "url": "https://github.com/JP-Fernando/global-scanner-pro/issues"
   },
   "homepage": "https://github.com/JP-Fernando/global-scanner-pro#readme",
+  "lint-staged": {
+    "*.{ts,js}": "eslint --fix"
+  },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
     "@eslint/js": "^9.39.2",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.58.2",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.2.3",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "autocannon": "^8.0.0",
     "eslint": "^9.39.2",
     "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.55.0",
     "vitest": "^4.0.18"
   }
 }

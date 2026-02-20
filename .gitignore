@@ -6,6 +6,8 @@ npm-debug.log*
 .DS_Store
 .vscode/
 .idea/
+.cursor/
+.claude/
 *.swp
 
 # Backups y temporales

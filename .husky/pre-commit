@@ -1,2 +1,5 @@
-# Run ESLint on staged files
-npx eslint .
+# Run ESLint on staged files only
+npx lint-staged
+
+# Run TypeScript type checking on the full project
+npx tsc --noEmit
