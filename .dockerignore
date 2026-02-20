@@ -1,0 +1,56 @@
+# Dependencies (will be reinstalled inside image)
+node_modules/
+
+# Version control
+.git/
+.gitignore
+
+# Test infrastructure and results
+src/tests/
+coverage/
+test-results/
+playwright-report/
+.nyc_output/
+
+# Development tooling configs
+.env
+.env.*
+!.env.example
+
+# Performance test outputs
+src/tests/performance/results/
+
+# Logs (created at runtime)
+logs/
+*.log
+
+# Documentation (not needed at runtime)
+docs/
+*.md
+!README.md
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+
+# TypeScript source maps (source .ts files are bundled via tsx at runtime)
+*.js.map
+*.d.ts.map
+
+# CI/CD
+.github/
+
+# Scripts
+scripts/

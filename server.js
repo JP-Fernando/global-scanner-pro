@@ -11,9 +11,11 @@ import express from 'express';
 import fetch from 'node-fetch';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
 
 // Configuration and environment
 import { config, printConfig } from './src/config/environment.js';
+import { swaggerSpec, swaggerUiOptions } from './src/config/swagger.js';
 
 // Security middleware
 import {
@@ -93,103 +95,212 @@ app.use((req, res, next) => {
 app.use(express.static('.'));
 
 // ========================================
-// API Routes
+// API Documentation (Swagger UI)
 // ========================================
 
 /**
- * Yahoo Finance Proxy Endpoint
- * Proxies requests to Yahoo Finance API with rate limiting and validation
+ * Serve raw OpenAPI JSON spec at /api-docs.json
+ * Useful for code generation tools and API clients.
+ */
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+/**
+ * Serve Swagger UI interactive documentation at /api-docs
+ * Provides "Try it out" functionality for all endpoints.
+ */
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+
+// ========================================
+// Route Handlers (shared between v1 and legacy paths)
+// ========================================
+
+/**
+ * Yahoo Finance proxy handler.
+ * Fetches historical OHLCV data for a given ticker from Yahoo Finance.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+const yahooHandler = asyncHandler(async (req, res) => {
+  const { symbol, from, to } = req.query;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${from}&period2=${to}&interval=1d`;
+
+  log.debug(`Yahoo Finance: fetching ${symbol}`, { requestId: req.id, symbol, from, to });
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json'
+      },
+      timeout: config.performance.requestTimeout
+    });
+
+    if (!response.ok) {
+      throw new ExternalServiceError('Yahoo Finance', {
+        status: response.status,
+        statusText: response.statusText
+      });
+    }
+
+    const data = await response.json();
+
+    log.debug(`Yahoo Finance: ${symbol} OK (${data?.chart?.result?.[0]?.timestamp?.length || 0} pts)`, {
+      requestId: req.id, symbol
+    });
+
+    res.json(data);
+  } catch (error) {
+    if (error.name === 'AbortError' || error.code === 'ETIMEDOUT') {
+      throw new ExternalServiceError('Yahoo Finance (timeout)', error);
+    }
+    throw error;
+  }
+});
+
+/**
+ * Test runner handler.
+ * Executes the legacy test suite and returns a result summary.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+const testRunnerHandler = asyncHandler(async (req, res) => {
+  log.debug('Running test suite', { requestId: req.id });
+
+  const { runAllTests } = await import('./src/tests/tests.js');
+  const results = runAllTests();
+
+  log.debug('Test suite completed', {
+    requestId: req.id,
+    totalTests: results.totalTests,
+    passed: results.passed,
+    failed: results.failed
+  });
+
+  res.json(results);
+});
+
+/**
+ * Health check handler.
+ * Returns server status, uptime, memory usage, and enabled features.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+const healthHandler = (req, res) => {
+  const versioned = req.path.startsWith('/api/v1') || res.locals.apiVersion === 'v1';
+  const healthStatus = {
+    status: 'ok',
+    ...(versioned ? { apiVersion: 'v1' } : {}),
+    timestamp: new Date().toISOString(),
+    version: '0.0.5',
+    environment: config.server.env,
+    uptime: process.uptime(),
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+      external: Math.round(process.memoryUsage().external / 1024 / 1024)
+    },
+    features: config.features
+  };
+
+  res.json(healthStatus);
+};
+
+// ========================================
+// API v1 Routes (current, versioned)
+// ========================================
+
+/**
+ * Middleware that stamps all /api/v1 responses with the current API version header.
+ */
+app.use('/api/v1', (req, res, next) => {
+  res.setHeader('X-API-Version', 'v1');
+  res.locals.apiVersion = 'v1';
+  next();
+});
+
+/**
+ * GET /api/v1/yahoo — Yahoo Finance historical price proxy (v1)
+ * Rate-limited to 20 requests/minute per IP.
+ */
+app.get(
+  '/api/v1/yahoo',
+  configureYahooRateLimit(),
+  validate(yahooFinanceSchema, 'query'),
+  yahooHandler
+);
+
+/**
+ * GET /api/v1/run-tests — Legacy test suite runner (v1)
+ */
+app.get(
+  '/api/v1/run-tests',
+  validate(testRunnerSchema, 'query'),
+  testRunnerHandler
+);
+
+/**
+ * GET /api/v1/health — Application health check (v1)
+ */
+app.get(
+  '/api/v1/health',
+  validate(healthCheckSchema, 'query'),
+  healthHandler
+);
+
+// ========================================
+// Legacy API Routes (deprecated — use /api/v1/)
+// ========================================
+
+/**
+ * Middleware that marks all legacy /api routes as deprecated.
+ * Clients should migrate to /api/v1/ equivalents.
+ */
+app.use('/api', (req, res, next) => {
+  // Skip /api-docs and /api-docs.json — not legacy routes
+  if (req.path.startsWith('-docs')) {
+    return next();
+  }
+  res.setHeader('Deprecation', 'true');
+  res.setHeader('X-Deprecated', 'true');
+  res.setHeader('Link', `</api/v1${  req.path  }>; rel="successor-version"`);
+  next();
+});
+
+/**
+ * GET /api/yahoo — Yahoo Finance proxy (legacy, deprecated)
+ * @deprecated Use GET /api/v1/yahoo
  */
 app.get(
   '/api/yahoo',
   configureYahooRateLimit(),
   validate(yahooFinanceSchema, 'query'),
-  asyncHandler(async (req, res) => {
-    const { symbol, from, to } = req.query;
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${from}&period2=${to}&interval=1d`;
-
-    log.debug(`Yahoo Finance: fetching ${symbol}`, { requestId: req.id, symbol, from, to });
-
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'application/json'
-        },
-        timeout: config.performance.requestTimeout
-      });
-
-      if (!response.ok) {
-        throw new ExternalServiceError('Yahoo Finance', {
-          status: response.status,
-          statusText: response.statusText
-        });
-      }
-
-      const data = await response.json();
-
-      log.debug(`Yahoo Finance: ${symbol} OK (${data?.chart?.result?.[0]?.timestamp?.length || 0} pts)`, {
-        requestId: req.id, symbol
-      });
-
-      res.json(data);
-    } catch (error) {
-      if (error.name === 'AbortError' || error.code === 'ETIMEDOUT') {
-        throw new ExternalServiceError('Yahoo Finance (timeout)', error);
-      }
-      throw error;
-    }
-  })
+  yahooHandler
 );
 
 /**
- * Test Runner Endpoint
- * Executes the test suite and returns results
+ * GET /api/run-tests — Test suite runner (legacy, deprecated)
+ * @deprecated Use GET /api/v1/run-tests
  */
 app.get(
   '/api/run-tests',
   validate(testRunnerSchema, 'query'),
-  asyncHandler(async (req, res) => {
-    log.debug('Running test suite', { requestId: req.id });
-
-    const { runAllTests } = await import('./src/tests/tests.js');
-    const results = runAllTests();
-
-    log.debug('Test suite completed', {
-      requestId: req.id,
-      totalTests: results.totalTests,
-      passed: results.passed,
-      failed: results.failed
-    });
-
-    res.json(results);
-  })
+  testRunnerHandler
 );
 
 /**
- * Health Check Endpoint
- * Returns application health status
+ * GET /api/health — Health check (legacy, deprecated)
+ * @deprecated Use GET /api/v1/health
  */
 app.get(
   '/api/health',
   validate(healthCheckSchema, 'query'),
-  (req, res) => {
-    const healthStatus = {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      version: '0.0.5',
-      environment: config.server.env,
-      uptime: process.uptime(),
-      memory: {
-        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-        external: Math.round(process.memoryUsage().external / 1024 / 1024)
-      },
-      features: config.features
-    };
-
-    res.json(healthStatus);
-  }
+  healthHandler
 );
 
 // ========================================
@@ -239,9 +350,11 @@ const logServerStart = (port) => {
   console.log(`  ${dim}Global Quant Scanner Pro${rst} ${ylw}${bld}v0.0.5${rst}`);
   console.log(`  ${dim}───────────────────────────────────────────────────${rst}`);
   console.log('');
-  console.log(`  ${grn}${bld}➜${rst}  ${bld}Local:${rst}  ${cyn}${base}/index.html${rst}`);
+  console.log(`  ${grn}${bld}➜${rst}  ${bld}Local:${rst}   ${cyn}${base}/index.html${rst}`);
+  console.log(`  ${grn}${bld}➜${rst}  ${bld}API Docs:${rst} ${cyn}${base}/api-docs${rst}`);
   console.log('');
-  console.log(`  ${dim}API  /api/health · /api/yahoo · /api/run-tests${rst}`);
+  console.log(`  ${dim}v1   /api/v1/health · /api/v1/yahoo · /api/v1/run-tests${rst}`);
+  console.log(`  ${dim}spec /api-docs.json${rst}`);
   console.log('');
 
   log.info('Server started', { port, environment: config.server.env });

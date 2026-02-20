@@ -1,0 +1,74 @@
+# =============================================================================
+# Global Quant Scanner Pro — Docker Compose
+#
+# Usage:
+#   docker-compose up              # Start production-like app
+#   docker-compose up --build      # Rebuild and start
+#   docker-compose up app-dev      # Start with live-reload (dev profile)
+#   docker-compose logs -f app     # Follow logs
+#   docker-compose down            # Stop and remove containers
+# =============================================================================
+
+services:
+
+  # ── Production-like application ─────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: global-scanner-pro:latest
+    container_name: gsp-app
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+    volumes:
+      # Persist logs outside the container
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    # Resource limits (adjust for your hardware)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+
+  # ── Development service with live-reload ─────────────────────────────────────
+  # Start with: docker-compose up app-dev
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Use the deps stage so devDependencies are available
+      target: deps
+    image: global-scanner-pro:dev
+    container_name: gsp-app-dev
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+    volumes:
+      # Mount source for live-reload (changes reflected immediately)
+      - .:/app
+      # Prevent host node_modules from overriding container's
+      - /app/node_modules
+      # Persist logs
+      - ./logs:/app/logs
+    command: ["npx", "tsx", "watch", "server.js"]
+    profiles:
+      - dev
+    restart: unless-stopped

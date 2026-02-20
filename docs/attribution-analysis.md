@@ -624,8 +624,7 @@ Portfolio Max Drawdown: -9.2%
 
 Para preguntas o issues relacionados con el módulo de atribución:
 
-- 📧 Email: [tu-email@example.com]
-- 🐛 GitHub Issues: [link-to-repo/issues]
+- 🐛 GitHub Issues: [github.com/JP-Fernando/global-scanner-pro/issues](https://github.com/JP-Fernando/global-scanner-pro/issues)
 - 📖 Documentación completa: [docs/](../docs/)
 
 ---

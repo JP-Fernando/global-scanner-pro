@@ -663,8 +663,7 @@ testMemoizationCache()
 ## Soporte
 
 Para preguntas o issues:
-- GitHub: [Issues](https://github.com/tu-repo/issues)
-- Email: support@quantscanner.pro
+- GitHub: [Issues](https://github.com/JP-Fernando/global-scanner-pro/issues)
 - Docs: [Documentación completa](./README.md)
 
 ---

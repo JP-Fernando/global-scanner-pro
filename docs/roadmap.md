@@ -676,7 +676,10 @@ for (const envVar of requiredEnvVars) {
 
 ### 2.3 API Documentation
 
+**Status**: ✅ COMPLETED - February 2026
+
 #### 2.3.1 OpenAPI/Swagger Specification
+**Status**: ✅ COMPLETED - February 2026
 **Current Gap**: No formal API documentation exists.
 
 **Actions**:
@@ -706,6 +709,7 @@ for (const envVar of requiredEnvVars) {
 - Documentation stays in sync with code
 
 #### 2.3.2 API Versioning Strategy
+**Status**: ✅ COMPLETED - February 2026
 **Current Gap**: No API versioning in place.
 
 **Actions**:
@@ -727,7 +731,10 @@ for (const envVar of requiredEnvVars) {
 
 ### 2.4 Code Documentation
 
+**Status**: ✅ COMPLETED - February 2026
+
 #### 2.4.1 Inline Documentation Standards
+**Status**: ✅ COMPLETED - February 2026
 **Actions**:
 - Establish documentation standards:
   - All public functions must have JSDoc comments
@@ -751,6 +758,7 @@ for (const envVar of requiredEnvVars) {
 - Documentation matches code behaviour
 
 #### 2.4.2 Architecture Documentation
+**Status**: ✅ COMPLETED - February 2026
 **Actions**:
 - Enhance [arquitectura-tecnica.md](../docs/arquitectura-tecnica.md):
   - Add architecture diagrams (C4 model recommended)
@@ -904,6 +912,7 @@ for (const envVar of requiredEnvVars) {
 ### 3.2 Containerisation and Deployment
 
 #### 3.2.1 Docker Implementation
+**Status**: ✅ COMPLETED - February 2026
 **Current Gap**: No containerisation; deployment process not documented or automated.
 
 **Actions**:
@@ -934,6 +943,7 @@ for (const envVar of requiredEnvVars) {
 - Health check reports application status
 
 #### 3.2.2 Docker Compose for Local Development
+**Status**: ✅ COMPLETED - February 2026
 **Actions**:
 - Create `docker-compose.yml`:
   - Define application service

@@ -411,3 +411,205 @@ Combina validación de cumplimiento con documentación de estrategia para genera
 - **Memoria**: Aproximadamente 50-100MB por universo de 100 activos
 - **Performance**: ~2-3 segundos por activo analizado
 - **Precisión**: 2 decimales para porcentajes, 1 para scores
+
+---
+
+## Estructura del Proyecto (TypeScript — Phase 2.2+)
+
+Desde Phase 2.2 (febrero 2026) todos los archivos fuente están en TypeScript (`.ts`). Los archivos de test permanecen en `.js`.
+
+```
+global-scanner-pro/
+├── server.js                    # Servidor Express (entry point)
+├── src/
+│   ├── alerts/
+│   │   └── alert-system.ts      # Gestión de alertas y notificaciones
+│   ├── allocation/
+│   │   └── allocation.ts        # 5 estrategias de asignación de capital
+│   ├── analytics/
+│   │   ├── risk_engine.ts       # VaR, CVaR, correlaciones, Sharpe/Sortino/Calmar
+│   │   ├── portfolio-optimizer.ts # Monte Carlo, max-Sharpe, min-varianza, risk-parity
+│   │   ├── backtesting.ts       # Backtesting y walk-forward validation
+│   │   ├── attribution-analysis.ts # Análisis de atribución (Brinson)
+│   │   ├── comparative-analysis.ts # Comparación de estrategias
+│   │   ├── stress-testing.ts    # Stress tests por sector, divisa, geopolítica
+│   │   ├── market_regime.ts     # Detección de régimen (bull/bear/sideways)
+│   │   ├── governance.ts        # Reglas de inversión y compliance
+│   │   └── dynamic-governance.ts # Límites dinámicos según volatilidad/correlación
+│   ├── config/
+│   │   ├── environment.ts       # Configuración validada con Zod
+│   │   └── swagger.ts           # Spec OpenAPI 3.0
+│   ├── core/
+│   │   ├── scanner.ts           # Lógica principal de UI y escaneo (3739 líneas)
+│   │   └── config.ts            # Estrategias y benchmarks
+│   ├── dashboard/
+│   │   └── portfolio-dashboard.ts # Dashboard de cartera
+│   ├── i18n/
+│   │   └── i18n.ts              # Internacionalización (ES/EN)
+│   ├── indicators/
+│   │   ├── indicators.ts        # Librería de indicadores técnicos
+│   │   └── scoring.ts           # Motor de puntuación multi-factor
+│   ├── middleware/
+│   │   ├── security.ts          # Helmet, CORS, rate limiting, HTTPS
+│   │   ├── validation.ts        # Middleware de validación Zod
+│   │   └── error-handler.ts     # Manejo centralizado de errores
+│   ├── ml/
+│   │   ├── ml-engine.ts         # ML: LinearRegression, RandomForest, KMeans
+│   │   ├── adaptive-scoring.ts  # Scoring adaptativo con feedback
+│   │   ├── anomaly-detection.ts # Detección de anomalías (Z-score, IQR)
+│   │   ├── factor-weighting.ts  # Optimización de pesos de factores
+│   │   ├── recommendation-engine.ts # Recomendaciones de cartera y riesgo
+│   │   ├── regime-prediction.ts # Predicción de régimen de mercado
+│   │   └── index.ts             # Re-exports ML públicos
+│   ├── portfolio/
+│   │   ├── portfolio-manager.ts # CRUD de carteras y posiciones
+│   │   └── performance-tracker.ts # Drawdown, Sharpe, Sortino, Calmar, alfa/beta
+│   ├── reports/
+│   │   ├── report-generator.ts  # Generador base de reportes
+│   │   ├── excel-exporter.ts    # Exportación Excel (xlsx)
+│   │   ├── pdf-templates.ts     # Templates PDF (jsPDF)
+│   │   ├── comparative-analysis.ts # Reportes de análisis comparativo
+│   │   └── index.ts             # Re-exports de reportes
+│   ├── security/
+│   │   └── validation-schemas.ts # Schemas Zod para todos los endpoints
+│   ├── storage/
+│   │   └── indexed-db-store.ts  # Abstracción sobre IndexedDB
+│   ├── tests/                   # Suites de test (permanecen en .js)
+│   │   ├── unit/                # 47 archivos Vitest
+│   │   ├── integration/         # 6 archivos Vitest
+│   │   ├── e2e/                 # 11 specs Playwright
+│   │   └── performance/         # 7 benchmarks + 3 load tests
+│   ├── types/
+│   │   └── index.ts             # Tipos compartidos (ver sección siguiente)
+│   ├── ui/
+│   │   └── ui-utils.ts          # Debounce, throttle, ARIA helpers
+│   └── utils/
+│       ├── logger.ts            # Winston logging
+│       └── sentry.ts            # Integración Sentry
+├── docs/                        # Documentación técnica
+├── universes/                   # JSON de universos de mercado
+├── Dockerfile                   # Imagen multi-stage (node:20-alpine)
+├── docker-compose.yml           # Orquestación local
+├── tsconfig.json                # TypeScript strict mode
+├── vitest.config.js             # Configuración Vitest
+├── playwright.config.js         # Configuración Playwright
+└── eslint.config.js             # ESLint flat config
+```
+
+---
+
+## Sistema de Tipos TypeScript (`src/types/index.ts`)
+
+Interfaces clave compartidas entre módulos:
+
+| Tipo | Descripción |
+|------|-------------|
+| `Candle` | OHLCV + timestamp para una barra de precio |
+| `PricePoint` | `{ date, close }` simplificado |
+| `YahooChartResult` | Respuesta de Yahoo Finance API v8 |
+| `BollingerBandsResult` | `{ upper, middle, lower }` |
+| `HardFilterResult` | Resultado del pre-filtro estricto |
+| `Signal` | Señal técnica (`{ type, strength, description }`) |
+| `ScoredAsset` | Activo con 25+ métricas de scoring (trend, momentum, risk, liquidity, final score, percentiles, señales) |
+| `Portfolio` | Cartera con metadata y posiciones |
+| `Position` | Posición individual (símbolo, cantidad, precio) |
+| `PortfolioSnapshot` | Snapshot de valor total de cartera |
+| `AllocationResult` | Resultado de asignación de capital (símbolo → peso) |
+| `RiskReport` | VaR, CVaR, correlaciones, métricas de portfolio |
+| `RegimeState` | `'bull' \| 'bear' \| 'sideways' \| 'volatile'` |
+
+---
+
+## API REST
+
+### Endpoints Actuales
+
+| Método | Path (v1) | Path (legacy) | Descripción |
+|--------|-----------|---------------|-------------|
+| GET | `/api/v1/health` | `/api/health` ⚠️ | Estado del servidor |
+| GET | `/api/v1/yahoo` | `/api/yahoo` ⚠️ | Proxy Yahoo Finance |
+| GET | `/api/v1/run-tests` | `/api/run-tests` ⚠️ | Suite de tests legacy |
+| GET | `/api-docs` | — | Swagger UI interactivo |
+| GET | `/api-docs.json` | — | Spec OpenAPI 3.0 (JSON) |
+
+⚠️ Los paths legacy devuelven cabeceras `X-Deprecated: true` y `Deprecation: true`. Migrar a `/api/v1/`.
+
+### Cabeceras de Versión
+
+Las respuestas de `/api/v1/` incluyen:
+```
+X-API-Version: v1
+```
+
+### Formato de Error (todos los endpoints)
+
+```json
+{
+  "error": "Validation failed",
+  "timestamp": "2026-02-20T12:00:00.000Z",
+  "statusCode": 400,
+  "details": [
+    { "field": "symbol", "message": "Symbol is required", "code": "too_small" }
+  ]
+}
+```
+
+### Rate Limiting
+
+| Scope | Límite |
+|-------|--------|
+| Global | 100 req / 15 min por IP |
+| `/api/v1/yahoo` | 20 req / min por IP |
+
+---
+
+## Módulos de Machine Learning (`src/ml/`)
+
+| Módulo | Clase/Función principal | Descripción |
+|--------|------------------------|-------------|
+| `ml-engine.ts` | `MLEngine` | LinearRegression, DecisionTree, RandomForest, KMeans, normalización, correlación |
+| `adaptive-scoring.ts` | `AdaptiveScoring` | Ajusta pesos de factores según feedback de rendimiento histórico |
+| `factor-weighting.ts` | `FactorWeighting` | Optimiza pesos (trend/momentum/risk/liquidity) con backtest walk-forward |
+| `anomaly-detection.ts` | `AnomalyDetection` | Detección de anomalías: Z-score, IQR, isolation-forest simplificado |
+| `recommendation-engine.ts` | `RecommendationEngine` | Genera recomendaciones de cartera y warnings de riesgo |
+| `regime-prediction.ts` | `RegimePrediction` | Clasifica régimen de mercado con features técnicas (vol, trend, breadth) |
+| `index.ts` | — | Re-exports de la API pública ML |
+
+**Pipeline ML completa**:
+1. Extracción de features (indicadores técnicos → vector numérico)
+2. Entrenamiento de pesos de factores (`FactorWeighting.train`)
+3. Scoring adaptativo con feedback de rendimiento (`AdaptiveScoring`)
+4. Predicción de régimen (`RegimePrediction.predict`)
+5. Detección de anomalías (`AnomalyDetection.detectAll`)
+6. Recomendaciones finales (`RecommendationEngine.analyzeAssetML`)
+
+---
+
+## Infraestructura Docker
+
+### Imagen de Producción (`Dockerfile`)
+
+Imagen multi-stage basada en `node:20-alpine`:
+
+```
+Stage 1 (deps):    instala sólo dependencias de producción
+Stage 2 (runtime): copia artefactos, usuario no-root, HEALTHCHECK
+```
+
+- Puerto expuesto: `3000`
+- Usuario: `node` (non-root)
+- Health check: `GET /api/v1/health` cada 30s
+- Tamaño objetivo: < 200MB
+
+### Desarrollo Local (`docker-compose.yml`)
+
+```bash
+# Iniciar todos los servicios
+docker-compose up
+
+# Sólo la aplicación
+docker-compose up app
+
+# Reconstruir imagen
+docker-compose up --build
+```
