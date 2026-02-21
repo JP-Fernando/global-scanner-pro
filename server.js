@@ -2,12 +2,13 @@
  * Global Quant Scanner Pro - Main Server
  *
  * Professional Edition with enterprise-grade security,
- * logging, error handling, and monitoring.
+ * logging, error handling, monitoring, and performance optimisation.
  *
  * @module server
  */
 
 import express from 'express';
+import compression from 'compression';
 import fetch from 'node-fetch';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -51,6 +52,18 @@ import {
   sentryErrorHandler
 } from './src/utils/sentry.js';
 
+// Performance: in-memory cache for Yahoo Finance responses
+import {
+  buildYahooCacheKey,
+  getYahooCache,
+  setYahooCache,
+  getCacheStats,
+  flushYahooCache
+} from './src/utils/cache.js';
+
+// Observability: Prometheus metrics
+import { metricsMiddleware, metricsHandler } from './src/utils/metrics.js';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Print full configuration only in debug mode
@@ -77,8 +90,22 @@ app.use(sentryTracingHandler());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
+// Response compression (gzip/brotli) — must be before routes
+app.use(compression({
+  // Only compress responses above 1 KB
+  threshold: 1024,
+  // Custom filter: skip already-compressed assets and Prometheus metrics
+  filter: (req, res) => {
+    if (req.path === '/metrics') return false;
+    return compression.filter(req, res);
+  }
+}));
+
 // Configure all security middleware (helmet, CORS, rate limiting, etc.)
 configureSecurityMiddleware(app);
+
+// Prometheus metrics instrumentation
+app.use(metricsMiddleware);
 
 // HTTP request logging
 app.use(httpLogger());
@@ -91,8 +118,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files
-app.use(express.static('.'));
+// Serve static files with aggressive cache headers for immutable assets
+app.use(express.static('.', {
+  // HTML: no-cache so the browser always revalidates
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    } else if (/\.(js|css|woff2?|ttf|otf|eot|svg|png|jpg|jpeg|gif|ico|webp)$/.test(filePath)) {
+      // Versioned/hashed assets: cache for 1 year
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (filePath.endsWith('.json')) {
+      // JSON data files: cache 5 minutes
+      res.setHeader('Cache-Control', 'public, max-age=300');
+    }
+  }
+}));
 
 // ========================================
 // API Documentation (Swagger UI)
@@ -120,14 +160,25 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOpti
 /**
  * Yahoo Finance proxy handler.
  * Fetches historical OHLCV data for a given ticker from Yahoo Finance.
+ * Responses are cached in-memory for 5 minutes to reduce external API calls.
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
 const yahooHandler = asyncHandler(async (req, res) => {
   const { symbol, from, to } = req.query;
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${from}&period2=${to}&interval=1d`;
 
+  // ── Cache lookup ───────────────────────────────────────────────────────────
+  const cacheKey = buildYahooCacheKey(String(symbol), String(from), String(to));
+  const cached = getYahooCache(cacheKey);
+  if (cached !== undefined) {
+    res.setHeader('X-Cache', 'HIT');
+    res.json(cached);
+    return;
+  }
+
+  // ── Cache miss: fetch from Yahoo Finance ───────────────────────────────────
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${from}&period2=${to}&interval=1d`;
   log.debug(`Yahoo Finance: fetching ${symbol}`, { requestId: req.id, symbol, from, to });
 
   try {
@@ -152,6 +203,9 @@ const yahooHandler = asyncHandler(async (req, res) => {
       requestId: req.id, symbol
     });
 
+    // Store in cache (5 min TTL) and respond
+    setYahooCache(cacheKey, data);
+    res.setHeader('X-Cache', 'MISS');
     res.json(data);
   } catch (error) {
     if (error.name === 'AbortError' || error.code === 'ETIMEDOUT') {
@@ -186,24 +240,41 @@ const testRunnerHandler = asyncHandler(async (req, res) => {
 
 /**
  * Health check handler.
- * Returns server status, uptime, memory usage, and enabled features.
+ * Returns server status, uptime, memory usage, cache stats, and enabled features.
+ * Suitable for liveness and readiness probes in container orchestration.
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
 const healthHandler = (req, res) => {
   const versioned = req.path.startsWith('/api/v1') || res.locals.apiVersion === 'v1';
+  const mem = process.memoryUsage();
+  const cacheStats = getCacheStats();
+
   const healthStatus = {
     status: 'ok',
     ...(versioned ? { apiVersion: 'v1' } : {}),
     timestamp: new Date().toISOString(),
     version: '0.0.5',
     environment: config.server.env,
-    uptime: process.uptime(),
+    uptime: Math.round(process.uptime()),
     memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-      external: Math.round(process.memoryUsage().external / 1024 / 1024)
+      heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
+      heapTotalMb: Math.round(mem.heapTotal / 1024 / 1024),
+      externalMb: Math.round(mem.external / 1024 / 1024),
+      rssMb: Math.round(mem.rss / 1024 / 1024)
+    },
+    cache: {
+      yahoo: {
+        keys: cacheStats.keys,
+        hits: cacheStats.hits,
+        misses: cacheStats.misses,
+        hitRate: `${cacheStats.hitRate}%`
+      }
+    },
+    dependencies: {
+      // Lightweight self-check — always reachable if this handler runs
+      internalCache: 'ok'
     },
     features: config.features
   };
@@ -252,6 +323,28 @@ app.get(
   validate(healthCheckSchema, 'query'),
   healthHandler
 );
+
+/**
+ * POST /api/v1/cache/flush — Flush Yahoo Finance in-memory cache (dev/test only)
+ * Not available in production; intended for testing and cache invalidation during development.
+ */
+if (config.server.env !== 'production') {
+  app.post('/api/v1/cache/flush', (req, res) => {
+    flushYahooCache();
+    res.json({ status: 'ok', message: 'Yahoo Finance cache flushed' });
+  });
+}
+
+// ========================================
+// Observability: Prometheus Metrics
+// ========================================
+
+/**
+ * GET /metrics — Prometheus metrics endpoint.
+ * Intended for scraping by a Prometheus server (internal network only).
+ * Exposes: HTTP request rate/latency, error rate, cache hit/miss, Node.js process metrics.
+ */
+app.get('/metrics', metricsHandler);
 
 // ========================================
 // Legacy API Routes (deprecated — use /api/v1/)
@@ -352,9 +445,10 @@ const logServerStart = (port) => {
   console.log('');
   console.log(`  ${grn}${bld}➜${rst}  ${bld}Local:${rst}   ${cyn}${base}/index.html${rst}`);
   console.log(`  ${grn}${bld}➜${rst}  ${bld}API Docs:${rst} ${cyn}${base}/api-docs${rst}`);
+  console.log(`  ${grn}${bld}➜${rst}  ${bld}Metrics:${rst}  ${cyn}${base}/metrics${rst}`);
   console.log('');
   console.log(`  ${dim}v1   /api/v1/health · /api/v1/yahoo · /api/v1/run-tests${rst}`);
-  console.log(`  ${dim}spec /api-docs.json${rst}`);
+  console.log(`  ${dim}spec /api-docs.json · prom /metrics${rst}`);
   console.log('');
 
   log.info('Server started', { port, environment: config.server.env });

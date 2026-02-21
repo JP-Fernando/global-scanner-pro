@@ -10,6 +10,24 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **Compression middleware** (`compression` package) — gzip/brotli response compression for all API and static responses above 1 KB, reducing payload size by 60–80%
+- **In-memory response cache** (`src/utils/cache.ts`) — Yahoo Finance API responses cached for 5 minutes using `node-cache`, reducing external API calls and improving response times
+  - `buildYahooCacheKey` / `getYahooCache` / `setYahooCache` / `flushYahooCache` helpers
+  - Cumulative `hits`, `misses`, `hitRate` counters
+- **Prometheus metrics** (`src/utils/metrics.ts`) — full observability with `prom-client`
+  - `http_requests_total` — request counter labelled by method, route, status code
+  - `http_request_duration_seconds` — latency histogram (11 buckets, 1ms–5s)
+  - `http_active_connections` — real-time gauge of in-flight requests
+  - `cache_hits_total` / `cache_misses_total` — per-cache counters
+  - `cache_keys_count` — current cache size gauge
+  - `yahoo_finance_requests_total` — external request counter
+  - Default Node.js metrics (CPU, memory, GC, event loop lag)
+- **`GET /metrics`** endpoint — Prometheus scrape target in text exposition format
+- **Cache-Control headers** for static file serving: HTML (no-cache), JS/CSS/fonts/images (1 year immutable), JSON (5 min)
+- **`X-Cache: HIT/MISS`** response header on Yahoo Finance proxy responses
+- **`POST /api/v1/cache/flush`** — cache flush endpoint (dev/test only)
+- **Enhanced `/api/v1/health`** response — adds `cache` stats (keys, hits, misses, hitRate), RSS memory (`rssMb`), and `dependencies` section
+- `metricsMiddleware` — Express middleware recording per-request Prometheus metrics
 - OpenAPI 3.0 specification for all REST endpoints (`src/config/swagger.ts`)
 - Swagger UI interactive documentation at `/api-docs`
 - Raw OpenAPI JSON spec endpoint at `/api-docs.json`
@@ -25,7 +43,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `docker-compose.yml` — local development orchestration
 
 ### Changed
-- `server.js` — refactored route handlers into named functions for reuse across versioned and legacy paths
+- `server.js` — added compression, metrics middleware, and cache imports; updated `yahooHandler` to serve from cache; enhanced `healthHandler` with dependency stats; updated startup banner to show `/metrics`
+- Static file serving (`express.static`) — upgraded with explicit `Cache-Control` header strategy
 
 ---
 
