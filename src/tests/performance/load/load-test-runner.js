@@ -27,11 +27,11 @@ export async function startServer(envOverrides = {}) {
     ...envOverrides,
   };
 
-  const child = spawn('node', ['server.js'], {
-    env,
-    cwd: ROOT_DIR,
-    stdio: 'pipe',
-  });
+  const child = spawn(
+    path.join(ROOT_DIR, 'node_modules', '.bin', 'tsx'),
+    ['server.js'],
+    { env, cwd: ROOT_DIR, stdio: 'pipe' }
+  );
 
   // Ensure cleanup on unexpected exit
   const cleanup = () => stopServer(child);
