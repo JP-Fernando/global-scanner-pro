@@ -112,7 +112,7 @@ const logger: winston.Logger = winston.createLogger({
   defaultMeta: {
     service: 'global-scanner-pro',
     environment: config.server.env,
-    version: '0.0.5'
+    version: '0.0.6'
   },
   transports: [
     // Console transport

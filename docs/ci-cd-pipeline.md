@@ -4,7 +4,7 @@
 
 **Status**: ✅ COMPLETED
 **Last Updated**: January 2026
-**Version**: 0.0.5
+**Version**: 0.0.6
 
 ---
 
@@ -265,7 +265,7 @@ Results are available in:
 
 ### Triggers
 
-- Tags matching `v*.*.*` (e.g., v0.0.5)
+- Tags matching `v*.*.*` (e.g., v0.0.6)
 - Manual dispatch
 
 ### Planned Jobs

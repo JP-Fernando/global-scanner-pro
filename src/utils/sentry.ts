@@ -87,7 +87,7 @@ export function initializeSentry(app: Application | null = null): void {
       ],
 
       // Release tracking (use git commit SHA or version)
-      release: `global-scanner-pro@${process.env.npm_package_version || '0.0.5'}`,
+      release: `global-scanner-pro@${process.env.npm_package_version || '0.0.6'}`,
 
       // Before send hook - filter or modify events before sending
       beforeSend(event: ErrorEvent, _hint: EventHint): ErrorEvent | null {

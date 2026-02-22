@@ -277,7 +277,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-[Unreleased]: https://github.com/JP-Fernando/global-scanner-pro/compare/v0.0.5...HEAD
+[Unreleased]: https://github.com/JP-Fernando/global-scanner-pro/compare/v0.0.6...HEAD
 [0.0.5]: https://github.com/JP-Fernando/global-scanner-pro/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/JP-Fernando/global-scanner-pro/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/JP-Fernando/global-scanner-pro/compare/v0.0.2...v0.0.3

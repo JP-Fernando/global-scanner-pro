@@ -275,7 +275,7 @@ const healthHandler = (req, res) => {
     status: 'ok',
     ...(versioned ? { apiVersion: 'v1' } : {}),
     timestamp: new Date().toISOString(),
-    version: '0.0.5',
+    version: '0.0.6',
     environment: config.server.env,
     uptime: Math.round(process.uptime()),
     memory: {
@@ -484,7 +484,7 @@ const logServerStart = (port) => {
   console.log(`  ${cyn}${bld}╚██████╔╝╚██████╔╝███████║${rst}   ${mag}${bld}██║     ██║  ██║╚██████╔╝${rst}`);
   console.log(`  ${cyn}${bld} ╚═════╝  ╚══▀▀═╝ ╚══════╝${rst}   ${mag}${bld}╚═╝     ╚═╝  ╚═╝ ╚═════╝ ${rst}`);
   console.log('');
-  console.log(`  ${dim}Global Quant Scanner Pro${rst} ${ylw}${bld}v0.0.5${rst}`);
+  console.log(`  ${dim}Global Quant Scanner Pro${rst} ${ylw}${bld}v0.0.6${rst}`);
   console.log(`  ${dim}───────────────────────────────────────────────────${rst}`);
   console.log('');
   console.log(`  ${grn}${bld}➜${rst}  ${bld}Local:${rst}   ${cyn}${base}/index.html${rst}`);
