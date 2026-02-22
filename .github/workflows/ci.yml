@@ -193,10 +193,18 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Build TypeScript
-        run: npm run build
+      - name: Build server (TypeScript → dist/)
+        run: npm run build:server
 
-      - name: Verify server starts
+      - name: Build client (Vite → dist/public/)
+        run: npm run build:client
+
+      - name: Report client bundle sizes
+        run: |
+          echo "=== dist/public/assets/ sizes ==="
+          du -sh dist/public/assets/*.js dist/public/assets/*.css 2>/dev/null | sort -h || true
+
+      - name: Verify server starts (production)
         run: |
           timeout 10s npm start || code=$?
           if [ $code -eq 124 ]; then
@@ -206,3 +214,13 @@ jobs:
             echo "Server failed to start"
             exit 1
           fi
+
+      - name: Upload client build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: client-build
+          path: |
+            dist/public/index.html
+            dist/public/.vite/manifest.json
+          retention-days: 7

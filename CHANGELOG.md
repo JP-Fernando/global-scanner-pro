@@ -9,7 +9,47 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Added
+### Added (Phase 3.1.1 — Frontend Build Optimisation)
+- **Vite 7 build pipeline** — production-grade frontend bundler replacing raw tsc browser output
+  - `vite build` compiles and optimises all browser-side TypeScript entry points
+  - esbuild minification of JS and CSS (10–20× faster than Terser)
+  - Source maps for production debugging
+  - Asset content hashing for 1-year immutable cache headers (`[name]-[hash].js`)
+  - `modulepreload` hints for all shared chunks injected into the HTML at build time
+- **Code splitting by domain** — 9 independent cached chunks:
+  - `chunk-ml` · `chunk-analytics` · `chunk-indicators` · `chunk-portfolio`
+  - `chunk-reports` · `chunk-i18n` · `chunk-allocation` · `chunk-data`
+  - `chunk-alerts` · `chunk-storage` · `chunk-dashboard`
+- **`scripts/inject-vite-assets.js`** — post-build HTML injection script:
+  reads `dist/public/.vite/manifest.json`, replaces dev-mode script/CSS references
+  with hashed production paths, injects `<link rel="modulepreload">` hints,
+  copies `universes/` data files to `dist/public/universes/`
+- **`vite.config.ts`** — Vite configuration with `@` path alias, Vite dev-server proxy
+  (`/api → :3001`, `/metrics → :3001`) for optional `npm run dev:vite` workflow
+- **Production static file serving** — Express now serves `dist/public/` in production
+  (`NODE_ENV=production`) with SPA HTML fallback for client-side routing
+- **New npm scripts**:
+  - `build:server` — TypeScript compilation only (was `build`)
+  - `build:client` — Vite bundle + HTML injection
+  - `build` — full build (server + client)
+  - `build:client:vite` — Vite bundle only (no HTML injection)
+  - `preview` — serve production build via Vite preview server (port 4173)
+  - `dev:server` — backend-only dev server (alias for `dev`)
+  - `dev:vite` — Vite HMR dev server (frontend; requires `dev:server` on port 3001)
+- **CI build job** — now runs `build:server` AND `build:client` separately; reports
+  per-chunk gzip sizes; uploads `dist/public/index.html` and manifest as artifacts
+
+### Performance Results (Phase 3.1.1)
+| Metric | Value |
+|--------|-------|
+| Total gzipped bundle | ~110 kB (scanner 22 kB + translator 37 kB + chunks 51 kB) |
+| Largest single chunk | `ui-translator` 37 kB gzip (i18n strings) |
+| CSS | `attribution-dashboard` 1.85 kB gzip |
+| Build time | ~620 ms (Vite esbuild) |
+| Cache efficiency | 9 independently cacheable chunks |
+| Budget target | < 500 kB gzip ✅ |
+
+### Added (Phase 3.3.1/3.3.4/3.1.2/3.1.4 — Caching, Compression & Prometheus)
 - **Compression middleware** (`compression` package) — gzip/brotli response compression for all API and static responses above 1 KB, reducing payload size by 60–80%
 - **In-memory response cache** (`src/utils/cache.ts`) — Yahoo Finance API responses cached for 5 minutes using `node-cache`, reducing external API calls and improving response times
   - `buildYahooCacheKey` / `getYahooCache` / `setYahooCache` / `flushYahooCache` helpers

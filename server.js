@@ -110,7 +110,7 @@ app.use(metricsMiddleware);
 // HTTP request logging
 app.use(httpLogger());
 
-// Configure MIME types for ES6 modules
+// Configure MIME types for ES6 modules (dev/test mode)
 app.use((req, res, next) => {
   if (req.url.endsWith('.js')) {
     res.type('application/javascript');
@@ -118,21 +118,41 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files with aggressive cache headers for immutable assets
-app.use(express.static('.', {
-  // HTML: no-cache so the browser always revalidates
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.html')) {
-      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
-    } else if (/\.(js|css|woff2?|ttf|otf|eot|svg|png|jpg|jpeg|gif|ico|webp)$/.test(filePath)) {
-      // Versioned/hashed assets: cache for 1 year
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    } else if (filePath.endsWith('.json')) {
-      // JSON data files: cache 5 minutes
-      res.setHeader('Cache-Control', 'public, max-age=300');
-    }
+/**
+ * Static file serving strategy:
+ *
+ * Production (`NODE_ENV=production`):
+ *   - Primary: dist/public/ — Vite-built assets (hashed filenames, minified)
+ *   - Fallback: project root — universes/*.json data files and other static resources
+ *   - SPA fallback: all non-API GET requests serve dist/public/index.html
+ *
+ * Development / Test (`NODE_ENV=development|test`):
+ *   - Serves from project root (.) as before — tsc-compiled dist/src/ modules
+ *     are referenced directly by index.html; no Vite build required.
+ */
+const cacheHeaders = (res, filePath) => {
+  if (filePath.endsWith('.html')) {
+    // HTML: always revalidate so users get the latest app shell
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  } else if (/\.(js|css|woff2?|ttf|otf|eot|svg|png|jpg|jpeg|gif|ico|webp)$/.test(filePath)) {
+    // Hashed/versioned assets: immutable for 1 year
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  } else if (filePath.endsWith('.json')) {
+    // Data files: cache 5 minutes
+    res.setHeader('Cache-Control', 'public, max-age=300');
   }
-}));
+};
+
+const isProduction = config.server.env === 'production';
+
+if (isProduction) {
+  // Production: serve Vite-optimised build first, then fall back to project root for data files
+  app.use(express.static('dist/public', { setHeaders: cacheHeaders }));
+  app.use(express.static('.', { setHeaders: cacheHeaders }));
+} else {
+  // Development / Test: serve everything from project root (tsc-compiled modules in dist/src/)
+  app.use(express.static('.', { setHeaders: cacheHeaders }));
+}
 
 // ========================================
 // API Documentation (Swagger UI)
@@ -395,6 +415,30 @@ app.get(
   validate(healthCheckSchema, 'query'),
   healthHandler
 );
+
+// ========================================
+// SPA Fallback (production only)
+// ========================================
+
+/**
+ * In production, all non-API GET requests that don't match a static file
+ * are served with dist/public/index.html (SPA client-side routing support).
+ * In development/test, this is unnecessary because index.html is served by
+ * the express.static('.') handler above.
+ */
+if (isProduction) {
+  app.get('*', (req, res, next) => {
+    const isApi =
+      req.path.startsWith('/api') ||
+      req.path.startsWith('/metrics') ||
+      req.path.startsWith('/api-docs');
+    if (!isApi) {
+      res.sendFile(path.resolve(__dirname, 'dist/public/index.html'));
+    } else {
+      next();
+    }
+  });
+}
 
 // ========================================
 // Error Handling
