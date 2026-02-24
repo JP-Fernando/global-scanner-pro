@@ -1,13 +1,22 @@
 /**
  * Structured Logging System
  *
- * This module provides a Winston-based structured logging system
- * with support for multiple transports, log levels, and contextual logging.
+ * This module provides a Winston-based structured logging system with daily log
+ * rotation (winston-daily-rotate-file), ELK-compatible JSON output, and support
+ * for multiple transports, log levels, and contextual logging.
+ *
+ * Log files:
+ *   logs/combined-YYYY-MM-DD.log  — all log levels (rotated daily, 14-day retention)
+ *   logs/error-YYYY-MM-DD.log     — errors only (rotated daily, 30-day retention)
+ *   logs/http-YYYY-MM-DD.log      — HTTP access logs (rotated daily, 7-day retention)
+ *   logs/exceptions.log           — uncaught exceptions
+ *   logs/rejections.log           — unhandled promise rejections
  *
  * @module utils/logger
  */
 
 import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 import { config } from '../config/environment.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -52,7 +61,8 @@ const developmentFormat: winston.Logform.Format = winston.format.combine(
 
 /**
  * Custom format for production environment
- * Provides structured JSON logs for parsing by log aggregation tools
+ * Provides structured JSON logs for ELK Stack / Loki / CloudWatch parsing.
+ * Fields follow the Elastic Common Schema (ECS) conventions where practical.
  */
 const productionFormat: winston.Logform.Format = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
@@ -103,9 +113,19 @@ function sanitizeLogData(data: unknown): unknown {
   return sanitized;
 }
 
-/**
- * Create Winston logger instance
- */
+// ── Shared daily-rotate-file options ─────────────────────────────────────────
+
+/** Common options for DailyRotateFile transports */
+const rotateDefaults = {
+  dirname: logsDir,
+  datePattern: 'YYYY-MM-DD',
+  zippedArchive: config.logging.zipArchived,
+  auditFile: path.join(logsDir, '.audit.json'),
+  format: productionFormat
+};
+
+// ── Create Winston logger instance ───────────────────────────────────────────
+
 const logger: winston.Logger = winston.createLogger({
   level: config.logging.level,
   format: config.server.isProduction ? productionFormat : developmentFormat,
@@ -115,59 +135,66 @@ const logger: winston.Logger = winston.createLogger({
     version: '0.0.6'
   },
   transports: [
-    // Console transport
+    // Console transport (always active)
     new winston.transports.Console({
       handleExceptions: true,
       handleRejections: true
     }),
 
-    // File transport for errors
-    new winston.transports.File({
-      filename: path.join(logsDir, 'error.log'),
+    // Daily-rotating combined log (all levels) — 14-day retention
+    new DailyRotateFile({
+      ...rotateDefaults,
+      filename: 'combined-%DATE%.log',
+      maxFiles: `${config.logging.maxDays}d`,
+      auditFile: path.join(logsDir, '.audit-combined.json')
+    }),
+
+    // Daily-rotating error log — 30-day retention for incident investigation
+    new DailyRotateFile({
+      ...rotateDefaults,
+      filename: 'error-%DATE%.log',
       level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: config.logging.maxFiles,
-      tailable: true,
+      maxFiles: '30d',
       handleExceptions: true,
-      handleRejections: true
+      handleRejections: true,
+      auditFile: path.join(logsDir, '.audit-error.json')
     }),
 
-    // File transport for all logs
-    new winston.transports.File({
-      filename: path.join(logsDir, 'combined.log'),
-      maxsize: 5242880, // 5MB
-      maxFiles: config.logging.maxFiles,
-      tailable: true
-    }),
-
-    // File transport for HTTP requests (info level and above)
-    new winston.transports.File({
-      filename: path.join(logsDir, 'http.log'),
+    // Daily-rotating HTTP access log — 7-day retention
+    new DailyRotateFile({
+      ...rotateDefaults,
+      filename: 'http-%DATE%.log',
       level: 'http',
-      maxsize: 5242880, // 5MB
-      maxFiles: config.logging.maxFiles,
-      tailable: true
+      maxFiles: '7d',
+      auditFile: path.join(logsDir, '.audit-http.json')
     })
   ],
 
-  // Handle uncaught exceptions
+  // Handle uncaught exceptions (static file; does not rotate)
   exceptionHandlers: [
     new winston.transports.File({
       filename: path.join(logsDir, 'exceptions.log'),
-      maxsize: 5242880,
-      maxFiles: config.logging.maxFiles
+      maxsize: 5242880,  // 5 MB cap
+      maxFiles: 3
     })
   ],
 
-  // Handle unhandled promise rejections
+  // Handle unhandled promise rejections (static file; does not rotate)
   rejectionHandlers: [
     new winston.transports.File({
       filename: path.join(logsDir, 'rejections.log'),
       maxsize: 5242880,
-      maxFiles: config.logging.maxFiles
+      maxFiles: 3
     })
   ]
 });
+
+// Log rotation events for observability
+logger.on('rotate' as any, (oldFilename: string, newFilename: string) => {
+  logger.info('Log file rotated', { oldFilename, newFilename });
+});
+
+// ── Public API ────────────────────────────────────────────────────────────────
 
 /**
  * Create a child logger with additional context

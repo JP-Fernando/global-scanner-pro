@@ -160,7 +160,7 @@ export const metricsMiddleware = (req: Request, res: Response, next: NextFunctio
  */
 export const refreshCacheMetrics = (): void => {
   const stats = getCacheStats();
-  cacheKeysGauge.set({ cache: 'yahoo' }, stats.keys);
+  cacheKeysGauge.set({ cache: 'yahoo' }, stats.keys ?? 0);
 };
 
 // ── Metrics handler ───────────────────────────────────────────────────────────

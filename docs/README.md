@@ -37,6 +37,10 @@ Esta carpeta contiene la documentación completa de **Global Quant Scanner Pro**
 - [CI/CD Pipeline Guide](ci-cd-pipeline.md) - GitHub Actions workflows
 - [Testing Strategy Guide](testing-strategy.md) - Tests actuales y roadmap Phase 2
 
+**Operaciones** (Phase 4.3 - Completado ✅):
+- [Deployment Guide](deployment-guide.md) - Prerequisites, env setup, Docker, Nginx, rollback procedures
+- [Operations Runbook](operations-runbook.md) - Health monitoring, troubleshooting, incident response, log management, scaling
+
 **Roadmap**:
 - [Roadmap del proyecto](roadmap.md)
 

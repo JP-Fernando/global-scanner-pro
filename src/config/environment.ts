@@ -98,6 +98,23 @@ const envSchema = z.object({
     (val: unknown) => val || '7',
     z.string().regex(/^\d+$/).transform(Number)
   ),
+  LOG_MAX_DAYS: z.preprocess(
+    (val: unknown) => val || '14',
+    z.string().regex(/^\d+$/).transform(Number)
+  ),
+  LOG_ZIP_ARCHIVED: z.preprocess(
+    (val: unknown) => val === undefined ? 'true' : val,
+    z.string().transform((val: string) => val !== 'false')
+  ),
+
+  // Redis (optional — enables shared cache for horizontal scaling)
+  // Format: redis://[:password@]host[:port][/db] or rediss:// for TLS
+  REDIS_URL: z.string().regex(/^rediss?:\/\//).optional(),
+  REDIS_KEY_PREFIX: z.string().default('gsp:'),
+  REDIS_CONNECT_TIMEOUT_MS: z.preprocess(
+    (val: unknown) => val || '5000',
+    z.string().regex(/^\d+$/).transform(Number)
+  ),
 
   // Performance
   CACHE_TTL: z.preprocess(
@@ -178,10 +195,17 @@ interface Config {
     stressTesting: boolean;
     attributionAnalysis: boolean;
   };
+  redis: {
+    url: string | undefined;
+    keyPrefix: string;
+    connectTimeoutMs: number;
+  };
   logging: {
     level: string;
     filePath: string;
     maxFiles: number;
+    maxDays: number;
+    zipArchived: boolean;
   };
   performance: {
     cacheTTL: number;
@@ -290,10 +314,18 @@ export const config: Config = {
     attributionAnalysis: env.ENABLE_ATTRIBUTION_ANALYSIS
   },
 
+  redis: {
+    url: env.REDIS_URL,
+    keyPrefix: env.REDIS_KEY_PREFIX,
+    connectTimeoutMs: env.REDIS_CONNECT_TIMEOUT_MS
+  },
+
   logging: {
     level: env.LOG_LEVEL,
     filePath: env.LOG_FILE_PATH,
-    maxFiles: env.LOG_MAX_FILES
+    maxFiles: env.LOG_MAX_FILES,
+    maxDays: env.LOG_MAX_DAYS,
+    zipArchived: env.LOG_ZIP_ARCHIVED
   },
 
   performance: {

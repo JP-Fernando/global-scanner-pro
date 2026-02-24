@@ -52,7 +52,7 @@ import {
   sentryErrorHandler
 } from './src/utils/sentry.js';
 
-// Performance: in-memory cache for Yahoo Finance responses
+// Performance: in-memory / Redis cache for Yahoo Finance responses
 import {
   buildYahooCacheKey,
   getYahooCache,
@@ -60,6 +60,19 @@ import {
   getCacheStats,
   flushYahooCache
 } from './src/utils/cache.js';
+
+// Redis connection status (for health endpoint)
+import { getRedisStatus, closeRedisClient } from './src/utils/redis-client.js';
+
+// Async job queue
+import {
+  initQueues,
+  closeQueues,
+  enqueue,
+  getJobStatus,
+  getQueueStats,
+  queuesEnabled
+} from './src/queue/queue-manager.js';
 
 // Observability: Prometheus metrics
 import { metricsMiddleware, metricsHandler } from './src/utils/metrics.js';
@@ -73,6 +86,9 @@ if (config.development.debug) {
 
 // Setup global error handlers
 setupErrorHandlers();
+
+// Initialise async job queues (no-op when REDIS_URL is not set)
+initQueues();
 
 // Create Express app
 const app = express();
@@ -190,7 +206,7 @@ const yahooHandler = asyncHandler(async (req, res) => {
 
   // ── Cache lookup ───────────────────────────────────────────────────────────
   const cacheKey = buildYahooCacheKey(String(symbol), String(from), String(to));
-  const cached = getYahooCache(cacheKey);
+  const cached = await getYahooCache(cacheKey);
   if (cached !== undefined) {
     res.setHeader('X-Cache', 'HIT');
     res.json(cached);
@@ -224,7 +240,7 @@ const yahooHandler = asyncHandler(async (req, res) => {
     });
 
     // Store in cache (5 min TTL) and respond
-    setYahooCache(cacheKey, data);
+    await setYahooCache(cacheKey, data);
     res.setHeader('X-Cache', 'MISS');
     res.json(data);
   } catch (error) {
@@ -266,10 +282,11 @@ const testRunnerHandler = asyncHandler(async (req, res) => {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-const healthHandler = (req, res) => {
+const healthHandler = asyncHandler(async (req, res) => {
   const versioned = req.path.startsWith('/api/v1') || res.locals.apiVersion === 'v1';
   const mem = process.memoryUsage();
   const cacheStats = getCacheStats();
+  const queueStats = queuesEnabled() ? await getQueueStats() : [];
 
   const healthStatus = {
     status: 'ok',
@@ -285,6 +302,7 @@ const healthHandler = (req, res) => {
       rssMb: Math.round(mem.rss / 1024 / 1024)
     },
     cache: {
+      backend: cacheStats.backend,
       yahoo: {
         keys: cacheStats.keys,
         hits: cacheStats.hits,
@@ -292,15 +310,20 @@ const healthHandler = (req, res) => {
         hitRate: `${cacheStats.hitRate}%`
       }
     },
+    queue: {
+      enabled: queuesEnabled(),
+      queues: queueStats
+    },
     dependencies: {
       // Lightweight self-check — always reachable if this handler runs
-      internalCache: 'ok'
+      internalCache: 'ok',
+      redis: getRedisStatus()
     },
     features: config.features
   };
 
   res.json(healthStatus);
-};
+});
 
 // ========================================
 // API v1 Routes (current, versioned)
@@ -349,11 +372,85 @@ app.get(
  * Not available in production; intended for testing and cache invalidation during development.
  */
 if (config.server.env !== 'production') {
-  app.post('/api/v1/cache/flush', (req, res) => {
-    flushYahooCache();
+  app.post('/api/v1/cache/flush', asyncHandler(async (req, res) => {
+    await flushYahooCache();
     res.json({ status: 'ok', message: 'Yahoo Finance cache flushed' });
-  });
+  }));
 }
+
+// ========================================
+// Async Job Queue API (requires REDIS_URL)
+// ========================================
+
+/**
+ * POST /api/v1/jobs/optimize — Submit a portfolio optimisation job
+ *
+ * Body: { method, assets, returns, riskFreeRate?, constraints? }
+ * Returns: { queued: true, jobId, queue } or { queued: false, reason, message }
+ */
+app.post('/api/v1/jobs/optimize', asyncHandler(async (req, res) => {
+  const { method = 'maxSharpe', assets, returns, riskFreeRate, constraints } = req.body;
+  if (!assets || !returns) {
+    return res.status(400).json({ error: 'assets and returns are required' });
+  }
+  const result = await enqueue('portfolio-optimization', `optimize:${method}`, {
+    method, assets, returns, riskFreeRate, constraints
+  });
+  res.status(result.queued ? 202 : 503).json(result);
+}));
+
+/**
+ * POST /api/v1/jobs/report — Submit a report generation job
+ *
+ * Body: { type, reportKind, title, data }
+ * Returns: { queued: true, jobId, queue } or { queued: false, reason, message }
+ */
+app.post('/api/v1/jobs/report', asyncHandler(async (req, res) => {
+  const { type = 'excel', reportKind = 'scan', title = 'Report', data } = req.body;
+  if (!data) {
+    return res.status(400).json({ error: 'data is required' });
+  }
+  const result = await enqueue('report-generation', `report:${type}:${reportKind}`, {
+    type, reportKind, title, data
+  });
+  res.status(result.queued ? 202 : 503).json(result);
+}));
+
+/**
+ * POST /api/v1/jobs/ml-train — Submit an ML training job
+ *
+ * Body: { task, trainingData, hyperparams? }
+ * Returns: { queued: true, jobId, queue } or { queued: false, reason, message }
+ */
+app.post('/api/v1/jobs/ml-train', asyncHandler(async (req, res) => {
+  const { task, trainingData, hyperparams } = req.body;
+  if (!task || !trainingData) {
+    return res.status(400).json({ error: 'task and trainingData are required' });
+  }
+  const result = await enqueue('ml-training', `ml:${task}`, { task, trainingData, hyperparams });
+  res.status(result.queued ? 202 : 503).json(result);
+}));
+
+/**
+ * GET /api/v1/jobs/:jobId — Poll job status
+ *
+ * Returns: JobStatus object or 404 if not found
+ */
+app.get('/api/v1/jobs/:jobId', asyncHandler(async (req, res) => {
+  const status = await getJobStatus(req.params.jobId);
+  if (!status) {
+    return res.status(404).json({ error: `Job ${req.params.jobId} not found` });
+  }
+  res.json(status);
+}));
+
+/**
+ * GET /api/v1/jobs — Queue statistics (counts per state for all queues)
+ */
+app.get('/api/v1/jobs', asyncHandler(async (req, res) => {
+  const stats = await getQueueStats();
+  res.json({ enabled: queuesEnabled(), queues: stats });
+}));
 
 // ========================================
 // Observability: Prometheus Metrics
@@ -536,6 +633,12 @@ const startServer = (port, attempt = 0) => {
       // Flush Sentry events
       const { flush } = await import('./src/utils/sentry.js');
       await flush();
+
+      // Close job queues gracefully
+      await closeQueues();
+
+      // Close Redis connection if active
+      await closeRedisClient();
 
       log.info('Shutdown complete');
       console.log('✅ Servidor cerrado correctamente\n');
