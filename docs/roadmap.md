@@ -1390,52 +1390,33 @@ for (const envVar of requiredEnvVars) {
   - Scaling procedures: vertical, horizontal (PM2 cluster, Docker Compose scale), Redis setup, queue scaling
 
 #### 4.3.3 Contributing Guide
-**Actions**:
-- Create `CONTRIBUTING.md`:
-  - How to set up development environment
-  - Code style guidelines
-  - How to run tests
-  - How to submit pull requests
-  - PR review process
-  - How to report bugs
-  - How to request features
-- Document development workflows:
-  - Git branching strategy
-  - Commit message conventions
-  - PR naming conventions
-  - Code review guidelines
-- Create issue templates:
-  - Bug report template
-  - Feature request template
-  - Pull request template
-- Create development environment setup script
+**Status**: ✅ COMPLETED — February 2026
+
+**Delivered**:
+- `CONTRIBUTING.md` — prerequisites, local setup, project structure, test commands, commit conventions, PR process, bug/feature reporting
+- `.github/ISSUE_TEMPLATE/bug_report.md` — structured bug report template
+- `.github/ISSUE_TEMPLATE/feature_request.md` — feature request template with acceptance criteria
+- `.github/PULL_REQUEST_TEMPLATE.md` — PR checklist (type-check, lint, tests, swagger, changelog)
+- `scripts/setup-dev.sh` — automated dev environment bootstrap script
 
 **Success Criteria**:
-- New contributors can get started easily
-- Development workflows documented
-- Contribution standards enforced
+- New contributors can get started easily ✅
+- Development workflows documented ✅
+- Contribution standards enforced ✅
 
 #### 4.3.4 Changelog and Versioning
-**Actions**:
-- Create `CHANGELOG.md`:
-  - Follow Keep a Changelog format
-  - Document all notable changes
-  - Organise by version
-  - Categorise changes (Added, Changed, Deprecated, Removed, Fixed, Security)
-- Implement semantic versioning:
-  - MAJOR.MINOR.PATCH
-  - Document versioning policy
-  - Tag releases in Git
-  - Update version in package.json
-- Automate changelog generation (optional):
-  - Use conventional commits
-  - Generate changelog from commit messages
-  - Update changelog on release
+**Status**: ✅ COMPLETED — February 2026
+
+**Delivered**:
+- `CHANGELOG.md` — Keep a Changelog format; all versions (0.0.1–0.0.6) documented with Added/Changed/Fixed/Security categories
+- Semantic versioning adopted: current version `0.0.6` in `package.json`
+- Conventional Commits enforced via Husky pre-commit hook; changelog updated manually per release
+- Commit convention documented in `CONTRIBUTING.md`
 
 **Success Criteria**:
-- All releases documented in changelog
-- Versioning follows semver
-- Users can see what changed between versions
+- All releases documented in changelog ✅
+- Versioning follows semver ✅
+- Users can see what changed between versions ✅
 
 ---
 
