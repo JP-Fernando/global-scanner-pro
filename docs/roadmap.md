@@ -1420,6 +1420,291 @@ for (const envVar of requiredEnvVars) {
 
 ---
 
+### 4.4 Investment Simulator Tab
+
+**Priority**: 🎯 NEXT — Scheduled for March 2026
+
+**Objective**: Add a dedicated **"Simulator"** tab that allows the user to select up to 4
+securities from the analysis results table and project future portfolio value based on their
+historical return statistics, using a monthly DCA (Dollar Cost Averaging) model. The output
+shows optimistic, expected, and pessimistic scenarios across multiple time horizons.
+
+---
+
+#### 4.4.1 Ticker Selection in the Results Table
+**Status**: 🔲 PENDING
+
+**Context**: After clicking "Run analysis", the main page renders a results table.
+This step adds a selection mechanism to that table without disrupting the existing layout.
+
+**Actions**:
+- Add a checkbox column as the first column of the results table (header: "Sim.").
+- When a row is checked, add its ticker symbol to a `selectedForSimulator: string[]`
+  state variable (maximum 4 items).
+- Once 4 tickers are selected, disable all unchecked checkboxes and show a tooltip:
+  *"Maximum 4 securities selected"*.
+- Show a floating badge/counter at the bottom of the results panel:
+  *"X / 4 securities selected for the Simulator → [Go to Simulator]"*.
+- Persist the selection in `localStorage` (key: `simulatorSelection`) so it survives
+  tab navigation.
+- Clear the selection when a new analysis is run.
+
+**Files**:
+- `src/core/scanner.ts` — add state, checkbox rendering, and badge HTML
+- `src/core/scanner.ts` — `initResultsTable()` / `renderRow()` functions
+
+**Success Criteria**:
+- User can select 1–4 tickers from the results table.
+- Selecting a 5th ticker is blocked with a visible message.
+- Selection persists when navigating to the Simulator tab and back.
+- Deselecting a ticker removes it from the list immediately.
+
+---
+
+#### 4.4.2 New "Simulator" Tab in the Main Tab Bar
+**Status**: 🔲 PENDING
+
+**Actions**:
+- Add a new tab button **"Simulator"** to the existing tab bar in `scanner.ts`
+  (after the last existing tab).
+- Create the corresponding tab panel container `#tab-simulator`.
+- Tab is always visible but shows a hint message when no tickers are selected:
+  *"Select up to 4 securities from the results table to get started."*
+- When at least one ticker is selected, the tab renders the full simulator UI.
+
+**Files**:
+- `src/core/scanner.ts` — tab bar HTML, tab switching logic
+- CSS (inline or external) — simulator layout styles
+
+**Success Criteria**:
+- "Simulator" tab appears in the tab bar.
+- Clicking it while the results table has selections shows the simulator panel.
+- Clicking it with no selections shows the empty-state hint.
+
+---
+
+#### 4.4.3 Backend Simulation API
+**Status**: 🔲 PENDING
+
+**Endpoint**: `POST /api/v1/simulate`
+**Auth**: `requireAuth` (any authenticated user)
+
+**Request body** (JSON):
+```json
+{
+  "tickers": ["AAPL", "MSFT"],          // 1–4 tickers
+  "monthlyInvestment": 500,              // EUR/USD, positive number
+  "horizonMonths": 60                   // integer ≥ 1; presets: 12 | 36 | 60 | 120
+}
+```
+
+**Response body** (JSON):
+```json
+{
+  "tickers": ["AAPL", "MSFT"],
+  "monthlyInvestment": 500,
+  "horizonMonths": 60,
+  "currency": "USD",
+  "totalInvested": 30000,
+  "scenarios": {
+    "expected":    { "finalValue": 38500, "cagr": 0.089, "totalReturn": 0.283 },
+    "optimistic":  { "finalValue": 52000, "cagr": 0.151, "totalReturn": 0.733 },
+    "pessimistic": { "finalValue": 24000, "cagr": -0.04, "totalReturn": -0.200 }
+  },
+  "monthlyProjection": [
+    { "month": 1,  "expected": 502,  "optimistic": 508,  "pessimistic": 496  },
+    { "month": 2,  "expected": 1010, "optimistic": 1024, "pessimistic": 988  },
+    ...
+  ],
+  "perTicker": [
+    {
+      "ticker": "AAPL",
+      "weight": 0.5,
+      "historicalMonthlyReturn": 0.0142,
+      "historicalMonthlyVolatility": 0.0610,
+      "dataYears": 5
+    },
+    ...
+  ]
+}
+```
+
+**Calculation logic** (`src/simulation/simulation-service.ts`):
+1. For each ticker, fetch the last 5 years of monthly closing prices from Yahoo Finance
+   (reusing the existing cache adapter for TTL-backed caching).
+2. Compute monthly log-returns: `r_t = ln(P_t / P_{t-1})`.
+3. Compute `μ` (mean monthly return) and `σ` (standard deviation of monthly returns).
+4. If multiple tickers, compute the portfolio `μ_p` and `σ_p` assuming equal weight:
+   `μ_p = Σ(w_i · μ_i)`, `σ_p = √(Σ Σ w_i · w_j · cov_ij)` (simplified to equal
+   weights for v1; no cross-correlation for first iteration).
+5. DCA projection over `horizonMonths`:
+   - Each month: `portfolio_value = (portfolio_value + monthly_investment) × (1 + r_monthly)`
+   - **Expected scenario**: `r_monthly = μ_p`
+   - **Optimistic scenario**: `r_monthly = μ_p + σ_p`
+   - **Pessimistic scenario**: `r_monthly = μ_p - σ_p`
+6. Compute CAGR from final value: `CAGR = (FV / totalInvested)^(12/horizonMonths) - 1`.
+7. Return both the per-month series and the summary metrics.
+
+**Files**:
+- `src/simulation/simulation-service.ts` — calculation logic
+- `src/simulation/simulation-router.ts` — Express router, mounts at `/api/v1/simulate`
+- `src/security/validation-schemas.ts` — Zod schema for the request body
+- `src/config/swagger.ts` — OpenAPI spec for the new endpoint
+- `server.js` — mount `simulationRouter`
+
+**Success Criteria**:
+- `POST /api/v1/simulate` returns 200 with correct JSON structure.
+- Returns 400 if tickers array is empty or has > 4 items.
+- Returns 400 if `monthlyInvestment ≤ 0` or `horizonMonths` is not a positive integer (min 1).
+- Returns 401 if not authenticated.
+- Historical data is cached (no redundant Yahoo Finance requests within TTL).
+- Unit tests cover: return calculation, DCA loop, CAGR formula, edge cases (single ticker,
+  ticker with < 12 months of data).
+
+---
+
+#### 4.4.4 Simulator UI Panel
+**Status**: 🔲 PENDING
+
+**Layout** (left–right split inside `#tab-simulator`):
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  INVESTMENT SIMULATOR                                                    │
+├──────────────────────────────┬──────────────────────────────────────────┤
+│  SELECTED SECURITIES         │  PROJECTION                               │
+│  ┌────────────────────────┐  │                                           │
+│  │ ✕ AAPL  Apple Inc.     │  │  Total invested:   30,000 €              │
+│  │ ✕ MSFT  Microsoft      │  │  Expected value:   38,500 €  (+28.3%)    │
+│  │ ✕ GOOGL Alphabet       │  │  Optimistic:       52,000 €  (+73.3%)    │
+│  └────────────────────────┘  │  Pessimistic:      24,000 €  (-20.0%)    │
+│                              │                                           │
+│  Monthly investment          │  ┌─────────────────────────────────────┐ │
+│  [ 500   ] €/month           │  │  [Chart: lines per scenario]        │ │
+│                              │  │                                     │ │
+│  Time horizon                │  │                                     │ │
+│  ○ 1 yr   ● 5 yrs            │  └─────────────────────────────────────┘ │
+│  ○ 3 yrs  ○ 10 yrs           │                                           │
+│  ○ Custom: [ 18 ] ○ months   │  Breakdown by security ▾                 │
+│            [    ] ○ years    │  AAPL  μ=1.42%/mo  σ=6.10%/mo           │
+│  [Calculate]                 │  MSFT  μ=1.18%/mo  σ=5.43%/mo           │
+└──────────────────────────────┴──────────────────────────────────────────┘
+```
+
+**Actions**:
+- Left panel:
+  - List of selected tickers with a ✕ button to remove each one.
+  - Numeric input for monthly investment amount (min 1, step 1, default 100).
+  - Time horizon selector:
+    - Radio buttons for presets: 1 year / 3 years / 5 years / 10 years.
+    - A **"Custom"** radio option that reveals a numeric input field and a
+      unit toggle (months / years); the entered value is converted to months
+      before being sent to the API. Minimum 1 month, no upper cap enforced
+      in the UI (server validates).
+  - "Calculate" button; disabled when no tickers are selected or input is invalid.
+- Right panel:
+  - Summary metrics: total invested, expected final value, optimistic, pessimistic
+    (all with absolute value and % return, colour-coded green/red).
+  - Line chart (Chart.js) with:
+    - X axis: months (labelled by year: "Year 1", "Year 2", …)
+    - Y axis: portfolio value in currency
+    - 3 lines: Expected (blue), Optimistic (green), Pessimistic (red)
+    - Shaded band between pessimistic and optimistic
+    - Horizontal dashed line: total invested (reference)
+  - Collapsible "Breakdown by security" section showing per-ticker μ, σ, data coverage.
+- Loading state: spinner while awaiting API response.
+- Error state: inline error message if API fails (e.g., ticker not found).
+
+**Files**:
+- `src/core/scanner.ts` — `renderSimulatorTab()`, `onCalculate()`, chart initialisation
+- CSS — simulator panel layout and chart container
+
+**Success Criteria**:
+- Pressing "Calculate" calls `POST /api/v1/simulate` and renders the results.
+- Chart updates on every new calculation without page reload.
+- Removing a ticker from the left panel re-runs the calculation automatically.
+- Changing the time horizon (preset or custom) re-runs the calculation automatically.
+- Selecting "Custom" reveals the numeric input and unit toggle; entering a valid value
+  enables the "Calculate" button.
+- Summary values match the API response data.
+
+---
+
+#### 4.4.5 Chart Integration
+**Status**: 🔲 PENDING
+
+**Actions**:
+- Confirm whether Chart.js is already bundled in the project (check `package.json`
+  and `vite.config.ts`). If not, add it as a dependency.
+- Create a `SimulatorChart` class/module in `src/simulation/simulator-chart.ts`:
+  - `init(canvasId)` — create or reuse a Chart.js instance.
+  - `update(monthlyProjection, totalInvested, horizonMonths)` — update datasets and
+    re-render without flicker (use `chart.update('none')` for instant update).
+  - `destroy()` — cleanup on tab switch.
+- Datasets:
+  - `expected` — line, blue, `borderDash: []`
+  - `optimistic` — line, green, `borderDash: [5,5]`
+  - `pessimistic` — line, red, `borderDash: [5,5]`
+  - `totalInvested` — line, grey dashed (constant reference)
+  - Fill between pessimistic and optimistic using Chart.js `fill` plugin (semi-transparent).
+- Tooltips: show all 3 values + total invested at the hovered month.
+- Responsive: chart resizes with its container.
+
+**Files**:
+- `src/simulation/simulator-chart.ts`
+- `vite.config.ts` — ensure Chart.js is in the correct chunk (add `chartjs` to the
+  `manualChunks` domain list)
+
+**Success Criteria**:
+- Chart renders correctly on first calculation.
+- Chart updates smoothly when inputs change.
+- Chart is fully responsive on different screen sizes.
+- Tooltip shows all 4 series values at the hovered point.
+
+---
+
+#### 4.4.6 Tests
+**Status**: 🔲 PENDING
+
+**Unit tests** (`src/tests/unit/simulation/`):
+- `simulation-service.test.js`:
+  - Monthly log-return calculation from a known price series.
+  - DCA loop with known μ and σ produces expected final values.
+  - CAGR formula correctness.
+  - Edge case: single month of history → service returns an error.
+  - Edge case: ticker with no price data → graceful error.
+  - Portfolio μ/σ with two tickers (equal weights).
+
+**Integration tests** (`src/tests/integration/simulation-endpoints.integration.test.js`):
+- `POST /api/v1/simulate` — happy path (2 tickers, 500/month, 60 months).
+- Returns 400 if `tickers` is empty.
+- Returns 400 if `tickers` has 5 elements.
+- Returns 400 if `monthlyInvestment` is 0 or negative.
+- Returns 400 if `horizonMonths` is not a positive integer (e.g. 0, negative, or non-integer).
+- Custom horizon: `horizonMonths: 18` (custom months) and `horizonMonths: 24`
+  (custom years converted to months) both return 200.
+- Returns 401 if `Authorization` header is missing.
+- Returns 200 with `scenarios.expected.finalValue > totalInvested` when μ > 0.
+- Caching: two identical requests within TTL window hit the cache (verify via
+  `X-Cache: HIT` header on the second call).
+
+**Success Criteria**:
+- All unit tests pass with > 80% coverage of `simulation-service.ts`.
+- All integration tests pass against the live Express app.
+- `npm test` continues to pass with no regressions.
+
+---
+
+**Phase 4.4 Overall Success Criteria**:
+- User can select up to 4 tickers in the results table and see them in the Simulator tab.
+- Entering a monthly amount and clicking "Calcular" shows a projected chart and summary.
+- Expected, optimistic, and pessimistic scenarios are rendered clearly.
+- Results update in real time when the user changes the horizon or investment amount.
+- All new endpoints are documented in the OpenAPI spec.
+- Test suite remains green.
+
+---
+
 ## 5. Continuous Improvement and Future Enhancements (Ongoing)
 
 **Objective**: Establish processes for continuous improvement and identify future enhancements.
