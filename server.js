@@ -156,6 +156,10 @@ const cacheHeaders = (res, filePath) => {
   if (filePath.endsWith('.html')) {
     // HTML: always revalidate so users get the latest app shell
     res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  } else if (filePath.endsWith('sw.js') || filePath.endsWith('.webmanifest')) {
+    // Service worker + manifest: never cache long-term, even in production — the
+    // hashed-asset regex below would otherwise cache sw.js for a year and block updates
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
   } else if (!isProduction && /\.(js|css)$/.test(filePath)) {
     // Development: tsc-compiled files have no content hash — never cache them
     // so browsers always fetch the latest rebuild without a hard-reload.
@@ -589,6 +593,7 @@ const MAX_PORT_ATTEMPTS = 10;
  */
 const logServerStart = (port) => {
   const base = `http://localhost:${port}`;
+  const localUrl = `${base}/`;
 
   // ANSI colors
   const rst = '\x1b[0m';
@@ -610,7 +615,7 @@ const logServerStart = (port) => {
   console.log(`  ${dim}Global Quant Scanner Pro${rst} ${ylw}${bld}v0.0.6${rst}`);
   console.log(`  ${dim}───────────────────────────────────────────────────${rst}`);
   console.log('');
-  console.log(`  ${grn}${bld}➜${rst}  ${bld}Local:${rst}   ${cyn}${base}/index.html${rst}`);
+  console.log(`  ${grn}${bld}➜${rst}  ${bld}Local:${rst}   ${cyn}${localUrl}${rst}`);
   console.log(`  ${grn}${bld}➜${rst}  ${bld}API Docs:${rst} ${cyn}${base}/api-docs${rst}`);
   console.log(`  ${grn}${bld}➜${rst}  ${bld}Metrics:${rst}  ${cyn}${base}/metrics${rst}`);
   console.log('');

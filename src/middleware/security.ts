@@ -69,7 +69,9 @@ export function configureHelmet(): ReturnType<typeof helmet> {
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         formAction: ["'self'"],
-        frameAncestors: ["'none'"]
+        frameAncestors: ["'none'"],
+        manifestSrc: ["'self'"], // web app manifest (PWA)
+        workerSrc: ["'self'"] // service worker (PWA)
       }
     },
 
@@ -86,12 +88,16 @@ export function configureHelmet(): ReturnType<typeof helmet> {
     // Hide X-Powered-By header
     hidePoweredBy: true,
 
-    // Strict-Transport-Security: enforces HTTPS
-    hsts: {
+    // Strict-Transport-Security should only be emitted when a TLS-terminating
+    // reverse proxy actually sits in front of this process (FORCE_HTTPS=true).
+    // Sending it whenever NODE_ENV=production would also fire for a plain
+    // `npm start` on localhost with no HTTPS listener, teaching the browser
+    // to force HTTPS on a host that can never serve it.
+    hsts: config.security.forceHttps ? {
       maxAge: 31536000, // 1 year
       includeSubDomains: true,
       preload: true
-    },
+    } : false,
 
     // X-Content-Type-Options: prevents MIME sniffing
     noSniff: true,
@@ -213,14 +219,16 @@ export function configureYahooRateLimit(): ReturnType<typeof rateLimit> {
 
 /**
  * HTTPS enforcement middleware
- * Redirects HTTP requests to HTTPS in production
+ * Redirects HTTP requests to HTTPS when a TLS-terminating reverse proxy is
+ * expected in front of this process (FORCE_HTTPS=true). Must stay off for a
+ * bare `node dist/server.js` / `npm start` with no such proxy, since there is
+ * no HTTPS listener to redirect to.
  *
  * @returns {Function} HTTPS enforcement middleware
  */
 export function enforceHttps(): RequestHandler {
   return (req: Request, res: Response, next: NextFunction): void => {
-    // Only enforce in production
-    if (!config.server.isProduction) {
+    if (!config.security.forceHttps) {
       return next();
     }
 

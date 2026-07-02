@@ -50,6 +50,7 @@ export default defineConfig({
         scanner: resolve(__dirname, 'src/core/scanner.ts'),
         'ui-translator': resolve(__dirname, 'src/i18n/ui-translator.ts'),
         'ui-init': resolve(__dirname, 'src/i18n/ui-init.ts'),
+        'pwa-init': resolve(__dirname, 'src/pwa/pwa-init.ts'),
         'attribution-dashboard': resolve(
           __dirname,
           'src/dashboard/attribution-dashboard.css'

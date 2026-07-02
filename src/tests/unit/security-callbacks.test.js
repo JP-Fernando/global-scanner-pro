@@ -12,9 +12,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 let capturedCorsOptions = null;
 let capturedGlobalRateLimitOptions = null;
 let capturedYahooRateLimitOptions = null;
+let capturedHelmetOptions = null;
 
 vi.mock('helmet', () => ({
-  default: (_options) => (_req, _res, next) => next(),
+  default: (options) => {
+    capturedHelmetOptions = options;
+    return (_req, _res, next) => next();
+  },
 }));
 
 vi.mock('cors', () => ({
@@ -41,6 +45,7 @@ vi.mock('../../config/environment.js', () => ({
     server: { isDevelopment: true, isProduction: false },
     security: {
       allowedOrigins: ['http://localhost:3000', 'http://trusted.example.com'],
+      forceHttps: false,
       rateLimit: {
         windowMs: 15 * 60 * 1000,
         max: 100,
@@ -53,6 +58,7 @@ vi.mock('../../config/environment.js', () => ({
 
 // Import after mocks
 import {
+  configureHelmet,
   configureCors,
   configureGlobalRateLimit,
   configureYahooRateLimit,
@@ -63,6 +69,14 @@ describe('Security Callbacks', () => {
     capturedCorsOptions = null;
     capturedGlobalRateLimitOptions = null;
     capturedYahooRateLimitOptions = null;
+    capturedHelmetOptions = null;
+  });
+
+  describe('Helmet options', () => {
+    it('disables HSTS outside production so localhost stays usable over HTTP', () => {
+      configureHelmet();
+      expect(capturedHelmetOptions.hsts).toBe(false);
+    });
   });
 
   // -----------------------------------------------------------

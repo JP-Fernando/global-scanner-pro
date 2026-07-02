@@ -42,6 +42,7 @@ import {
   detectAllAnomalies as detectMLAnomalies,
   getAnomalySummary
 } from '../ml/anomaly-detection.js';
+import { dbStore } from '../storage/indexed-db-store.js';
 
 const sleep = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 let currentResults: any[] = [];
@@ -80,6 +81,64 @@ const appState: any = {
   scanCompleted: false,
   mlEnabled: true // ML features enabled by default
 };
+
+/**
+ * Best-effort persistence of the latest scan/simulation so they can be reviewed
+ * offline (PWA Foundation). Never blocks or throws into the caller — a failed
+ * save (e.g. private browsing without IndexedDB) should not interrupt scanning.
+ */
+function persistLastScan(): void {
+  dbStore
+    .saveLastScan({
+      market: appState.market,
+      strategy: appState.strategy,
+      timestamp: Date.now(),
+      results: currentResults
+    })
+    .catch((e: any) => console.warn('Failed to persist last scan for offline review:', e?.message));
+}
+
+function persistLastSimulation(request: any, response: any): void {
+  dbStore
+    .saveLastSimulation({ request, response, timestamp: Date.now() })
+    .catch((e: any) => console.warn('Failed to persist last simulation for offline review:', e?.message));
+}
+
+function getMarketSelectValue(market: any): string {
+  if (!market) return '';
+  if (market.file === 'ALL_MARKETS') return 'ALL_MARKETS';
+  return `${market.file || ''}|${market.suffix || ''}`;
+}
+
+function syncSelectValue(selectId: string, value: string | null | undefined): void {
+  if (!value) return;
+  const select = document.getElementById(selectId) as HTMLSelectElement | null;
+  if (!select) return;
+  const hasOption = Array.from(select.options).some(option => option.value === value);
+  if (hasOption) {
+    select.value = value;
+  }
+}
+
+function syncControlsFromRestoredScan(saved: any): void {
+  syncSelectValue('marketSelect', getMarketSelectValue(saved?.market));
+  syncSelectValue('strategySelect', saved?.strategy ?? '');
+}
+
+function normaliseDisplayTicker(rawTicker: any): string {
+  return String(rawTicker || '').trim().toUpperCase();
+}
+
+function getDisplayTickerForStoredSymbol(symbol: string): string {
+  const normalized = normaliseDisplayTicker(symbol);
+  const match = currentResults.find((item: any) => {
+    const ticker = normaliseDisplayTicker(item.ticker);
+    const yahooSymbol = normaliseDisplayTicker(item.yahooSymbol);
+    return ticker === normalized || yahooSymbol === normalized;
+  });
+
+  return match ? normaliseDisplayTicker(match.ticker) : normalized;
+}
 
 
 const SECTOR_COLORS = {
@@ -1558,6 +1617,7 @@ export async function runScan() {
       appState.market = { file: 'ALL_MARKETS', suffix: '' };
       appState.strategy = strategyKey;
       appState.scanCompleted = true;
+      persistLastScan();
       updateStrategyInfoDisplay();
       await notifyStrongSignals(currentResults, strategyKey);
 
@@ -1699,6 +1759,7 @@ export async function runScan() {
     appState.market = { file, suffix };
     appState.strategy = strategyKey;
     appState.scanCompleted = true;
+    persistLastScan();
     updateStrategyInfoDisplay();
     await notifyStrongSignals(currentResults, strategyKey);
 
@@ -1798,6 +1859,7 @@ export async function runScan() {
 
         // Update appState with adjusted results
         appState.scanResults = currentResults;
+        persistLastScan();
 
         console.log('✅ ML Adaptive scoring applied to', currentResults.length, 'assets');
       } catch (e) {
@@ -2539,6 +2601,7 @@ async function onCalculate(isAuto = false) {
     }
 
     simulatorState.lastResponse = payload;
+    persistLastSimulation({ tickers: simulationTickers, tickerInvestments, horizonMonths: horizon }, payload);
     renderSimulatorProjection(payload);
   } catch (error) {
     if (errorNode) {
@@ -4092,6 +4155,83 @@ export function updateView() {
   const key = (document.getElementById('viewMode') as HTMLInputElement)!.value;
   currentResults.sort((a, b) => b[key] - a[key]);
   applyFilters();
+}
+
+/**
+ * Restores the last successfully persisted scan (see `persistLastScan`) and renders it,
+ * so results remain reviewable while offline (PWA Foundation). Returns the saved
+ * timestamp on success, or null if nothing was saved yet.
+ */
+export async function restoreLastScanFromCache(): Promise<number | null> {
+  const saved = await dbStore.getLastScan();
+  if (!saved || !Array.isArray(saved.results) || saved.results.length === 0) {
+    return null;
+  }
+
+  currentResults = saved.results;
+  appState.scanResults = currentResults;
+  appState.market = saved.market;
+  appState.strategy = saved.strategy;
+  appState.scanCompleted = true;
+  syncControlsFromRestoredScan(saved);
+
+  applyFilters();
+  updateStrategyInfoDisplay();
+
+  const exportButtons = document.getElementById('scanExportButtons');
+  if (exportButtons && currentResults.length > 0) {
+    exportButtons.style.display = 'block';
+  }
+
+  return saved.timestamp ?? null;
+}
+
+export async function restoreLastSimulationFromCache(): Promise<number | null> {
+  const saved = await dbStore.getLastSimulation();
+  if (!saved?.response || !saved?.request || !Array.isArray(saved.request.tickers) || saved.request.tickers.length === 0) {
+    return null;
+  }
+
+  const restoredTickers = saved.request.tickers
+    .map((ticker: any) => getDisplayTickerForStoredSymbol(ticker))
+    .filter(Boolean)
+    .slice(0, MAX_SIMULATOR_TICKERS);
+
+  if (restoredTickers.length === 0) {
+    return null;
+  }
+
+  selectedForSimulator = restoredTickers;
+  simulatorState.tickerInvestments = {};
+  for (const requestTicker of saved.request.tickers) {
+    const displayTicker = getDisplayTickerForStoredSymbol(requestTicker);
+    if (!displayTicker) continue;
+    simulatorState.tickerInvestments[displayTicker] = saved.request.tickerInvestments?.[requestTicker] ?? 0;
+  }
+
+  const horizonMonths = Number(saved.request.horizonMonths);
+  if ([12, 36, 60, 120].includes(horizonMonths)) {
+    simulatorState.useCustom = false;
+    simulatorState.preset = horizonMonths;
+  } else if (Number.isFinite(horizonMonths) && horizonMonths > 0) {
+    simulatorState.useCustom = true;
+    if (horizonMonths % 12 === 0) {
+      simulatorState.customValue = Math.max(1, Math.round(horizonMonths / 12));
+      simulatorState.customUnit = 'years';
+    } else {
+      simulatorState.customValue = Math.max(1, Math.round(horizonMonths));
+      simulatorState.customUnit = 'months';
+    }
+  }
+
+  simulatorState.lastResponse = saved.response;
+  saveSimulatorSelection();
+  renderSimulatorSelectionBadge();
+  if (activeMainTab === 'simulator') {
+    renderSimulatorTab();
+  }
+
+  return saved.timestamp ?? null;
 }
 
 

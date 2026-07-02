@@ -15,6 +15,12 @@ export default {
     subtitle: 'Advanced quantitative system with multi-factor analysis and benchmarking'
   },
 
+  // PWA (install prompt, offline banner)
+  pwa: {
+    install_button: '📲 Install app',
+    offline_banner: '📴 You are offline — showing your last saved results'
+  },
+
   // Markets
   markets: {
     label: '📍 Market',

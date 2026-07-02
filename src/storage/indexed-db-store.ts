@@ -6,7 +6,10 @@
 /* global indexedDB */
 
 const DB_NAME = 'GlobalQuantScannerDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
+
+/** Fixed key used for the single "last successful scan/simulation" record kept for offline review. */
+const LATEST_KEY = 'latest';
 
 export class IndexedDBStore {
   db: IDBDatabase | null = null;
@@ -75,6 +78,16 @@ export class IndexedDBStore {
           const settingsStore = db.createObjectStore('alert_settings', { keyPath: 'id' });
           settingsStore.createIndex('strategy', 'strategy', { unique: false });
           settingsStore.createIndex('user_id', 'user_id', { unique: false });
+        }
+
+        // Last successful scan (single record) — used to review results while offline
+        if (!db.objectStoreNames.contains('scan_results')) {
+          db.createObjectStore('scan_results', { keyPath: 'id' });
+        }
+
+        // Last successful simulator output (single record) — used to review while offline
+        if (!db.objectStoreNames.contains('simulation_results')) {
+          db.createObjectStore('simulation_results', { keyPath: 'id' });
         }
 
       };
@@ -311,7 +324,7 @@ export class IndexedDBStore {
   async clearAll(): Promise<any[]> {
     if (!this.db) await this.init();
 
-    const stores = ['portfolios', 'snapshots', 'rebalances', 'price_cache', 'alerts', 'alert_settings'];
+    const stores = ['portfolios', 'snapshots', 'rebalances', 'price_cache', 'alerts', 'alert_settings', 'scan_results', 'simulation_results'];
     const promises = stores.map(storeName => {
       return new Promise<void>((resolve, reject) => {
         const transaction = this.db!.transaction([storeName], 'readwrite');
@@ -447,6 +460,78 @@ export class IndexedDBStore {
       const transaction = this.db!.transaction(['alert_settings'], 'readonly');
       const store = transaction.objectStore('alert_settings');
       const request = store.get(id);
+
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Save the last successful scan for offline review. Overwrites any previous record —
+   * only one "last scan" is retained.
+   * @param {Object} scan - { market, strategy, timestamp, results }
+   * @returns {Promise<void>}
+   */
+  async saveLastScan(scan: any): Promise<void> {
+    if (!this.db) await this.init();
+
+    return new Promise<void>((resolve, reject) => {
+      const transaction = this.db!.transaction(['scan_results'], 'readwrite');
+      const store = transaction.objectStore('scan_results');
+      const request = store.put({ ...scan, id: LATEST_KEY });
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Get the last successful scan, if any.
+   * @returns {Promise<Object|null>}
+   */
+  async getLastScan(): Promise<any> {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['scan_results'], 'readonly');
+      const store = transaction.objectStore('scan_results');
+      const request = store.get(LATEST_KEY);
+
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Save the last successful simulator output for offline review. Overwrites any
+   * previous record — only one "last simulation" is retained.
+   * @param {Object} simulation - { request, response, timestamp }
+   * @returns {Promise<void>}
+   */
+  async saveLastSimulation(simulation: any): Promise<void> {
+    if (!this.db) await this.init();
+
+    return new Promise<void>((resolve, reject) => {
+      const transaction = this.db!.transaction(['simulation_results'], 'readwrite');
+      const store = transaction.objectStore('simulation_results');
+      const request = store.put({ ...simulation, id: LATEST_KEY });
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Get the last successful simulator output, if any.
+   * @returns {Promise<Object|null>}
+   */
+  async getLastSimulation(): Promise<any> {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['simulation_results'], 'readonly');
+      const store = transaction.objectStore('simulation_results');
+      const request = store.get(LATEST_KEY);
 
       request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);

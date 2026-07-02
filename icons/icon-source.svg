@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Full-bleed background: safe for maskable icons (OS applies its own mask shape).
+       Flat colours only (no gradients) — ImageMagick's built-in SVG rasteriser used to
+       generate the PNG set does not support <linearGradient>. -->
+  <rect x="0" y="0" width="512" height="512" fill="#0f172a"/>
+
+  <!-- Ascending bar-chart glyph, kept within the ~111-401 maskable safe zone -->
+  <g>
+    <rect x="150" y="280" width="48" height="100" rx="8" fill="#38bdf8"/>
+    <rect x="218" y="230" width="48" height="150" rx="8" fill="#5ea9f0"/>
+    <rect x="286" y="170" width="48" height="210" rx="8" fill="#818cf8"/>
+  </g>
+
+  <!-- Scan/magnifier accent -->
+  <circle cx="352" cy="168" r="24" fill="none" stroke="#818cf8" stroke-width="10"/>
+  <line x1="369" y1="185" x2="390" y2="206" stroke="#818cf8" stroke-width="10" stroke-linecap="round"/>
+</svg>
+

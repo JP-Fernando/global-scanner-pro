@@ -97,6 +97,21 @@ export default [
     },
   },
 
+  // Service worker (plain script, ServiceWorkerGlobalScope — not Node, not a regular browser window)
+  {
+    files: ['sw.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: {
+        self: 'readonly',
+        caches: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+      },
+    },
+  },
+
   // Node.js scripts and config files
   {
     files: ['playwright.config.js', 'scripts/**/*.js'],

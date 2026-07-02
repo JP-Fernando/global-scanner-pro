@@ -16,19 +16,20 @@ no longer "can we build features?" but "what product shape are we shipping next?
 - IndexedDB persistence already available for local browser storage
 - Express + Vite delivery path already suitable for an installable web app shell
 - Good validation, monitoring, logging, and test foundations for expanding safely
+- ✅ Installable local-first PWA shell (manifest, service worker, offline last-scan/simulator
+  review, install prompt) — completed 2026-07-02, see §5.5.3.1
 
 ### What is still strategically missing
 - Real authentication and user ownership model
 - A clear decision between local-first single-user usage vs multi-user synced product
-- A mobile distribution path (installable PWA first, native Android only if justified later)
+  (this milestone shipped the local-first branch; account-based sync is still open, §5.5.3.3)
+- Mobile UX hardening for dense tables/tap targets on narrow screens (§5.5.3.2 — next up)
 
 ### Recommendation
-Treat the next milestone as **product consolidation + PWA enablement**, not "add more large
-features". The fastest path to user value is to make the current scanner installable and reliable
-on mobile as a PWA, while deciding whether the first mobile release is:
-
-1. `Local-first` — portfolios, alerts, and simulator state stay on-device
-2. `Account-based` — cross-device persistence requires Phase 4.1 authentication first
+PWA enablement (local-first branch) is done. Treat the next milestone as **mobile UX hardening**
+(§5.5.3.2) — the installable shell now exists, so the fastest remaining path to user value is
+making the core scan/portfolio/alerts/simulator flows comfortable on real phone screens before
+revisiting the local-first vs account-based sync decision (§5.5.3.3).
 
 ---
 
@@ -2011,20 +2012,49 @@ installation behaviour, and offline expectations before committing to a second c
 **Recommended delivery sequence**:
 
 #### 5.5.3.1 PWA Foundation
-**Target**: very next milestone
+**Status**: ✅ COMPLETED — 2026-07-02
 
-**Actions**:
-- Add `manifest.webmanifest` with name, icons, theme colours, and standalone display mode
-- Add service worker for app-shell caching and offline fallback
-- Cache the last successful scan and simulator output for offline review
-- Add install prompt handling and a visible "Install app" entry point
-- Define cache invalidation/versioning rules for market data vs static assets
+**Completed Actions**:
+- ✅ `manifest.webmanifest` (repo root, static — served in dev/test/prod alike) — name,
+  short_name, standalone display, theme/background colours, 192/512/512-maskable icons
+- ✅ `sw.js` (repo root, hand-rolled — no build step touches it, so dev/test/prod all get
+  the same offline behaviour): precaches the app shell (`/`, `/index.html`, manifest,
+  icons), network-first navigation with offline fallback to the cached shell,
+  stale-while-revalidate for same-origin scripts/styles/fonts/images. Deliberately does
+  **not** intercept `/universes/**` or Yahoo/health API calls — see cache invalidation
+  note below
+  - `icons/` — hand-authored SVG source + generated 192/512/512-maskable/favicon/apple-touch-icon
+    PNGs (ImageMagick; flat colours only, its bundled SVG rasteriser doesn't support gradients)
+- ✅ Last scan + simulator output persisted to two new IndexedDB stores
+  (`scan_results`, `simulation_results` in `src/storage/indexed-db-store.ts`) right after
+  each successful scan/simulation in `src/core/scanner.ts` — restored and rendered
+  automatically on cold load while offline via `restoreLastScanFromCache()`
+- ✅ `src/pwa/pwa-init.ts` (4th Vite entry point) — service worker registration,
+  `beforeinstallprompt` capture wired to a visible "Install app" header button, offline
+  banner with a locale-formatted "last saved" timestamp
+- ✅ Cache invalidation/versioning: static shell assets are versioned via `CACHE_VERSION`
+  in `sw.js` (old caches purged on `activate`); market data is **never** cached at the
+  service-worker/network layer — it always hits the network, and offline review instead
+  reads the fully-computed last scan/simulation from IndexedDB (more precise than
+  replaying raw API responses, and keeps `/universes/**`/API calls mockable in E2E tests,
+  since a service worker's own `fetch()` bypasses page-scoped test mocks)
+- ✅ CSP: explicit `manifestSrc`/`workerSrc` directives added in `src/middleware/security.ts`
+- ✅ Tests: 44 new unit tests (`indexed-db-store.test.js` extensions, `pwa-init.test.js`),
+  3 new E2E specs (`src/tests/e2e/pwa.spec.js` — manifest validity, SW activation, full
+  scan → go offline → reload → last scan still rendered). 1253 unit/integration tests and
+  77 relevant E2E tests passing (2 pre-existing, unrelated a11y failures on `main` — not
+  caused by this work, reproduced on a clean checkout before starting)
 
-**Success Criteria**:
-- App is installable on Android Chrome
-- App opens in standalone mode from the home screen
-- Last successful scan can be reviewed offline
-- Lighthouse PWA-related checks pass where applicable
+**Success Criteria**: ✅ All met
+- ✅ App is installable on Android Chrome (valid manifest + active SW + HTTPS/localhost)
+- ✅ App opens in standalone mode from the home screen (`display: "standalone"`)
+- ✅ Last successful scan can be reviewed offline (verified end-to-end in `pwa.spec.js`)
+- Lighthouse PWA-specific scoring deferred — Lighthouse 10+ dropped the dedicated "PWA"
+  category from its default report; revisit if/when a PWA-specific Lighthouse config is
+  wired up
+
+**Deliberately out of scope for this pass** (tracked in 5.5.3.3): push notifications,
+background sync, and the local-only vs account-synced product decision.
 
 #### 5.5.3.2 Mobile UX Hardening
 **Target**: immediately after PWA foundation
@@ -2148,13 +2178,15 @@ installation behaviour, and offline expectations before committing to a second c
 The roadmap should now optimise for **shipping a coherent product milestone**, not for adding more
 capabilities in parallel. The next decision is architectural as much as functional:
 
-1. Decide whether the next release is `local-first PWA` or `account-based PWA`
-2. Start PWA foundation work immediately either way
-3. Treat authentication as mandatory only for the account-based branch, not for the installable shell itself
+1. ✅ Decided: `local-first PWA` for this milestone (portfolios/alerts/simulator/scan state
+   stay on-device via IndexedDB; account-based sync remains a future option, see 5.5.3.3)
+2. ✅ PWA foundation work completed 2026-07-02 (§5.5.3.1)
+3. Authentication remains scoped to the account-based branch only, not the installable shell itself
 
 ### Priority 1 — Next 2 to 4 weeks
-1. PWA foundation (`manifest`, icons, service worker, install flow, offline shell)
-2. Mobile UX hardening for scanner, results, portfolio, alerts, and simulator
+1. ✅ PWA foundation (`manifest`, icons, service worker, install flow, offline shell) —
+   completed 2026-07-02, see §5.5.3.1
+2. Mobile UX hardening for scanner, results, portfolio, alerts, and simulator (§5.5.3.2 — next up)
 3. Product decision on persistence model:
    local-only IndexedDB vs authenticated server-synced user data
 

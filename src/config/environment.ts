@@ -26,25 +26,35 @@ const envSchema = z.object({
   ),
 
   // Security
+  // Controls the HTTPS redirect + HSTS header, independent of NODE_ENV.
+  // A production Node process with no TLS-terminating reverse proxy in
+  // front of it (e.g. `npm start` on localhost) must NOT enable this, or
+  // it redirects into a dead end (no HTTPS listener exists). Real
+  // deployments behind nginx/Caddy/a load balancer should set this to
+  // 'true' explicitly.
+  FORCE_HTTPS: z.string().optional().transform((val: string | undefined) => val === 'true'),
   ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
   SESSION_SECRET: z.string().min(32, 'Session secret must be at least 32 characters')
     .optional()
     .default('insecure-default-secret-change-in-production'),
 
   // Rate Limiting
-  // Defaults are relaxed for NODE_ENV=development so local scanning isn't
-  // throttled; explicit env vars always win, and production keeps the
-  // strict defaults below.
+  // A single market scan fetches 40-100+ distinct tickers from /api/yahoo in
+  // quick batches (BATCH_SIZE=5, ~50ms between batches), and an "ALL MARKETS"
+  // scan fetches ~1200. The production defaults below must stay high enough
+  // to cover that — this is the app's own core usage pattern hitting its own
+  // public (unauthenticated) proxy, not third-party traffic to defend
+  // against. Explicit env vars always win.
   RATE_LIMIT_WINDOW_MS: z.preprocess(
     (val: unknown) => val || '900000',
     z.string().regex(/^\d+$/).transform(Number)
   ),
   RATE_LIMIT_MAX_REQUESTS: z.preprocess(
-    (val: unknown) => val || (process.env.NODE_ENV === 'development' ? '5000' : '100'),
+    (val: unknown) => val || (process.env.NODE_ENV === 'development' ? '5000' : '2000'),
     z.string().regex(/^\d+$/).transform(Number)
   ),
   RATE_LIMIT_YAHOO_MAX: z.preprocess(
-    (val: unknown) => val || (process.env.NODE_ENV === 'development' ? '500' : '20'),
+    (val: unknown) => val || (process.env.NODE_ENV === 'development' ? '500' : '300'),
     z.string().regex(/^\d+$/).transform(Number)
   ),
 
@@ -187,6 +197,7 @@ interface Config {
   security: {
     allowedOrigins: string[];
     sessionSecret: string;
+    forceHttps: boolean;
     rateLimit: {
       windowMs: number;
       max: number;
@@ -303,6 +314,7 @@ export const config: Config = {
   security: {
     allowedOrigins: env.ALLOWED_ORIGINS.split(',').map((o: string) => o.trim()),
     sessionSecret: env.SESSION_SECRET,
+    forceHttps: env.FORCE_HTTPS,
     rateLimit: {
       windowMs: env.RATE_LIMIT_WINDOW_MS,
       max: env.RATE_LIMIT_MAX_REQUESTS,

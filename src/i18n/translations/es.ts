@@ -15,6 +15,12 @@ export default {
     subtitle: 'Sistema cuantitativo avanzado con análisis multi-factor y benchmarking'
   },
 
+  // PWA (install prompt, offline banner)
+  pwa: {
+    install_button: '📲 Instalar app',
+    offline_banner: '📴 Estás sin conexión — mostrando tu último análisis guardado'
+  },
+
   // Markets
   markets: {
     label: '📍 Mercado',

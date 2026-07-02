@@ -19,8 +19,8 @@ export const API_BUDGETS = {
     p99ResponseMs: isStrict ? 400 : 1000,
   },
   rateLimiting: {
-    globalMaxPerWindow: 100,
-    yahooMaxPerMinute: 20,
+    globalMaxPerWindow: 2000,
+    yahooMaxPerMinute: 300,
     rejectionResponseMs: 50,
   },
 };

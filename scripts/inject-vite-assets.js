@@ -43,12 +43,29 @@ function getEntry(srcKey) {
 const scannerEntry = getEntry('src/core/scanner.ts');
 const translatorEntry = getEntry('src/i18n/ui-translator.ts');
 const initEntry = getEntry('src/i18n/ui-init.ts');
+const pwaInitEntry = getEntry('src/pwa/pwa-init.ts');
 const cssEntry = getEntry('src/dashboard/attribution-dashboard.css');
 
 // Collect all chunk files for preload hints
 const chunkFiles = Object.values(manifest)
   .filter((e) => !e.isEntry && e.file && e.file.endsWith('.js'))
   .map((e) => e.file);
+
+function collectProductionShellAssets() {
+  const assets = new Set();
+
+  for (const entry of Object.values(manifest)) {
+    if (entry.file) assets.add(`/${entry.file}`);
+    if (Array.isArray(entry.css)) {
+      for (const cssFile of entry.css) assets.add(`/${cssFile}`);
+    }
+    if (Array.isArray(entry.assets)) {
+      for (const assetFile of entry.assets) assets.add(`/${assetFile}`);
+    }
+  }
+
+  return [...assets].sort();
+}
 
 // ── 3. Read source index.html ──────────────────────────────────────────────
 let html = readFileSync(resolve(rootDir, 'index.html'), 'utf-8');
@@ -95,6 +112,14 @@ if (initEntry) {
   console.log(`  ✓ ui-init.ts → /${initEntry.file}`);
 }
 
+if (pwaInitEntry) {
+  html = html.replace(
+    '<script type="module" src="dist/src/pwa/pwa-init.js"></script>',
+    `<script type="module" src="/${pwaInitEntry.file}"></script>`
+  );
+  console.log(`  ✓ pwa-init.ts → /${pwaInitEntry.file}`);
+}
+
 // ── 6. Inject <link rel="modulepreload"> hints for shared chunks ───────────
 if (chunkFiles.length > 0) {
   const preloadTags = chunkFiles
@@ -117,5 +142,32 @@ if (existsSync(universesDir)) {
   cpSync(universesDir, universesOut, { recursive: true });
   console.log('  ✓ universes/ copied to dist/public/universes/');
 }
+
+// ── 9. Copy PWA static files (manifest, service worker, icons) ─────────────
+// These are hand-authored, root-served files — not part of the Vite entry graph.
+// The production service worker gets its app-shell list stamped with the hashed
+// files from Vite so offline boot works without waiting for runtime caching.
+const manifestSrc = resolve(rootDir, 'manifest.webmanifest');
+if (existsSync(manifestSrc)) {
+  cpSync(manifestSrc, resolve(rootDir, 'dist/public/manifest.webmanifest'));
+}
+
+const swSrc = resolve(rootDir, 'sw.js');
+if (existsSync(swSrc)) {
+  const swTemplate = readFileSync(swSrc, 'utf-8');
+  const productionShellAssets = collectProductionShellAssets();
+  const swOutput = swTemplate.replace(
+    /const APP_SHELL_ASSETS = \[[\s\S]*?\];/,
+    `const APP_SHELL_ASSETS = ${JSON.stringify(productionShellAssets, null, 2)};`
+  );
+  writeFileSync(resolve(rootDir, 'dist/public/sw.js'), swOutput);
+}
+
+const iconsDir = resolve(rootDir, 'icons');
+const iconsOut = resolve(rootDir, 'dist/public/icons');
+if (existsSync(iconsDir)) {
+  cpSync(iconsDir, iconsOut, { recursive: true });
+}
+console.log('  ✓ PWA files (manifest, sw.js, icons/) copied to dist/public/');
 
 console.log('\n✅ inject-vite-assets: production build complete → dist/public/');

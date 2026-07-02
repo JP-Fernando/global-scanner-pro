@@ -19,6 +19,7 @@ vi.mock('../../config/environment.js', async () => {
       },
       security: {
         allowedOrigins: ['http://localhost:3000', '*'],
+        forceHttps: true,
         rateLimit: {
           windowMs: 15 * 60 * 1000,
           max: 100,

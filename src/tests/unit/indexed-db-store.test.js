@@ -162,6 +162,8 @@ describe('IndexedDBStore', () => {
       expect(names.contains('price_cache')).toBe(true);
       expect(names.contains('alerts')).toBe(true);
       expect(names.contains('alert_settings')).toBe(true);
+      expect(names.contains('scan_results')).toBe(true);
+      expect(names.contains('simulation_results')).toBe(true);
     });
   });
 
@@ -415,14 +417,82 @@ describe('IndexedDBStore', () => {
   });
 
   // -----------------------------------------------------------
+  // Last scan / simulation (offline review — PWA Foundation)
+  // -----------------------------------------------------------
+  describe('Last scan operations', () => {
+    it('returns null when nothing has been saved yet', async () => {
+      const freshStore = new IndexedDBStore();
+      await freshStore.init();
+      expect(await freshStore.getLastScan()).toBeNull();
+    });
+
+    it('saves and retrieves the last scan', async () => {
+      const scan = {
+        market: { file: 'us_universe.json', suffix: '' },
+        strategy: 'balanced',
+        timestamp: 1700000000000,
+        results: [{ ticker: 'AAPL', scoreTotal: 82 }]
+      };
+
+      await store.saveLastScan(scan);
+      const retrieved = await store.getLastScan();
+
+      expect(retrieved.strategy).toBe('balanced');
+      expect(retrieved.results).toEqual(scan.results);
+    });
+
+    it('overwrites the previous scan — only one "last scan" is retained', async () => {
+      await store.saveLastScan({ strategy: 'balanced', timestamp: 1, results: [{ ticker: 'AAPL' }] });
+      await store.saveLastScan({ strategy: 'momentum_aggressive', timestamp: 2, results: [{ ticker: 'MSFT' }] });
+
+      const retrieved = await store.getLastScan();
+      expect(retrieved.strategy).toBe('momentum_aggressive');
+      expect(retrieved.results).toEqual([{ ticker: 'MSFT' }]);
+    });
+  });
+
+  describe('Last simulation operations', () => {
+    it('returns null when nothing has been saved yet', async () => {
+      const freshStore = new IndexedDBStore();
+      await freshStore.init();
+      expect(await freshStore.getLastSimulation()).toBeNull();
+    });
+
+    it('saves and retrieves the last simulation', async () => {
+      const simulation = {
+        request: { tickers: ['AAPL'], tickerInvestments: { AAPL: 100 }, horizonMonths: 12 },
+        response: { tickers: ['AAPL'], totalInvested: 1200, scenarios: { expected: { finalValue: 1300 } } },
+        timestamp: 1700000000000
+      };
+
+      await store.saveLastSimulation(simulation);
+      const retrieved = await store.getLastSimulation();
+
+      expect(retrieved.request).toEqual(simulation.request);
+      expect(retrieved.response).toEqual(simulation.response);
+    });
+
+    it('overwrites the previous simulation — only one "last simulation" is retained', async () => {
+      await store.saveLastSimulation({ request: { tickers: ['AAPL'] }, response: {}, timestamp: 1 });
+      await store.saveLastSimulation({ request: { tickers: ['MSFT'] }, response: {}, timestamp: 2 });
+
+      const retrieved = await store.getLastSimulation();
+      expect(retrieved.request.tickers).toEqual(['MSFT']);
+    });
+  });
+
+  // -----------------------------------------------------------
   // Clear All
   // -----------------------------------------------------------
   describe('clearAll', () => {
     it('clears all stores', async () => {
       await store.savePortfolio({ id: 'pf-clear', name: 'Clear Test', created_at: '2023-01-01' });
       await store.saveAlert({ id: 'al-clear', strategy: 'test', user_id: 'u1', created_at: '2023-01-01' });
+      await store.saveLastScan({ strategy: 'balanced', timestamp: 1, results: [{ ticker: 'AAPL' }] });
 
       await store.clearAll();
+
+      expect(await store.getLastScan()).toBeNull();
 
       const portfolios = await store.getAllPortfolios();
       expect(portfolios).toHaveLength(0);
