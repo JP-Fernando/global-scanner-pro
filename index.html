@@ -254,6 +254,330 @@
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     }
 
+    .main-tab-bar {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .main-tab-btn {
+      border-radius: 999px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #94a3b8;
+      box-shadow: none;
+      padding: 10px 16px;
+    }
+
+    .main-tab-btn.active {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #f8fafc;
+      border-color: transparent;
+    }
+
+    .sim-selection-badge {
+      position: sticky;
+      bottom: 10px;
+      margin: 14px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 999px;
+      padding: 8px 12px;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 8;
+    }
+
+    .sim-selection-badge button {
+      padding: 8px 12px;
+      border-radius: 999px;
+      box-shadow: none;
+      font-size: 0.85em;
+    }
+
+    .sim-select-cell {
+      width: 60px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .sim-select-checkbox {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #38bdf8;
+      color-scheme: light;
+      flex-shrink: 0;
+    }
+
+    /* Checkbox del simulador: renderizado 100% CSS para evitar el tema GTK de Firefox en Linux */
+    .sim-check {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      border: 2px solid #64748b;
+      border-radius: 3px;
+      background: #1e293b;
+      cursor: pointer;
+      position: relative;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .sim-check:checked {
+      background: #f59e0b;
+      border-color: #f59e0b;
+    }
+
+    .sim-check:checked::after {
+      content: '';
+      position: absolute;
+      left: 3px;
+      top: 0px;
+      width: 5px;
+      height: 9px;
+      border: 2px solid #0f172a;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+    }
+
+    .sim-check:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .sim-check:focus-visible {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
+    .sim-select-toggle {
+      all: unset;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 2px 6px;
+      min-width: 36px;
+      min-height: 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 0;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: none;
+    }
+
+    .sim-select-toggle:hover {
+      border-color: #38bdf8;
+      color: #38bdf8;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .sim-select-toggle:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .simulator-tab-panel {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      min-height: 220px;
+    }
+
+    .sim-empty-state {
+      color: #94a3b8;
+      border: 1px dashed #334155;
+      border-radius: 10px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .sim-layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 340px) 1fr;
+      gap: 18px;
+    }
+
+    .sim-left,
+    .sim-right {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .sim-selected-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 10px 0 4px;
+    }
+
+    .sim-ticker-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sim-ticker-amount {
+      width: 90px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 6px 8px;
+      font-size: 0.9em;
+      text-align: right;
+    }
+
+    .sim-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82em;
+      color: #94a3b8;
+      padding: 4px 0 10px;
+      border-bottom: 1px solid #1e293b;
+      margin-bottom: 12px;
+    }
+
+    .sim-selected-pill {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: none;
+      flex-shrink: 0;
+    }
+
+    .sim-field-label {
+      color: #94a3b8;
+      font-size: 0.8em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .sim-left input:not([type="radio"]):not([type="checkbox"]):not(.sim-ticker-amount),
+    .sim-left select {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 9px 10px;
+      margin-bottom: 10px;
+    }
+
+    .sim-presets {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+      color: #cbd5e1;
+      font-size: 0.9em;
+    }
+
+    .sim-custom-panel {
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .sim-calc-btn {
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    .sim-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .sim-summary-item {
+      background: #111c2e;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .sim-summary-label {
+      font-size: 0.75em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .sim-summary-value {
+      font-size: 1.05em;
+      font-weight: 700;
+    }
+
+    .sim-summary-return {
+      font-size: 0.85em;
+      margin-top: 2px;
+    }
+
+    .sim-chart-wrap {
+      position: relative;
+      height: 320px;
+      background: #111c2e;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    .sim-loading {
+      color: #38bdf8;
+      margin-bottom: 10px;
+      font-size: 0.9em;
+    }
+
+    .sim-error {
+      color: #f87171;
+      margin-bottom: 10px;
+      min-height: 18px;
+    }
+
+    .sim-breakdown {
+      margin-top: 12px;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px;
+      background: #111c2e;
+      color: #cbd5e1;
+    }
+
+    .sim-breakdown-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(80px, 1fr));
+      gap: 8px;
+      font-size: 0.85em;
+      padding: 6px 0;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .sim-breakdown-row:last-child {
+      border-bottom: none;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -563,6 +887,14 @@
         align-items: flex-start;
       }
 
+      .sim-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sim-chart-wrap {
+        height: 260px;
+      }
+
     }
   </style>
 </head>
@@ -702,10 +1034,16 @@
     <div id="mlRecommendations" style="display: none;"></div>
     <div id="mlAnomalies" style="display: none;"></div>
 
-    <div class="table-container">
+    <div class="main-tab-bar" role="tablist" aria-label="Main tabs">
+      <button id="mainTabResults" class="main-tab-btn active" type="button">Results</button>
+      <button id="mainTabSimulator" class="main-tab-btn" type="button">Simulator</button>
+    </div>
+
+    <div id="tab-results" class="table-container">
       <table>
         <thead>
           <tr>
+            <th style="width: 60px;">Sim.</th>
             <th style="width: 60px;" data-i18n="table.rank">Rank</th>
             <th style="width: 100px;" data-i18n="table.ticker">Ticker</th>
             <th data-i18n="table.name">Name</th>
@@ -727,12 +1065,14 @@
         </thead>
         <tbody id="results">
           <tr>
-            <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;" data-i18n="table.waiting_data">
+            <td colspan="7" style="text-align: center; padding: 40px; color: #64748b;" data-i18n="table.waiting_data">
               Esperando datos de análisis...
             </td>
           </tr>
         </tbody>
       </table>
+
+      <div id="simulatorSelectionBadge" class="sim-selection-badge" style="display:none;"></div>
 
       <!-- Export buttons for scan results -->
       <div id="scanExportButtons" style="display: none; margin-top: 15px; text-align: center;">
@@ -1500,6 +1840,9 @@
           border: 1px solid #334155;
         }
       </style>
+    </div>
+    <div id="tab-simulator" class="simulator-tab-panel" style="display:none;">
+      <div class="sim-empty-state">Select up to 4 securities from the results table to get started.</div>
     </div>
   </div>
 

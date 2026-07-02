@@ -66,6 +66,43 @@ export const testRunnerSchema = z.object({
 export type TestRunnerInput = z.infer<typeof testRunnerSchema>;
 
 /**
+ * Schema for investment simulation endpoint
+ */
+export const simulationRequestSchema = z.object({
+  tickers: z.array(
+    z.string()
+      .min(1, 'Ticker cannot be empty')
+      .max(10, 'Ticker must be 10 characters or less')
+      .regex(/^[A-Z0-9.\-^=]+$/, 'Ticker contains invalid characters')
+      .transform((val: string): string => val.toUpperCase())
+  )
+    .min(1, 'At least one ticker is required')
+    .max(4, 'Maximum 4 tickers allowed'),
+
+  tickerInvestments: z.record(
+    z.string(),
+    z.number()
+      .min(0, 'Monthly amount must be non-negative')
+      .finite('Monthly amount must be a finite number')
+  ),
+
+  horizonMonths: z.number()
+    .int('horizonMonths must be an integer')
+    .min(1, 'horizonMonths must be at least 1')
+}).refine(
+  (data) => data.tickers.every(t => Object.prototype.hasOwnProperty.call(data.tickerInvestments, t)),
+  { message: 'tickerInvestments must contain an entry for every ticker' }
+).refine(
+  (data) => Object.values(data.tickerInvestments).reduce((sum, v) => sum + v, 0) > 0,
+  { message: 'Total monthly investment must be greater than 0' }
+);
+
+/** Inferred input type for simulation schema */
+export type SimulationRequestInput = z.input<typeof simulationRequestSchema>;
+/** Inferred output type for simulation schema */
+export type SimulationRequestOutput = z.output<typeof simulationRequestSchema>;
+
+/**
  * Common schemas for reuse across different endpoints
  */
 export const commonSchemas = {

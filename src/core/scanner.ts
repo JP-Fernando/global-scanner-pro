@@ -14,6 +14,7 @@ import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from '../data/sect
 import { detectAnomalies } from '../data/anomalies.js';
 import i18n from '../i18n/i18n.js';
 import { initDashboard } from '../dashboard/portfolio-dashboard.js';
+import { SimulatorChart } from '../simulation/simulator-chart.js';
 import {
   exportBacktestToExcel,
   exportScanResultsToExcel,
@@ -50,6 +51,20 @@ let lastBacktestResults: any[] = [];
 let lastBacktestInitialCapital: number | null = null;
 const dataCache = new Map<string, any>();
 let isScanning = false; // Control flag
+const SIMULATOR_SELECTION_KEY = 'simulatorSelection';
+const MAX_SIMULATOR_TICKERS = 4;
+let selectedForSimulator: string[] = [];
+let activeMainTab: 'results' | 'simulator' = 'results';
+const simulatorChart = new SimulatorChart();
+const simulatorState = {
+  tickerInvestments: {} as Record<string, number>,
+  preset: 60,
+  useCustom: false,
+  customValue: 18,
+  customUnit: 'months' as 'months' | 'years',
+  isLoading: false,
+  lastResponse: null as any
+};
 
 // ML State
 let performanceTracker: any = null;
@@ -1379,6 +1394,10 @@ async function scanSingleMarket(file: any, suffix: any, config: any, status: any
           vRatio: Number(res.vRatio) || 1.0,
           sectorId,
           sectorRaw: originalStockData.sector || originalStockData.industry || 'Unknown',
+          marketSuffix: suffix,
+          yahooSymbol: originalStockData.ticker.includes('.')
+            ? originalStockData.ticker
+            : `${originalStockData.ticker}${suffix || ''}`,
           hasAnomalies: anomalyData.hasAnomalies,
           anomalies: anomalyData.anomalies,
           anomalyMetrics: anomalyData.metrics || {}
@@ -1424,6 +1443,10 @@ export async function runScan() {
     const status = document.getElementById('status');
     const tbody = document.getElementById('results');
     const filterInfo = document.getElementById('filterInfo');
+
+    clearSimulatorSelection();
+    renderSimulatorSelectionBadge();
+    renderSimulatorTab();
 
     // Check if "ALL_MARKETS" is selected
     if (marketValue === 'ALL_MARKETS') {
@@ -1612,6 +1635,10 @@ export async function runScan() {
             vRatio: Number(res.vRatio) || 1.0,
             sectorId,
             sectorRaw: originalStockData.sector || originalStockData.industry || 'Unknown',
+            marketSuffix: suffix,
+            yahooSymbol: originalStockData.ticker.includes('.')
+              ? originalStockData.ticker
+              : `${originalStockData.ticker}${suffix || ''}`,
             hasAnomalies: anomalyData.hasAnomalies,
             anomalies: anomalyData.anomalies,
             anomalyMetrics: anomalyData.metrics || {}
@@ -2202,6 +2229,446 @@ function renderWeightChart(allocation: any) {
 // TABLE RENDERING
 // =====================================================
 
+function getSimulatorHorizonMonths() {
+  if (!simulatorState.useCustom) {
+    return simulatorState.preset;
+  }
+
+  const rawValue = Number(simulatorState.customValue);
+  if (!Number.isFinite(rawValue) || rawValue < 1) return 0;
+  if (simulatorState.customUnit === 'years') return Math.max(1, Math.round(rawValue * 12));
+  return Math.max(1, Math.round(rawValue));
+}
+
+function saveSimulatorSelection() {
+  try {
+    localStorage.setItem(SIMULATOR_SELECTION_KEY, JSON.stringify(selectedForSimulator));
+  } catch {
+    // Ignore storage failures in private mode / restricted environments
+  }
+}
+
+function syncSimulatorSelectionWithResults() {
+  const available = new Set(currentResults.map((result: any) => String(result.ticker || '').toUpperCase()));
+  selectedForSimulator = selectedForSimulator.filter(ticker => available.has(ticker));
+}
+
+function loadSimulatorSelection() {
+  try {
+    const raw = localStorage.getItem(SIMULATOR_SELECTION_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return;
+    selectedForSimulator = parsed
+      .filter(item => typeof item === 'string')
+      .map(item => item.trim().toUpperCase())
+      .filter(Boolean)
+      .slice(0, MAX_SIMULATOR_TICKERS);
+    // Ensure every restored ticker has a default investment amount
+    for (const ticker of selectedForSimulator) {
+      if (!(ticker in simulatorState.tickerInvestments)) {
+        simulatorState.tickerInvestments[ticker] = 100;
+      }
+    }
+  } catch {
+    selectedForSimulator = [];
+  }
+}
+
+function clearSimulatorSelection() {
+  selectedForSimulator = [];
+  try {
+    localStorage.removeItem(SIMULATOR_SELECTION_KEY);
+  } catch {
+    // Ignore storage failures
+  }
+  simulatorState.lastResponse = null;
+}
+
+function renderSimulatorSelectionBadge() {
+  const badge = document.getElementById('simulatorSelectionBadge');
+  if (!badge) return;
+
+  if (!appState.scanCompleted || !currentResults.length) {
+    badge.style.display = 'none';
+    return;
+  }
+
+  badge.style.display = 'flex';
+  badge.innerHTML = `
+    <span>${selectedForSimulator.length} / ${MAX_SIMULATOR_TICKERS} securities selected for the Simulator</span>
+    <button id="goToSimulatorBtn" type="button">Go to Simulator</button>
+  `;
+
+  const goButton = document.getElementById('goToSimulatorBtn');
+  if (goButton) {
+    goButton.addEventListener('click', () => switchMainTab('simulator'));
+  }
+}
+
+function resolveSimulatorSymbols() {
+  return selectedForSimulator.map(ticker => {
+    const match = currentResults.find((item: any) => String(item.ticker || '').toUpperCase() === ticker);
+    if (!match) return ticker;
+
+    const explicit = String(match.yahooSymbol || '').trim();
+    if (explicit) return explicit;
+
+    const marketSuffix = String(match.marketSuffix || '').trim();
+    if (ticker.includes('.') || !marketSuffix) return ticker;
+    return `${ticker}${marketSuffix}`;
+  });
+}
+
+function removeTickerFromSimulator(ticker: string) {
+  selectedForSimulator = selectedForSimulator.filter(item => item !== ticker);
+  delete simulatorState.tickerInvestments[ticker];
+  saveSimulatorSelection();
+  applyFilters();
+  renderSimulatorTab();
+  if (selectedForSimulator.length > 0) {
+    onCalculate(true);
+  }
+}
+
+function formatCurrencyValue(value: number, currency = 'USD') {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
+function formatReturn(value: number) {
+  const sign = value > 0 ? '+' : '';
+  return `${sign}${(value * 100).toFixed(1)}%`;
+}
+
+function renderScenarioMetric(label: string, scenario: any, currency: string, color: string) {
+  return `
+    <div class="sim-summary-item">
+      <div class="sim-summary-label">${label}</div>
+      <div class="sim-summary-value" style="color:${color};">${formatCurrencyValue(scenario.finalValue, currency)}</div>
+      <div class="sim-summary-return" style="color:${color};">${formatReturn(scenario.totalReturn)}</div>
+    </div>
+  `;
+}
+
+function bindSimulatorEvents() {
+  const calculateBtn = document.getElementById('simCalculateBtn');
+  const presetInputs = document.querySelectorAll('input[name="simHorizonPreset"]');
+  const customRadio = document.getElementById('simPresetCustom') as HTMLInputElement | null;
+  const customPanel = document.getElementById('simCustomPanel') as HTMLElement | null;
+  const customValue = document.getElementById('simCustomValue') as HTMLInputElement | null;
+  const customUnit = document.getElementById('simCustomUnit') as HTMLSelectElement | null;
+
+  if (calculateBtn) {
+    calculateBtn.addEventListener('click', () => onCalculate(false));
+  }
+
+  document.querySelectorAll('.sim-ticker-amount').forEach(input => {
+    input.addEventListener('input', () => {
+      const el = input as HTMLInputElement;
+      const ticker = el.getAttribute('data-ticker') || '';
+      const value = Number(el.value);
+      simulatorState.tickerInvestments[ticker] = Number.isFinite(value) && value >= 0 ? value : 0;
+      const totalEl = document.getElementById('simTotalMonthly');
+      if (totalEl) totalEl.textContent = String(Math.round(getSimulatorTotalMonthly()));
+      updateSimulatorActionState();
+    });
+  });
+
+  presetInputs.forEach(input => {
+    input.addEventListener('change', () => {
+      const target = input as HTMLInputElement;
+      if (target.value === 'custom') {
+        simulatorState.useCustom = true;
+        if (customPanel) customPanel.style.display = 'grid';
+      } else {
+        simulatorState.useCustom = false;
+        simulatorState.preset = Number(target.value);
+        if (customPanel) customPanel.style.display = 'none';
+        updateSimulatorActionState();
+        onCalculate(true);
+      }
+      updateSimulatorActionState();
+    });
+  });
+
+  if (customRadio) {
+    customRadio.checked = simulatorState.useCustom;
+  }
+
+  if (customValue) {
+    customValue.addEventListener('input', () => {
+      simulatorState.customValue = Number(customValue.value);
+      updateSimulatorActionState();
+      if (simulatorState.useCustom) onCalculate(true);
+    });
+  }
+
+  if (customUnit) {
+    customUnit.addEventListener('change', () => {
+      simulatorState.customUnit = customUnit.value as 'months' | 'years';
+      updateSimulatorActionState();
+      if (simulatorState.useCustom) onCalculate(true);
+    });
+  }
+
+  document.querySelectorAll('.sim-remove-btn').forEach(button => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const ticker = (button as HTMLElement).getAttribute('data-ticker');
+      if (!ticker) return;
+      removeTickerFromSimulator(ticker);
+    });
+  });
+
+  updateSimulatorActionState();
+}
+
+function getSimulatorTotalMonthly(): number {
+  return selectedForSimulator.reduce(
+    (sum, ticker) => sum + (simulatorState.tickerInvestments[ticker] ?? 0), 0
+  );
+}
+
+function updateSimulatorActionState() {
+  const calculateBtn = document.getElementById('simCalculateBtn') as HTMLButtonElement | null;
+  if (!calculateBtn) return;
+
+  const horizon = getSimulatorHorizonMonths();
+  const allNonNegative = selectedForSimulator.every(
+    ticker => (simulatorState.tickerInvestments[ticker] ?? 0) >= 0
+  );
+  const total = getSimulatorTotalMonthly();
+  const isValid =
+    selectedForSimulator.length > 0 &&
+    allNonNegative &&
+    total > 0 &&
+    horizon >= 1;
+
+  calculateBtn.disabled = !isValid || simulatorState.isLoading;
+}
+
+function renderSimulatorProjection(result: any) {
+  const summary = document.getElementById('simSummary');
+  const breakdown = document.getElementById('simBreakdownBody');
+  if (!summary || !breakdown) return;
+
+  const currency = result.currency || 'USD';
+  const pessimisticLoss = result.totalInvested - result.scenarios.pessimistic.finalValue;
+
+  summary.innerHTML = `
+    <div class="sim-summary-item">
+      <div class="sim-summary-label">Total invested</div>
+      <div class="sim-summary-value">${formatCurrencyValue(result.totalInvested, currency)}</div>
+      <div class="sim-summary-return" style="color:#94a3b8;">${formatCurrencyValue(result.totalMonthlyInvestment ?? result.totalInvested / result.horizonMonths, currency)}/mo</div>
+    </div>
+    ${renderScenarioMetric('Expected', result.scenarios.expected, currency, '#3b82f6')}
+    ${renderScenarioMetric('Optimistic', result.scenarios.optimistic, currency, '#22c55e')}
+    <div class="sim-summary-item">
+      <div class="sim-summary-label">Pessimistic</div>
+      <div class="sim-summary-value" style="color:#ef4444;">${formatCurrencyValue(result.scenarios.pessimistic.finalValue, currency)}</div>
+      <div class="sim-summary-return" style="color:#ef4444;">${formatReturn(result.scenarios.pessimistic.totalReturn)}</div>
+      ${pessimisticLoss > 0 ? `<div class="sim-summary-return" style="color:#ef4444;">Loss: ${formatCurrencyValue(pessimisticLoss, currency)}</div>` : ''}
+    </div>
+  `;
+
+  breakdown.innerHTML = result.perTicker.map((item: any) => {
+    const tickerLoss = item.tickerTotalInvested - (item.scenarios?.pessimistic?.finalValue ?? 0);
+    const expGain = (item.scenarios?.expected?.finalValue ?? 0) - item.tickerTotalInvested;
+    const expGainColor = expGain >= 0 ? '#22c55e' : '#ef4444';
+    return `
+    <div class="sim-breakdown-row">
+      <span><strong>${item.ticker}</strong></span>
+      <span>${formatCurrencyValue(item.monthlyAmount ?? 0, currency)}/mo</span>
+      <span>μ ${(item.historicalMonthlyReturn * 100).toFixed(2)}%</span>
+      <span>σ ${(item.historicalMonthlyVolatility * 100).toFixed(2)}%</span>
+      <span>${item.dataYears}y data</span>
+      <span style="color:${expGainColor};">Expected gain: ${formatCurrencyValue(expGain, currency)}</span>
+      ${tickerLoss > 0 ? `<span style="color:#ef4444;">Worst loss: ${formatCurrencyValue(tickerLoss, currency)}</span>` : ''}
+    </div>`;
+  }).join('');
+
+  simulatorChart.init('simulatorChartCanvas');
+  simulatorChart.update(result.monthlyProjection, result.totalInvested, result.horizonMonths);
+}
+
+async function onCalculate(isAuto = false) {
+  const errorNode = document.getElementById('simError');
+  if (errorNode) errorNode.textContent = '';
+
+  const horizon = getSimulatorHorizonMonths();
+  const total = getSimulatorTotalMonthly();
+  if (!selectedForSimulator.length || total <= 0 || horizon < 1) {
+    updateSimulatorActionState();
+    return;
+  }
+
+  simulatorState.isLoading = true;
+  updateSimulatorActionState();
+
+  const loading = document.getElementById('simLoading');
+  if (loading) loading.style.display = 'flex';
+
+  try {
+    const simulationTickers = resolveSimulatorSymbols();
+    const tickerInvestments: Record<string, number> = {};
+    selectedForSimulator.forEach((displayTicker, i) => {
+      tickerInvestments[simulationTickers[i]] = simulatorState.tickerInvestments[displayTicker] ?? 0;
+    });
+
+    const response = await fetch('/api/v1/simulate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer simulator-ui'
+      },
+      body: JSON.stringify({
+        tickers: simulationTickers,
+        tickerInvestments,
+        horizonMonths: horizon
+      })
+    });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload?.error || 'Simulation API request failed');
+    }
+
+    simulatorState.lastResponse = payload;
+    renderSimulatorProjection(payload);
+  } catch (error) {
+    if (errorNode) {
+      errorNode.textContent = (error as Error).message || 'Simulation failed';
+    }
+    if (!isAuto) {
+      console.error('Simulation error:', error);
+    }
+  } finally {
+    simulatorState.isLoading = false;
+    if (loading) loading.style.display = 'none';
+    updateSimulatorActionState();
+  }
+}
+
+function renderSimulatorTab() {
+  const panel = document.getElementById('tab-simulator');
+  if (!panel) return;
+
+  if (!selectedForSimulator.length) {
+    panel.innerHTML = `
+      <div class="sim-empty-state">Select up to 4 securities from the results table to get started.</div>
+    `;
+    simulatorChart.destroy();
+    return;
+  }
+
+  const horizon = getSimulatorHorizonMonths();
+  const checkedPreset = simulatorState.useCustom ? 'custom' : String(simulatorState.preset);
+
+  const totalMonthly = getSimulatorTotalMonthly();
+
+  panel.innerHTML = `
+    <div class="sim-layout">
+      <div class="sim-left">
+        <h3>Selected Securities</h3>
+        <div class="sim-field-label" style="margin-bottom:6px;">Monthly investment per security</div>
+        <div class="sim-selected-list">
+          ${selectedForSimulator.map(ticker => {
+    const amount = simulatorState.tickerInvestments[ticker] ?? 100;
+    return `
+            <div class="sim-ticker-row">
+              <button class="sim-selected-pill sim-remove-btn" data-ticker="${ticker}" title="Remove ${ticker}">
+                ✕ ${ticker}
+              </button>
+              <input class="sim-ticker-amount" data-ticker="${ticker}" type="number" min="0" step="1" value="${Math.round(amount)}" />
+            </div>`;
+  }).join('')}
+        </div>
+        <div class="sim-total-row">
+          <span>Total monthly investment:</span>
+          <span id="simTotalMonthly">${Math.round(totalMonthly)}</span>
+        </div>
+
+        <div class="sim-field-label">Time horizon</div>
+        <div class="sim-presets">
+          <label><input type="radio" name="simHorizonPreset" value="12" ${checkedPreset === '12' ? 'checked' : ''} /> 1 year</label>
+          <label><input type="radio" name="simHorizonPreset" value="36" ${checkedPreset === '36' ? 'checked' : ''} /> 3 years</label>
+          <label><input type="radio" name="simHorizonPreset" value="60" ${checkedPreset === '60' ? 'checked' : ''} /> 5 years</label>
+          <label><input type="radio" name="simHorizonPreset" value="120" ${checkedPreset === '120' ? 'checked' : ''} /> 10 years</label>
+          <label><input type="radio" id="simPresetCustom" name="simHorizonPreset" value="custom" ${checkedPreset === 'custom' ? 'checked' : ''} /> Custom</label>
+        </div>
+
+        <div id="simCustomPanel" class="sim-custom-panel" style="${simulatorState.useCustom ? 'display:grid;' : 'display:none;'}">
+          <input id="simCustomValue" type="number" min="1" step="1" value="${Math.max(1, Math.round(simulatorState.customValue))}" />
+          <select id="simCustomUnit">
+            <option value="months" ${simulatorState.customUnit === 'months' ? 'selected' : ''}>months</option>
+            <option value="years" ${simulatorState.customUnit === 'years' ? 'selected' : ''}>years</option>
+          </select>
+        </div>
+
+        <button id="simCalculateBtn" class="sim-calc-btn" type="button">Calculate</button>
+        <div class="sim-horizon-note">Horizon sent: ${horizon} month(s)</div>
+      </div>
+
+      <div class="sim-right">
+        <div id="simLoading" class="sim-loading" style="display:none;">Calculating projection...</div>
+        <div id="simError" class="sim-error"></div>
+        <div id="simSummary" class="sim-summary"></div>
+        <div class="sim-chart-wrap">
+          <canvas id="simulatorChartCanvas"></canvas>
+        </div>
+        <details class="sim-breakdown" open>
+          <summary>Breakdown by security</summary>
+          <div id="simBreakdownBody"></div>
+        </details>
+      </div>
+    </div>
+  `;
+
+  bindSimulatorEvents();
+
+  if (simulatorState.lastResponse) {
+    renderSimulatorProjection(simulatorState.lastResponse);
+  } else {
+    onCalculate(true);
+  }
+}
+
+function switchMainTab(tab: 'results' | 'simulator') {
+  activeMainTab = tab;
+
+  const resultsPanel = document.getElementById('tab-results');
+  const simulatorPanel = document.getElementById('tab-simulator');
+  const resultsButton = document.getElementById('mainTabResults');
+  const simulatorButton = document.getElementById('mainTabSimulator');
+
+  if (!resultsPanel || !simulatorPanel || !resultsButton || !simulatorButton) return;
+
+  const showingResults = tab === 'results';
+  resultsPanel.style.display = showingResults ? 'block' : 'none';
+  simulatorPanel.style.display = showingResults ? 'none' : 'block';
+
+  resultsButton.classList.toggle('active', showingResults);
+  simulatorButton.classList.toggle('active', !showingResults);
+
+  if (!showingResults) {
+    renderSimulatorTab();
+  }
+}
+
+function initMainTabs() {
+  const resultsButton = document.getElementById('mainTabResults');
+  const simulatorButton = document.getElementById('mainTabSimulator');
+  if (!resultsButton || !simulatorButton) return;
+
+  resultsButton.addEventListener('click', () => switchMainTab('results'));
+  simulatorButton.addEventListener('click', () => switchMainTab('simulator'));
+}
+
 function renderTable(data: any) {
   const tbody = document.getElementById('results');
   const viewKey = (document.getElementById('viewMode') as HTMLInputElement)!.value;
@@ -2211,17 +2678,24 @@ function renderTable(data: any) {
     const messageKey = appState.scanCompleted ? 'table.no_results' : 'table.waiting_data';
     tbody!.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;">
+        <td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">
           ${i18n.t(messageKey)}
         </td>
       </tr>
     `;
+    renderSimulatorSelectionBadge();
     return;
   }
+
+  syncSimulatorSelectionWithResults();
 
   data.forEach((r: any, idx: any) => {
     const displayScore = r[viewKey] || r.finalScore;
     const dotColor = (SECTOR_COLORS as any)[r.sectorId] || (SECTOR_COLORS as any)[999];
+    const ticker = String(r.ticker || '').toUpperCase();
+    const isChecked = selectedForSimulator.includes(ticker);
+    const isMaxed = selectedForSimulator.length >= MAX_SIMULATOR_TICKERS;
+    const disableUnchecked = isMaxed && !isChecked;
 
     // Lógica de Anomalías
     let anomalyBadge = '';
@@ -2236,9 +2710,42 @@ function renderTable(data: any) {
     const tr = document.createElement('tr');
     tr.className = rowClass;
     tr.style.cursor = 'pointer';
-    tr.onclick = () => showDetails(r);
+    tr.addEventListener('click', event => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+
+      // Firefox/Linux can still bubble row clicks from nested controls in some cases.
+      // Ignore interactive elements so checkbox selection is reliable.
+      if (
+        target.closest('.sim-select-cell') ||
+        target.closest('.sim-select-toggle') ||
+        target.closest('input') ||
+        target.closest('button') ||
+        target.closest('label') ||
+        target.closest('a') ||
+        target.closest('select') ||
+        target.closest('textarea')
+      ) {
+        return;
+      }
+
+      showDetails(r);
+    });
 
     tr.innerHTML = `
+      <td class="sim-select-cell">
+        <button
+          type="button"
+          class="sim-select-toggle"
+          data-ticker="${ticker}"
+          aria-pressed="${isChecked ? 'true' : 'false'}"
+          aria-label="${isChecked ? 'Deselect' : 'Select'} ${ticker} for simulator"
+          ${disableUnchecked ? 'disabled' : ''}
+          title="${disableUnchecked ? 'Maximum 4 securities selected' : 'Select for Simulator'}"
+        >
+          ${isChecked ? '☑' : '☐'}
+        </button>
+      </td>
       <td class="rank-cell" style="color:#94a3b8; font-size:0.8em;">${idx + 1}</td>
       <td>
         <div style="font-weight:bold; color:#f8fafc;">${r.ticker} ${anomalyBadge}</div>
@@ -2269,6 +2776,39 @@ function renderTable(data: any) {
     `;
     tbody!.appendChild(tr);
   });
+
+  tbody!.querySelectorAll('.sim-select-toggle').forEach(node => {
+    node.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const target = event.currentTarget as HTMLButtonElement;
+      const ticker = String(target.dataset.ticker || '').toUpperCase();
+      if (!ticker) return;
+
+      const isCurrentlySelected = selectedForSimulator.includes(ticker);
+      if (!isCurrentlySelected) {
+        if (selectedForSimulator.length >= MAX_SIMULATOR_TICKERS) {
+          return;
+        }
+        selectedForSimulator = [...selectedForSimulator, ticker];
+        if (!(ticker in simulatorState.tickerInvestments)) {
+          simulatorState.tickerInvestments[ticker] = 100;
+        }
+      } else {
+        selectedForSimulator = selectedForSimulator.filter(item => item !== ticker);
+        delete simulatorState.tickerInvestments[ticker];
+      }
+
+      saveSimulatorSelection();
+      renderSimulatorSelectionBadge();
+      if (activeMainTab === 'simulator') {
+        renderSimulatorTab();
+      }
+      applyFilters();
+    });
+  });
+
+  renderSimulatorSelectionBadge();
 }
 
 function renderScorePill(score: any) {
@@ -3599,7 +4139,7 @@ function clearAllResults() {
   const tbody = document.getElementById('results');
   if (tbody) {
     tbody.innerHTML = `<tr>
-      <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;" data-i18n="table.waiting_data">
+      <td colspan="7" style="text-align: center; padding: 40px; color: #64748b;" data-i18n="table.waiting_data">
         Esperando datos de análisis...
       </td>
     </tr>`;
@@ -3651,12 +4191,21 @@ function clearAllResults() {
   appState.scanResults = [];
   appState.portfolio = null;
   appState.scanCompleted = false;
+  clearSimulatorSelection();
+  renderSimulatorSelectionBadge();
+  renderSimulatorTab();
   updateStrategyInfoDisplay();
   resetFilters();
 }
 
 // Initialize language selector and market selector on page load
 document.addEventListener('DOMContentLoaded', () => {
+  loadSimulatorSelection();
+  initMainTabs();
+  switchMainTab('results');
+  renderSimulatorSelectionBadge();
+  renderSimulatorTab();
+
   const selector = document.getElementById('languageSelect');
   if (selector) {
     (selector as HTMLInputElement).value = i18n.getCurrentLanguage();

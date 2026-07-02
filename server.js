@@ -31,6 +31,7 @@ import {
   healthCheckSchema,
   testRunnerSchema
 } from './src/security/validation-schemas.js';
+import { simulationRouter } from './src/simulation/simulation-router.js';
 
 // Error handling
 import {
@@ -146,20 +147,24 @@ app.use((req, res, next) => {
  *   - Serves from project root (.) as before — tsc-compiled dist/src/ modules
  *     are referenced directly by index.html; no Vite build required.
  */
+const isProduction = config.server.env === 'production';
+
 const cacheHeaders = (res, filePath) => {
   if (filePath.endsWith('.html')) {
     // HTML: always revalidate so users get the latest app shell
     res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  } else if (!isProduction && /\.(js|css)$/.test(filePath)) {
+    // Development: tsc-compiled files have no content hash — never cache them
+    // so browsers always fetch the latest rebuild without a hard-reload.
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
   } else if (/\.(js|css|woff2?|ttf|otf|eot|svg|png|jpg|jpeg|gif|ico|webp)$/.test(filePath)) {
-    // Hashed/versioned assets: immutable for 1 year
+    // Production: Vite assets have content-hashed filenames — safe to cache 1 year
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   } else if (filePath.endsWith('.json')) {
     // Data files: cache 5 minutes
     res.setHeader('Cache-Control', 'public, max-age=300');
   }
 };
-
-const isProduction = config.server.env === 'production';
 
 if (isProduction) {
   // Production: serve Vite-optimised build first, then fall back to project root for data files
@@ -366,6 +371,11 @@ app.get(
   validate(healthCheckSchema, 'query'),
   healthHandler
 );
+
+/**
+ * POST /api/v1/simulate — Investment simulator endpoint (v1)
+ */
+app.use('/api/v1', simulationRouter);
 
 /**
  * POST /api/v1/cache/flush — Flush Yahoo Finance in-memory cache (dev/test only)

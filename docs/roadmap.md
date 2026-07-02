@@ -4,6 +4,32 @@
 
 This document presents a phased approach organised into four major phases, followed by ongoing continuous improvement initiatives.
 
+## Current Snapshot — 2026-07-02
+
+The repository is in a stronger state than the original roadmap suggests in terms of engineering
+foundations: security hardening, test coverage, API documentation, performance work, reporting,
+alerts, portfolio tooling, and the new simulator flow are all materially advanced. The main gap is
+no longer "can we build features?" but "what product shape are we shipping next?"
+
+### What is already strong
+- Responsive web UI already tested across mobile viewports
+- IndexedDB persistence already available for local browser storage
+- Express + Vite delivery path already suitable for an installable web app shell
+- Good validation, monitoring, logging, and test foundations for expanding safely
+
+### What is still strategically missing
+- Real authentication and user ownership model
+- A clear decision between local-first single-user usage vs multi-user synced product
+- A mobile distribution path (installable PWA first, native Android only if justified later)
+
+### Recommendation
+Treat the next milestone as **product consolidation + PWA enablement**, not "add more large
+features". The fastest path to user value is to make the current scanner installable and reliable
+on mobile as a PWA, while deciding whether the first mobile release is:
+
+1. `Local-first` — portfolios, alerts, and simulator state stay on-device
+2. `Account-based` — cross-device persistence requires Phase 4.1 authentication first
+
 ---
 
 ## 1. Phase 1: Security Hardening and Infrastructure Foundation
@@ -1147,6 +1173,17 @@ for (const envVar of requiredEnvVars) {
 
 ### 4.1 Authentication and Authorisation
 
+> ⚠️ **Status check (2026-07-02)**: project memory from a prior session claimed this phase
+> (JWT auth + SQLite user DB via `better-sqlite3`/`jsonwebtoken`/`bcrypt`) was completed in
+> February 2026. That is **not what's in the repository or git history today**:
+> `src/auth/` and `src/tests/unit/auth/` exist but are empty, `src/config/database.ts` does
+> not exist, the auth packages are absent from `package.json`, and there is no commit in
+> `git log --all` touching any of these paths. Leftover compiled output survives at
+> `dist/src/auth/*.js` and `dist/src/config/database.js` (gitignored, ~570 lines total,
+> dated 2026-02-26 22:10 — about 44 minutes before the source files were emptied at 22:54),
+> which can serve as a reference if this work is redone. **Treat 4.1 as not started** until
+> re-verified and re-committed. This phase remains genuinely pending.
+
 #### 4.1.1 Authentication System Design
 **Current Gap**: No user authentication system exists; application is single-user.
 
@@ -1422,17 +1459,23 @@ for (const envVar of requiredEnvVars) {
 
 ### 4.4 Investment Simulator Tab
 
-**Priority**: 🎯 NEXT — Scheduled for March 2026
+**Status**: ✅ COMPLETED — February 2026 (not yet committed — see note below)
 
 **Objective**: Add a dedicated **"Simulator"** tab that allows the user to select up to 4
 securities from the analysis results table and project future portfolio value based on their
 historical return statistics, using a monthly DCA (Dollar Cost Averaging) model. The output
 shows optimistic, expected, and pessimistic scenarios across multiple time horizons.
 
+**Post-4.4 enhancement already layered on top**: per-ticker investment amounts — each
+selected ticker now has its own monthly amount input (`tickerInvestments: Record<string,
+number>` replacing the single `monthlyInvestment` field; response adds
+`totalMonthlyInvestment`; per-ticker DCA scenarios summed for the portfolio projection;
+breakdown shows gain/loss per ticker). See `src/security/validation-schemas.ts:82-96`.
+
 ---
 
 #### 4.4.1 Ticker Selection in the Results Table
-**Status**: 🔲 PENDING
+**Status**: ✅ COMPLETED — February 2026
 
 **Context**: After clicking "Run analysis", the main page renders a results table.
 This step adds a selection mechanism to that table without disrupting the existing layout.
@@ -1462,7 +1505,7 @@ This step adds a selection mechanism to that table without disrupting the existi
 ---
 
 #### 4.4.2 New "Simulator" Tab in the Main Tab Bar
-**Status**: 🔲 PENDING
+**Status**: ✅ COMPLETED — February 2026
 
 **Actions**:
 - Add a new tab button **"Simulator"** to the existing tab bar in `scanner.ts`
@@ -1484,7 +1527,7 @@ This step adds a selection mechanism to that table without disrupting the existi
 ---
 
 #### 4.4.3 Backend Simulation API
-**Status**: 🔲 PENDING
+**Status**: ✅ COMPLETED — February 2026
 
 **Endpoint**: `POST /api/v1/simulate`
 **Auth**: `requireAuth` (any authenticated user)
@@ -1564,7 +1607,7 @@ This step adds a selection mechanism to that table without disrupting the existi
 ---
 
 #### 4.4.4 Simulator UI Panel
-**Status**: 🔲 PENDING
+**Status**: ✅ COMPLETED — February 2026
 
 **Layout** (left–right split inside `#tab-simulator`):
 
@@ -1631,7 +1674,7 @@ This step adds a selection mechanism to that table without disrupting the existi
 ---
 
 #### 4.4.5 Chart Integration
-**Status**: 🔲 PENDING
+**Status**: ✅ COMPLETED — February 2026
 
 **Actions**:
 - Confirm whether Chart.js is already bundled in the project (check `package.json`
@@ -1664,7 +1707,7 @@ This step adds a selection mechanism to that table without disrupting the existi
 ---
 
 #### 4.4.6 Tests
-**Status**: 🔲 PENDING
+**Status**: ✅ COMPLETED — February 2026
 
 **Unit tests** (`src/tests/unit/simulation/`):
 - `simulation-service.test.js`:
@@ -1695,13 +1738,19 @@ This step adds a selection mechanism to that table without disrupting the existi
 
 ---
 
-**Phase 4.4 Overall Success Criteria**:
-- User can select up to 4 tickers in the results table and see them in the Simulator tab.
-- Entering a monthly amount and clicking "Calcular" shows a projected chart and summary.
-- Expected, optimistic, and pessimistic scenarios are rendered clearly.
-- Results update in real time when the user changes the horizon or investment amount.
-- All new endpoints are documented in the OpenAPI spec.
-- Test suite remains green.
+**Phase 4.4 Overall Success Criteria**: ✅ All met (verified 2026-07-02: `tsc --noEmit` clean,
+1161 unit tests + 12 integration tests passing)
+- ✅ User can select up to 4 tickers in the results table and see them in the Simulator tab.
+- ✅ Entering per-ticker monthly amounts and clicking "Calcular" shows a projected chart and summary.
+- ✅ Expected, optimistic, and pessimistic scenarios are rendered clearly.
+- ✅ Results update in real time when the user changes the horizon or investment amounts.
+- ✅ New endpoint documented in the OpenAPI spec (`src/config/swagger.ts`).
+- ✅ Test suite remains green (1161 + 12 = 1173 tests touching this feature area).
+
+**Remaining before this phase can be closed out**:
+- Commit the working-tree changes (currently uncommitted on `main`).
+- Bump `package.json` version and add a `CHANGELOG.md` entry.
+- Update `MEMORY.md` project index once committed.
 
 ---
 
@@ -1906,22 +1955,76 @@ This step adds a selection mechanism to that table without disrupting the existi
 **Future Deliverable**: Real-time collaboration features
 
 #### 5.5.3 Mobile Application
-**Actions** (Future):
-- Evaluate mobile strategy:
-  - Option A: Progressive Web App (PWA)
-  - Option B: React Native
-  - Option C: Native apps (iOS and Android)
-- Develop mobile-optimised UI:
-  - Responsive design
-  - Touch-friendly interface
-  - Offline support
-  - Push notifications
-- Implement mobile-specific features:
-  - Biometric authentication
-  - Camera for document upload
-  - Location services (if applicable)
+**Status**: 🟡 RECOMMENDED NEXT DELIVERY TRACK — updated 2026-07-02
 
-**Future Deliverable**: Mobile application
+**Recommendation**: build a **PWA first** and treat it as the bridge between the current web app
+and any future Android product. The app already has the right ingredients for this approach:
+responsive layouts, browser-side persistence via IndexedDB, a single deployable frontend, and
+existing performance/accessibility test coverage. A PWA lets the team validate mobile usage,
+installation behaviour, and offline expectations before committing to a second codebase.
+
+**Why PWA before native Android**:
+- Lowest implementation cost and fastest feedback loop
+- Reuses the current frontend and deployment model
+- Supports installability, home-screen launch, and offline-first behaviour
+- Reduces the risk of overbuilding before real mobile usage patterns are known
+
+**When native Android should become the next step**:
+- Push notifications must be first-class and highly reliable
+- Biometric auth becomes a hard requirement
+- Background tasks or deeper device integration are needed
+- Play Store distribution becomes commercially important
+
+**Dependency note**:
+- A `local-first` PWA is **not blocked** by Phase 4.1 authentication
+- A `synced/account-based` PWA **is blocked** by Phase 4.1 authentication and backend user storage
+
+**Recommended delivery sequence**:
+
+#### 5.5.3.1 PWA Foundation
+**Target**: very next milestone
+
+**Actions**:
+- Add `manifest.webmanifest` with name, icons, theme colours, and standalone display mode
+- Add service worker for app-shell caching and offline fallback
+- Cache the last successful scan and simulator output for offline review
+- Add install prompt handling and a visible "Install app" entry point
+- Define cache invalidation/versioning rules for market data vs static assets
+
+**Success Criteria**:
+- App is installable on Android Chrome
+- App opens in standalone mode from the home screen
+- Last successful scan can be reviewed offline
+- Lighthouse PWA-related checks pass where applicable
+
+#### 5.5.3.2 Mobile UX Hardening
+**Target**: immediately after PWA foundation
+
+**Actions**:
+- Rework dense tables for narrow screens (progressive disclosure, cards, sticky summary areas)
+- Optimise tap targets, scrolling behaviour, and simulator interactions for touch
+- Measure performance on mid-range Android devices
+- Ensure tab switching, reload, and resume states are resilient on mobile browsers
+
+**Success Criteria**:
+- Core scan, portfolio, alerts, and simulator flows are comfortable on 360-430px widths
+- No horizontal overflow in critical workflows
+- Mobile interaction latency stays acceptable on real devices
+
+#### 5.5.3.3 Sync, Notifications, and Device Features
+**Target**: after auth/data strategy decision
+
+**Actions**:
+- Decide between local-only data and server-synced user data
+- Add authenticated sync for portfolios, alerts, and preferences if multi-device continuity is needed
+- Evaluate web push notifications and background sync feasibility
+- Introduce biometric/native packaging only if the PWA ceiling is reached
+
+**Success Criteria**:
+- Product has a clear answer for single-device vs multi-device use
+- Notifications and sync behaviour match the selected product model
+
+**Future Deliverable**: Installable Market Scanner PWA, with native Android deferred until justified
 
 #### 5.5.4 Advanced ML Features
 **Actions** (Future):
@@ -1966,7 +2069,7 @@ This step adds a selection mechanism to that table without disrupting the existi
 
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Test Coverage | 81.5% stmts / 81.8% lines (1214 tests: 1025 unit + 113 integration + 76 E2E) | 80%+ | ✅ End of Phase 2.1.4 |
+| Test Coverage | 81.5%+ stmts/lines (1173+ tests: 1161 unit + 12 integration for simulator alone, plus 76 E2E — see note below) | 80%+ | ✅ End of Phase 2.1.4 |
 | Performance Benchmarks | 49 benchmarks across 7 modules + 3 load tests | Tracked in CI | ✅ End of Phase 2.1.5 |
 | Security Vulnerabilities | Unknown | 0 Critical, 0 High | End of Phase 1 |
 | API Response Time (p97.5) | 7ms (health), rate limiting validated | < 500ms | ✅ Measured in Phase 2.1.5 |
@@ -2012,32 +2115,39 @@ This step adds a selection mechanism to that table without disrupting the existi
 
 ## 8. Prioritisation Matrix
 
-### Critical - High Impact, High Urgency
-1. Security hardening (1.1)
-2. CI/CD pipeline (1.2)
-3. Error handling and logging (1.3)
-4. Environment configuration (1.5)
+### Immediate
+The roadmap should now optimise for **shipping a coherent product milestone**, not for adding more
+capabilities in parallel. The next decision is architectural as much as functional:
 
-### High Priority - High Impact, Medium Urgency
-5. Test framework migration (2.1.1)
-6. Test coverage expansion (2.1.2)
-7. Type safety implementation (2.2)
-8. API documentation (2.3)
-9. Performance optimisation (3.1)
-10. Containerisation (3.2)
+1. Decide whether the next release is `local-first PWA` or `account-based PWA`
+2. Start PWA foundation work immediately either way
+3. Treat authentication as mandatory only for the account-based branch, not for the installable shell itself
 
-### Medium Priority - Medium Impact, Variable Urgency
-11. Integration tests (2.1.3 ✅) and E2E tests (2.1.4)
-12. Code quality tooling (1.4)
-13. Monitoring and observability (3.3)
-14. Database optimisation (3.1.3)
-15. Scalability improvements (3.4)
+### Priority 1 — Next 2 to 4 weeks
+1. PWA foundation (`manifest`, icons, service worker, install flow, offline shell)
+2. Mobile UX hardening for scanner, results, portfolio, alerts, and simulator
+3. Product decision on persistence model:
+   local-only IndexedDB vs authenticated server-synced user data
 
-### Lower Priority - Important but Less Urgent
-16. Authentication and authorisation (4.1)
-17. Compliance and data protection (4.2)
-18. Operational documentation (4.3)
-19. Advanced features (5.4)
+### Priority 2 — Next platform milestone
+4. Re-implement Authentication and Authorisation (4.1) if multi-user or cross-device sync is required
+5. Define backend persistence strategy for user portfolios, alerts, and preferences
+6. Close remaining production-readiness gaps that matter for real users, not just internal demos
+
+### Priority 3 — After the first mobile release proves demand
+7. Push notifications and background sync
+8. Advanced mobile ergonomics and tablet-specific layouts
+9. Native Android packaging or React Native evaluation only if the PWA ceiling is reached
+
+### Foundations Already Strong
+10. Security hardening (1.1) ✅
+11. CI/CD pipeline (1.2) ✅
+12. Error handling and logging (1.3) ✅
+13. Code quality tooling (1.4) ✅
+14. Environment configuration (1.5) ✅
+15. Testing stack: unit, integration, E2E, performance (2.1) ✅
+16. Type safety, API docs, and technical documentation (2.2-2.4) ✅
+17. Performance, containerisation, and observability foundations (3.x) ✅ / mostly complete
 
 ---
 

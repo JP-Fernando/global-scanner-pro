@@ -179,6 +179,115 @@ const schemas = {
     },
   },
 
+  // ── Simulation ──────────────────────────────────────────────────
+  SimulationRequest: {
+    type: 'object',
+    required: ['tickers', 'tickerInvestments', 'horizonMonths'],
+    properties: {
+      tickers: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 4,
+        items: { type: 'string', example: 'AAPL' },
+        description: 'List of ticker symbols (1–4). Each must have a corresponding entry in tickerInvestments.',
+      },
+      tickerInvestments: {
+        type: 'object',
+        additionalProperties: { type: 'number', minimum: 0 },
+        description: 'Monthly investment amount (≥ 0) keyed by ticker symbol. Sum must be > 0.',
+        example: { AAPL: 300, MSFT: 200 },
+      },
+      horizonMonths: {
+        type: 'integer',
+        minimum: 1,
+        example: 60,
+      },
+    },
+  },
+
+  SimulationResponse: {
+    type: 'object',
+    required: [
+      'tickers',
+      'totalMonthlyInvestment',
+      'horizonMonths',
+      'currency',
+      'totalInvested',
+      'scenarios',
+      'monthlyProjection',
+      'perTicker'
+    ],
+    properties: {
+      tickers: {
+        type: 'array',
+        items: { type: 'string', example: 'AAPL' },
+      },
+      totalMonthlyInvestment: { type: 'number', example: 500, description: 'Sum of all per-ticker monthly amounts.' },
+      horizonMonths: { type: 'integer', example: 60 },
+      currency: { type: 'string', example: 'USD' },
+      totalInvested: { type: 'number', example: 30000 },
+      scenarios: {
+        type: 'object',
+        properties: {
+          expected: { $ref: '#/components/schemas/SimulationScenario' },
+          optimistic: { $ref: '#/components/schemas/SimulationScenario' },
+          pessimistic: { $ref: '#/components/schemas/SimulationScenario' },
+        },
+      },
+      monthlyProjection: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/SimulationProjectionPoint' },
+      },
+      perTicker: {
+        type: 'array',
+        items: { $ref: '#/components/schemas/SimulationPerTicker' },
+      },
+    },
+  },
+
+  SimulationScenario: {
+    type: 'object',
+    required: ['finalValue', 'cagr', 'totalReturn'],
+    properties: {
+      finalValue: { type: 'number', example: 38500 },
+      cagr: { type: 'number', example: 0.089 },
+      totalReturn: { type: 'number', example: 0.283 },
+    },
+  },
+
+  SimulationProjectionPoint: {
+    type: 'object',
+    required: ['month', 'expected', 'optimistic', 'pessimistic'],
+    properties: {
+      month: { type: 'integer', example: 1 },
+      expected: { type: 'number', example: 502 },
+      optimistic: { type: 'number', example: 508 },
+      pessimistic: { type: 'number', example: 496 },
+    },
+  },
+
+  SimulationPerTicker: {
+    type: 'object',
+    required: ['ticker', 'weight', 'monthlyAmount', 'tickerTotalInvested', 'historicalMonthlyReturn', 'historicalMonthlyVolatility', 'dataYears', 'scenarios'],
+    properties: {
+      ticker: { type: 'string', example: 'AAPL' },
+      weight: { type: 'number', example: 0.6, description: 'Share of total monthly investment allocated to this ticker.' },
+      monthlyAmount: { type: 'number', example: 300, description: 'Monthly investment for this ticker.' },
+      tickerTotalInvested: { type: 'number', example: 18000, description: 'Total invested in this ticker over the horizon.' },
+      historicalMonthlyReturn: { type: 'number', example: 0.0142 },
+      historicalMonthlyVolatility: { type: 'number', example: 0.061 },
+      dataYears: { type: 'number', example: 5 },
+      scenarios: {
+        type: 'object',
+        properties: {
+          expected: { $ref: '#/components/schemas/SimulationScenario' },
+          optimistic: { $ref: '#/components/schemas/SimulationScenario' },
+          pessimistic: { $ref: '#/components/schemas/SimulationScenario' },
+        },
+      },
+    },
+  },
+
   // ── Error Responses ─────────────────────────────────────────────
   ValidationErrorDetail: {
     type: 'object',
@@ -276,6 +385,20 @@ const responses = {
           error: 'External service error: Yahoo Finance',
           timestamp: '2026-02-20T12:00:00.000Z',
           statusCode: 502,
+        },
+      },
+    },
+  },
+
+  Unauthorized: {
+    description: 'Authentication required.',
+    content: {
+      'application/json': {
+        schema: { $ref: '#/components/schemas/ErrorResponse' },
+        example: {
+          error: 'Authentication required',
+          timestamp: '2026-02-20T12:00:00.000Z',
+          statusCode: 401,
         },
       },
     },
@@ -418,6 +541,47 @@ const paths = {
       },
     },
   },
+
+  // ── /simulate ───────────────────────────────────────────────────
+  '/simulate': {
+    post: {
+      tags: ['Simulation'],
+      summary: 'Run monthly DCA investment simulation',
+      description:
+        'Simulates expected, optimistic, and pessimistic portfolio outcomes ' +
+        'using monthly historical return statistics from Yahoo Finance.',
+      operationId: 'simulateInvestment',
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/SimulationRequest' },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: 'Simulation completed successfully.',
+          headers: {
+            'X-Cache': {
+              schema: { type: 'string', enum: ['HIT', 'MISS'] },
+              description: 'HIT when all ticker history came from cache.',
+            },
+          },
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/SimulationResponse' },
+            },
+          },
+        },
+        400: { $ref: '#/components/responses/ValidationError' },
+        401: { $ref: '#/components/responses/Unauthorized' },
+        502: { $ref: '#/components/responses/BadGateway' },
+        500: { $ref: '#/components/responses/InternalError' },
+      },
+    },
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -459,11 +623,19 @@ export const swaggerSpec = {
     { name: 'Health', description: 'Server health and status endpoints' },
     { name: 'Market Data', description: 'Market data proxy endpoints (Yahoo Finance)' },
     { name: 'Utilities', description: 'Development and diagnostic utilities' },
+    { name: 'Simulation', description: 'Investment simulation endpoints' },
   ],
   paths,
   components: {
     schemas,
     responses,
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
   },
 };
 

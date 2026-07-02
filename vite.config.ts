@@ -80,6 +80,8 @@ export default defineConfig({
           if (id.includes('/src/dashboard/')) return 'chunk-dashboard';
           if (id.includes('/src/alerts/')) return 'chunk-alerts';
           if (id.includes('/src/storage/')) return 'chunk-storage';
+          if (id.includes('/src/simulation/')) return 'chunk-simulation';
+          if (id.includes('/chart.js/')) return 'chunk-chartjs';
         },
       },
     },
