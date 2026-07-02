@@ -45,7 +45,7 @@ interface AccessTokenPayload {
  * Throws AuthenticationError (401) on any failure.
  */
 export function requireAuth(): RequestHandler {
-  return (req: Request, _res: Response, next: NextFunction): void => {
+  const middleware: RequestHandler & { authGuard?: string } = (req: Request, _res: Response, next: NextFunction): void => {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -76,6 +76,9 @@ export function requireAuth(): RequestHandler {
       next(err);
     }
   };
+
+  middleware.authGuard = 'requireAuth';
+  return middleware;
 }
 
 /**
@@ -87,7 +90,7 @@ export function requireAuth(): RequestHandler {
  * @param roles - One or more roles that are permitted to access the route.
  */
 export function requireRole(...roles: UserRole[]): RequestHandler {
-  return (req: Request, _res: Response, next: NextFunction): void => {
+  const middleware: RequestHandler & { roleGuard?: string } = (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) {
       next(new AuthenticationError('Authentication required'));
       return;
@@ -101,4 +104,7 @@ export function requireRole(...roles: UserRole[]): RequestHandler {
     }
     next();
   };
+
+  middleware.roleGuard = roles.join(',');
+  return middleware;
 }

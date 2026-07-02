@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, it, expect } from 'vitest';
 import { createSimulationRouter } from '../../simulation/simulation-router.js';
+import * as AuthService from '../../auth/auth-service.js';
+import { closeDb } from '../../config/database.js';
+import { errorHandler } from '../../middleware/error-handler.js';
 
 function buildYahooPayload(symbol, closes) {
   return {
@@ -28,6 +31,12 @@ function createRouter() {
   };
 
   return createSimulationRouter({ fetchImpl: fetchMock });
+}
+
+async function createAuthorization(role = 'viewer') {
+  const unique = `${role}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const result = await AuthService.register(`${unique}@example.com`, 'password123', role);
+  return `Bearer ${result.accessToken}`;
 }
 
 async function callRouter(router, { body, authorization }) {
@@ -66,16 +75,26 @@ async function callRouter(router, { body, authorization }) {
     };
 
     router.handle(req, res, (err) => {
-      if (err) reject(err);
+      if (err) {
+        try {
+          errorHandler(err, req, res, () => {});
+        } catch (handlerErr) {
+          reject(handlerErr);
+        }
+      }
     });
   });
 }
 
 describe('POST /api/v1/simulate', () => {
+  beforeEach(() => {
+    closeDb();
+  });
+
   it('returns 200 on happy path with per-ticker investments', async () => {
     const router = createRouter();
     const response = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization: await createAuthorization(),
       body: {
         tickers: ['AAPL', 'MSFT'],
         tickerInvestments: { AAPL: 300, MSFT: 200 },
@@ -92,7 +111,7 @@ describe('POST /api/v1/simulate', () => {
   it('returns 400 if tickers is empty', async () => {
     const router = createRouter();
     const response = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization: await createAuthorization(),
       body: { tickers: [], tickerInvestments: {}, horizonMonths: 60 }
     });
 
@@ -102,7 +121,7 @@ describe('POST /api/v1/simulate', () => {
   it('returns 400 if tickers has 5 elements', async () => {
     const router = createRouter();
     const response = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization: await createAuthorization(),
       body: {
         tickers: ['AAPL', 'MSFT', 'GOOG', 'AMZN', 'META'],
         tickerInvestments: { AAPL: 100, MSFT: 100, GOOG: 100, AMZN: 100, META: 100 },
@@ -116,7 +135,7 @@ describe('POST /api/v1/simulate', () => {
   it('returns 400 for negative tickerInvestment amount', async () => {
     const router = createRouter();
     const response = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization: await createAuthorization(),
       body: { tickers: ['AAPL'], tickerInvestments: { AAPL: -100 }, horizonMonths: 60 }
     });
 
@@ -126,7 +145,7 @@ describe('POST /api/v1/simulate', () => {
   it('returns 400 when total monthly investment is zero', async () => {
     const router = createRouter();
     const response = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization: await createAuthorization(),
       body: { tickers: ['AAPL'], tickerInvestments: { AAPL: 0 }, horizonMonths: 60 }
     });
 
@@ -136,7 +155,7 @@ describe('POST /api/v1/simulate', () => {
   it('returns 400 for invalid horizonMonths', async () => {
     const router = createRouter();
     const response = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization: await createAuthorization(),
       body: { tickers: ['AAPL'], tickerInvestments: { AAPL: 500 }, horizonMonths: 0 }
     });
 
@@ -145,12 +164,13 @@ describe('POST /api/v1/simulate', () => {
 
   it('supports custom horizons', async () => {
     const router = createRouter();
+    const authorization = await createAuthorization();
     const response18 = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization,
       body: { tickers: ['AAPL'], tickerInvestments: { AAPL: 500 }, horizonMonths: 18 }
     });
     const response24 = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization,
       body: { tickers: ['AAPL'], tickerInvestments: { AAPL: 500 }, horizonMonths: 24 }
     });
 
@@ -170,7 +190,7 @@ describe('POST /api/v1/simulate', () => {
   it('returns expected.finalValue > totalInvested for positive trend', async () => {
     const router = createRouter();
     const response = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization: await createAuthorization(),
       body: { tickers: ['AAPL'], tickerInvestments: { AAPL: 500 }, horizonMonths: 60 }
     });
 
@@ -180,6 +200,7 @@ describe('POST /api/v1/simulate', () => {
 
   it('returns X-Cache: HIT on second identical request', async () => {
     const router = createRouter();
+    const authorization = await createAuthorization();
     const requestBody = {
       tickers: ['AAPL', 'MSFT'],
       tickerInvestments: { AAPL: 300, MSFT: 200 },
@@ -187,12 +208,12 @@ describe('POST /api/v1/simulate', () => {
     };
 
     const first = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization,
       body: requestBody
     });
 
     const second = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization,
       body: requestBody
     });
 
@@ -204,7 +225,7 @@ describe('POST /api/v1/simulate', () => {
   it('accepts zero amount for one ticker when another has positive amount', async () => {
     const router = createRouter();
     const response = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization: await createAuthorization(),
       body: {
         tickers: ['AAPL', 'MSFT'],
         tickerInvestments: { AAPL: 500, MSFT: 0 },
@@ -221,7 +242,7 @@ describe('POST /api/v1/simulate', () => {
   it('response includes per-ticker scenarios', async () => {
     const router = createRouter();
     const response = await callRouter(router, {
-      authorization: 'Bearer test-token',
+      authorization: await createAuthorization(),
       body: {
         tickers: ['AAPL'],
         tickerInvestments: { AAPL: 300 },
@@ -235,5 +256,15 @@ describe('POST /api/v1/simulate', () => {
     expect(item.scenarios.expected).toBeDefined();
     expect(item.scenarios.optimistic).toBeDefined();
     expect(item.scenarios.pessimistic).toBeDefined();
+  });
+
+  it('returns 401 for an invalid Bearer token', async () => {
+    const router = createRouter();
+    const response = await callRouter(router, {
+      authorization: 'Bearer not-a-real-jwt',
+      body: { tickers: ['AAPL'], tickerInvestments: { AAPL: 500 }, horizonMonths: 60 }
+    });
+
+    expect(response.status).toBe(401);
   });
 });

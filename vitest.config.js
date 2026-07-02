@@ -29,6 +29,9 @@ export default defineConfig({
         'src/config/**/*.ts',
         'src/auth/**/*.ts',
       ],
+      // scanner.ts is DOM-bound UI orchestration exercised by Playwright e2e
+      // (src/tests/e2e/*.spec.js), not the node-environment unit suite.
+      exclude: ['src/core/scanner.ts'],
       // Phase 2.1.2 thresholds (Feb 2026)
       thresholds: {
         statements: 80,

@@ -1190,14 +1190,13 @@ for (const envVar of requiredEnvVars) {
 > `JWT_REFRESH_EXPIRES_IN`, `DATABASE_PATH`, `APP_URL`. OpenAPI spec updated
 > (`src/config/swagger.ts`, new `Authentication` tag). First user → admin.
 >
-> **Explicitly deferred, by user decision this session**: wiring `requireAuth`/`requireRole`
-> into the *existing* endpoints (`/yahoo`, `/jobs/*`, `/metrics`, `/simulate`) was scoped
-> out of this pass, because `/simulate`'s current stub `requireAuth` (accepts any bearer
-> string) is what today's 12 simulator integration tests rely on — swapping it for real JWT
-> verification breaks those tests until they're rewritten to mint real tokens. Frontend
-> login/registration UI, login rate-limiting/lockout, email-verification delivery, and
-> per-user data isolation (4.1.3) are likewise not built yet — see the per-subsection status
-> below.
+> **Updated 2026-07-02 (follow-up pass)**: the deferred wiring step is now done. Real
+> `requireAuth()` JWT verification protects `/api/v1/simulate` and `/api/v1/yahoo`, while
+> `/api/v1/jobs/*` requires `admin|analyst` and `/metrics` requires `admin`. The simulator
+> integration suite was rewritten to mint real JWTs instead of relying on the previous local
+> stub. Frontend login/registration UI, login rate-limiting/lockout, email-verification
+> delivery, and per-user data isolation (4.1.3) are still not built yet — see the
+> per-subsection status below.
 >
 > **Working-tree note**: like 4.4 before it, this is uncommitted on `main` as of 2026-07-02:
 > `package.json`/`package-lock.json` (new deps: `better-sqlite3`, `jsonwebtoken`, `bcrypt`,
@@ -1272,10 +1271,10 @@ for (const envVar of requiredEnvVars) {
 - ✅ Users can register and log in
 - ✅ Passwords stored securely (hashed)
 - ❌ Email verification works — schema exists, delivery/enforcement does not
-- 🟡 Authentication required for protected endpoints — the auth *system* enforces it correctly (verified via `requireAuth`/`requireRole` unit+integration tests and live HTTP smoke test), but it is not yet wired onto any of the app's actual existing endpoints (see 4.1.3 note)
+- ✅ Authentication required for protected endpoints — wired onto `/api/v1/yahoo`, `/api/v1/simulate`, `/api/v1/jobs/*`, and `/metrics`
 
 #### 4.1.3 Role-Based Access Control (RBAC)
-**Status**: 🟡 PARTIALLY COMPLETED — 2026-07-02 (roles + middleware built; not wired to existing routes yet)
+**Status**: 🟡 PARTIALLY COMPLETED — 2026-07-02 (roles + middleware built and wired; no per-user data isolation or auth-aware UI yet)
 
 **Actions**:
 - Define user roles:
@@ -1284,7 +1283,7 @@ for (const envVar of requiredEnvVars) {
 - Implement permission system:
   - 🟡 Role-based (not fine-grained permission-based): `requireRole('admin', 'analyst')` etc. exists and is tested, but there's no `create_scan`/`edit_portfolio`/`configure_alerts`-style permission table — coarser than originally scoped, and sufficient for 3 roles
   - ✅ Authorization middleware (`requireRole`)
-  - ❌ Protect endpoints with permission checks — **deferred**: `/api/v1/yahoo`, `/api/v1/jobs/*`, `/metrics`, and `/api/v1/simulate` (currently a local stub `requireAuth` accepting any bearer string) are not yet wired to the real middleware. Explicit scope decision this session, because `/simulate`'s 12 integration tests mint fake tokens and would need rewriting to real JWTs first — tracked as the next concrete step for this phase.
+- ✅ Protect endpoints with permission checks — `/api/v1/yahoo` and `/api/v1/simulate` now require real JWT auth; `/api/v1/jobs/*` requires `admin|analyst`; `/metrics` requires `admin`. Simulator integration tests were rewritten to use real JWTs.
 - Implement data isolation:
   - ❌ Users see only their own scans/portfolios — not applicable yet; the app has no per-user data ownership model (scans/portfolios aren't currently associated with a user_id anywhere)
   - ❌ Row-level security — not implemented, same reason
@@ -1292,7 +1291,7 @@ for (const envVar of requiredEnvVars) {
 
 **Success Criteria**:
 - ✅ Different user roles have appropriate access **at the middleware level** (verified in isolation)
-- ❌ Unauthorised actions blocked **on real endpoints** — not yet, pending the wiring step above
+- ✅ Unauthorised actions blocked **on real endpoints** — auth + RBAC are now wired onto `/api/v1/yahoo`, `/api/v1/simulate`, `/api/v1/jobs/*`, and `/metrics`
 - ❌ Data properly isolated between users — no per-user data model exists yet in this codebase
 - Data properly isolated between users
 
@@ -2161,11 +2160,9 @@ capabilities in parallel. The next decision is architectural as much as function
 
 ### Priority 2 — Next platform milestone
 4. ✅🟡 Authentication and Authorisation (4.1) — backend rebuilt and verified 2026-07-02
-   (JWT + SQLite, 7 endpoints, RBAC middleware, 70 tests, live HTTP smoke-tested); **not
-   yet wired into existing endpoints** (`/yahoo`, `/jobs/*`, `/metrics`, `/simulate`) and
-   **no frontend UI** — see §4.1 for the precise gap list. Next concrete step: rewrite the
-   12 simulator integration tests to mint real JWTs, then wire real `requireAuth` onto
-   `/simulate` and the other endpoints.
+   (JWT + SQLite, 7 endpoints, RBAC middleware, protected `/yahoo` + `/simulate` +
+   `/jobs/*` + `/metrics`, simulator tests rewritten to mint real JWTs); **no frontend UI**
+   and no per-user data model yet — see §4.1 for the precise remaining gap list.
 5. Define backend persistence strategy for user portfolios, alerts, and preferences
 6. Close remaining production-readiness gaps that matter for real users, not just internal demos
 

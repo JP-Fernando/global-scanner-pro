@@ -2,28 +2,16 @@ import express from 'express';
 import { validate } from '../middleware/validation.js';
 import { simulationRequestSchema } from '../security/validation-schemas.js';
 import { simulateInvestment, SimulationInputError } from './simulation-service.js';
+import { requireAuth } from '../auth/auth-middleware.js';
 
 interface RouterOptions {
   fetchImpl?: any;
 }
 
-function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction): void {
-  const authorization = req.get('authorization');
-  if (!authorization) {
-    res.status(401).json({
-      error: 'Authentication required',
-      statusCode: 401,
-      timestamp: new Date().toISOString()
-    });
-    return;
-  }
-  next();
-}
-
 export function createSimulationRouter(options: RouterOptions = {}): express.Router {
   const router = express.Router();
 
-  router.post('/simulate', requireAuth, validate(simulationRequestSchema, 'body'), async (req, res) => {
+  router.post('/simulate', requireAuth(), validate(simulationRequestSchema, 'body'), async (req, res) => {
     try {
       const body = req.body as {
         tickers: string[];

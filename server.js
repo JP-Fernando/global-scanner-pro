@@ -33,6 +33,7 @@ import {
 } from './src/security/validation-schemas.js';
 import { simulationRouter } from './src/simulation/simulation-router.js';
 import { authRouter } from './src/auth/auth-router.js';
+import { requireAuth, requireRole } from './src/auth/auth-middleware.js';
 import { closeDb } from './src/config/database.js';
 
 // Error handling
@@ -93,49 +94,49 @@ setupErrorHandlers();
 // Initialise async job queues (no-op when REDIS_URL is not set)
 initQueues();
 
-// Create Express app
-const app = express();
+export function createApp() {
+  const app = express();
 
-// Initialize Sentry (must be first)
-initializeSentry(app);
+  // Initialize Sentry (must be first)
+  initializeSentry(app);
 
-// Sentry request handler (must be first middleware)
-app.use(sentryRequestHandler());
+  // Sentry request handler (must be first middleware)
+  app.use(sentryRequestHandler());
 
-// Sentry tracing handler (must be before routes)
-app.use(sentryTracingHandler());
+  // Sentry tracing handler (must be before routes)
+  app.use(sentryTracingHandler());
 
-// Body parsing middleware
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+  // Body parsing middleware
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Response compression (gzip/brotli) — must be before routes
-app.use(compression({
-  // Only compress responses above 1 KB
-  threshold: 1024,
-  // Custom filter: skip already-compressed assets and Prometheus metrics
-  filter: (req, res) => {
-    if (req.path === '/metrics') return false;
-    return compression.filter(req, res);
-  }
-}));
+  // Response compression (gzip/brotli) — must be before routes
+  app.use(compression({
+    // Only compress responses above 1 KB
+    threshold: 1024,
+    // Custom filter: skip already-compressed assets and Prometheus metrics
+    filter: (req, res) => {
+      if (req.path === '/metrics') return false;
+      return compression.filter(req, res);
+    }
+  }));
 
-// Configure all security middleware (helmet, CORS, rate limiting, etc.)
-configureSecurityMiddleware(app);
+  // Configure all security middleware (helmet, CORS, rate limiting, etc.)
+  configureSecurityMiddleware(app);
 
-// Prometheus metrics instrumentation
-app.use(metricsMiddleware);
+  // Prometheus metrics instrumentation
+  app.use(metricsMiddleware);
 
-// HTTP request logging
-app.use(httpLogger());
+  // HTTP request logging
+  app.use(httpLogger());
 
-// Configure MIME types for ES6 modules (dev/test mode)
-app.use((req, res, next) => {
-  if (req.url.endsWith('.js')) {
-    res.type('application/javascript');
-  }
-  next();
-});
+  // Configure MIME types for ES6 modules (dev/test mode)
+  app.use((req, res, next) => {
+    if (req.url.endsWith('.js')) {
+      res.type('application/javascript');
+    }
+    next();
+  });
 
 /**
  * Static file serving strategy:
@@ -168,14 +169,14 @@ const cacheHeaders = (res, filePath) => {
   }
 };
 
-if (isProduction) {
-  // Production: serve Vite-optimised build first, then fall back to project root for data files
-  app.use(express.static('dist/public', { setHeaders: cacheHeaders }));
-  app.use(express.static('.', { setHeaders: cacheHeaders }));
-} else {
-  // Development / Test: serve everything from project root (tsc-compiled modules in dist/src/)
-  app.use(express.static('.', { setHeaders: cacheHeaders }));
-}
+  if (isProduction) {
+    // Production: serve Vite-optimised build first, then fall back to project root for data files
+    app.use(express.static('dist/public', { setHeaders: cacheHeaders }));
+    app.use(express.static('.', { setHeaders: cacheHeaders }));
+  } else {
+    // Development / Test: serve everything from project root (tsc-compiled modules in dist/src/)
+    app.use(express.static('.', { setHeaders: cacheHeaders }));
+  }
 
 // ========================================
 // API Documentation (Swagger UI)
@@ -185,16 +186,16 @@ if (isProduction) {
  * Serve raw OpenAPI JSON spec at /api-docs.json
  * Useful for code generation tools and API clients.
  */
-app.get('/api-docs.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
+  app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
 
 /**
  * Serve Swagger UI interactive documentation at /api-docs
  * Provides "Try it out" functionality for all endpoints.
  */
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
 
 // ========================================
 // Route Handlers (shared between v1 and legacy paths)
@@ -339,62 +340,63 @@ const healthHandler = asyncHandler(async (req, res) => {
 /**
  * Middleware that stamps all /api/v1 responses with the current API version header.
  */
-app.use('/api/v1', (req, res, next) => {
-  res.setHeader('X-API-Version', 'v1');
-  res.locals.apiVersion = 'v1';
-  next();
-});
+  app.use('/api/v1', (req, res, next) => {
+    res.setHeader('X-API-Version', 'v1');
+    res.locals.apiVersion = 'v1';
+    next();
+  });
 
 /**
  * GET /api/v1/yahoo — Yahoo Finance historical price proxy (v1)
  * Rate-limited to 20 requests/minute per IP.
  */
-app.get(
-  '/api/v1/yahoo',
-  configureYahooRateLimit(),
-  validate(yahooFinanceSchema, 'query'),
-  yahooHandler
-);
+  app.get(
+    '/api/v1/yahoo',
+    requireAuth(),
+    configureYahooRateLimit(),
+    validate(yahooFinanceSchema, 'query'),
+    yahooHandler
+  );
 
 /**
  * GET /api/v1/run-tests — Legacy test suite runner (v1)
  */
-app.get(
-  '/api/v1/run-tests',
-  validate(testRunnerSchema, 'query'),
-  testRunnerHandler
-);
+  app.get(
+    '/api/v1/run-tests',
+    validate(testRunnerSchema, 'query'),
+    testRunnerHandler
+  );
 
 /**
  * GET /api/v1/health — Application health check (v1)
  */
-app.get(
-  '/api/v1/health',
-  validate(healthCheckSchema, 'query'),
-  healthHandler
-);
+  app.get(
+    '/api/v1/health',
+    validate(healthCheckSchema, 'query'),
+    healthHandler
+  );
 
 /**
  * POST /api/v1/simulate — Investment simulator endpoint (v1)
  */
-app.use('/api/v1', simulationRouter);
+  app.use('/api/v1', simulationRouter);
 
 /**
  * /api/v1/auth/* — Authentication endpoints (register, login, logout,
  * refresh, forgot/reset password, me). See src/auth/auth-router.ts.
  */
-app.use('/api/v1/auth', authRouter);
+  app.use('/api/v1/auth', authRouter);
 
 /**
  * POST /api/v1/cache/flush — Flush Yahoo Finance in-memory cache (dev/test only)
  * Not available in production; intended for testing and cache invalidation during development.
  */
-if (config.server.env !== 'production') {
-  app.post('/api/v1/cache/flush', asyncHandler(async (req, res) => {
-    await flushYahooCache();
-    res.json({ status: 'ok', message: 'Yahoo Finance cache flushed' });
-  }));
-}
+  if (config.server.env !== 'production') {
+    app.post('/api/v1/cache/flush', asyncHandler(async (req, res) => {
+      await flushYahooCache();
+      res.json({ status: 'ok', message: 'Yahoo Finance cache flushed' });
+    }));
+  }
 
 // ========================================
 // Async Job Queue API (requires REDIS_URL)
@@ -406,16 +408,16 @@ if (config.server.env !== 'production') {
  * Body: { method, assets, returns, riskFreeRate?, constraints? }
  * Returns: { queued: true, jobId, queue } or { queued: false, reason, message }
  */
-app.post('/api/v1/jobs/optimize', asyncHandler(async (req, res) => {
-  const { method = 'maxSharpe', assets, returns, riskFreeRate, constraints } = req.body;
-  if (!assets || !returns) {
-    return res.status(400).json({ error: 'assets and returns are required' });
-  }
-  const result = await enqueue('portfolio-optimization', `optimize:${method}`, {
-    method, assets, returns, riskFreeRate, constraints
-  });
-  res.status(result.queued ? 202 : 503).json(result);
-}));
+  app.post('/api/v1/jobs/optimize', requireAuth(), requireRole('admin', 'analyst'), asyncHandler(async (req, res) => {
+    const { method = 'maxSharpe', assets, returns, riskFreeRate, constraints } = req.body;
+    if (!assets || !returns) {
+      return res.status(400).json({ error: 'assets and returns are required' });
+    }
+    const result = await enqueue('portfolio-optimization', `optimize:${method}`, {
+      method, assets, returns, riskFreeRate, constraints
+    });
+    res.status(result.queued ? 202 : 503).json(result);
+  }));
 
 /**
  * POST /api/v1/jobs/report — Submit a report generation job
@@ -423,16 +425,16 @@ app.post('/api/v1/jobs/optimize', asyncHandler(async (req, res) => {
  * Body: { type, reportKind, title, data }
  * Returns: { queued: true, jobId, queue } or { queued: false, reason, message }
  */
-app.post('/api/v1/jobs/report', asyncHandler(async (req, res) => {
-  const { type = 'excel', reportKind = 'scan', title = 'Report', data } = req.body;
-  if (!data) {
-    return res.status(400).json({ error: 'data is required' });
-  }
-  const result = await enqueue('report-generation', `report:${type}:${reportKind}`, {
-    type, reportKind, title, data
-  });
-  res.status(result.queued ? 202 : 503).json(result);
-}));
+  app.post('/api/v1/jobs/report', requireAuth(), requireRole('admin', 'analyst'), asyncHandler(async (req, res) => {
+    const { type = 'excel', reportKind = 'scan', title = 'Report', data } = req.body;
+    if (!data) {
+      return res.status(400).json({ error: 'data is required' });
+    }
+    const result = await enqueue('report-generation', `report:${type}:${reportKind}`, {
+      type, reportKind, title, data
+    });
+    res.status(result.queued ? 202 : 503).json(result);
+  }));
 
 /**
  * POST /api/v1/jobs/ml-train — Submit an ML training job
@@ -440,35 +442,35 @@ app.post('/api/v1/jobs/report', asyncHandler(async (req, res) => {
  * Body: { task, trainingData, hyperparams? }
  * Returns: { queued: true, jobId, queue } or { queued: false, reason, message }
  */
-app.post('/api/v1/jobs/ml-train', asyncHandler(async (req, res) => {
-  const { task, trainingData, hyperparams } = req.body;
-  if (!task || !trainingData) {
-    return res.status(400).json({ error: 'task and trainingData are required' });
-  }
-  const result = await enqueue('ml-training', `ml:${task}`, { task, trainingData, hyperparams });
-  res.status(result.queued ? 202 : 503).json(result);
-}));
+  app.post('/api/v1/jobs/ml-train', requireAuth(), requireRole('admin', 'analyst'), asyncHandler(async (req, res) => {
+    const { task, trainingData, hyperparams } = req.body;
+    if (!task || !trainingData) {
+      return res.status(400).json({ error: 'task and trainingData are required' });
+    }
+    const result = await enqueue('ml-training', `ml:${task}`, { task, trainingData, hyperparams });
+    res.status(result.queued ? 202 : 503).json(result);
+  }));
 
 /**
  * GET /api/v1/jobs/:jobId — Poll job status
  *
  * Returns: JobStatus object or 404 if not found
  */
-app.get('/api/v1/jobs/:jobId', asyncHandler(async (req, res) => {
-  const status = await getJobStatus(req.params.jobId);
-  if (!status) {
-    return res.status(404).json({ error: `Job ${req.params.jobId} not found` });
-  }
-  res.json(status);
-}));
+  app.get('/api/v1/jobs/:jobId', requireAuth(), requireRole('admin', 'analyst'), asyncHandler(async (req, res) => {
+    const status = await getJobStatus(req.params.jobId);
+    if (!status) {
+      return res.status(404).json({ error: `Job ${req.params.jobId} not found` });
+    }
+    res.json(status);
+  }));
 
 /**
  * GET /api/v1/jobs — Queue statistics (counts per state for all queues)
  */
-app.get('/api/v1/jobs', asyncHandler(async (req, res) => {
-  const stats = await getQueueStats();
-  res.json({ enabled: queuesEnabled(), queues: stats });
-}));
+  app.get('/api/v1/jobs', requireAuth(), requireRole('admin', 'analyst'), asyncHandler(async (req, res) => {
+    const stats = await getQueueStats();
+    res.json({ enabled: queuesEnabled(), queues: stats });
+  }));
 
 // ========================================
 // Observability: Prometheus Metrics
@@ -479,7 +481,7 @@ app.get('/api/v1/jobs', asyncHandler(async (req, res) => {
  * Intended for scraping by a Prometheus server (internal network only).
  * Exposes: HTTP request rate/latency, error rate, cache hit/miss, Node.js process metrics.
  */
-app.get('/metrics', metricsHandler);
+  app.get('/metrics', requireAuth(), requireRole('admin'), metricsHandler);
 
 // ========================================
 // Legacy API Routes (deprecated — use /api/v1/)
@@ -489,47 +491,48 @@ app.get('/metrics', metricsHandler);
  * Middleware that marks all legacy /api routes as deprecated.
  * Clients should migrate to /api/v1/ equivalents.
  */
-app.use('/api', (req, res, next) => {
-  // Skip /api-docs and /api-docs.json — not legacy routes
-  if (req.path.startsWith('-docs')) {
-    return next();
-  }
-  res.setHeader('Deprecation', 'true');
-  res.setHeader('X-Deprecated', 'true');
-  res.setHeader('Link', `</api/v1${  req.path  }>; rel="successor-version"`);
-  next();
-});
+  app.use('/api', (req, res, next) => {
+    // Skip /api-docs and /api-docs.json — not legacy routes
+    if (req.path.startsWith('-docs')) {
+      return next();
+    }
+    res.setHeader('Deprecation', 'true');
+    res.setHeader('X-Deprecated', 'true');
+    res.setHeader('Link', `</api/v1${  req.path  }>; rel="successor-version"`);
+    next();
+  });
 
 /**
  * GET /api/yahoo — Yahoo Finance proxy (legacy, deprecated)
  * @deprecated Use GET /api/v1/yahoo
  */
-app.get(
-  '/api/yahoo',
-  configureYahooRateLimit(),
-  validate(yahooFinanceSchema, 'query'),
-  yahooHandler
-);
+  app.get(
+    '/api/yahoo',
+    requireAuth(),
+    configureYahooRateLimit(),
+    validate(yahooFinanceSchema, 'query'),
+    yahooHandler
+  );
 
 /**
  * GET /api/run-tests — Test suite runner (legacy, deprecated)
  * @deprecated Use GET /api/v1/run-tests
  */
-app.get(
-  '/api/run-tests',
-  validate(testRunnerSchema, 'query'),
-  testRunnerHandler
-);
+  app.get(
+    '/api/run-tests',
+    validate(testRunnerSchema, 'query'),
+    testRunnerHandler
+  );
 
 /**
  * GET /api/health — Health check (legacy, deprecated)
  * @deprecated Use GET /api/v1/health
  */
-app.get(
-  '/api/health',
-  validate(healthCheckSchema, 'query'),
-  healthHandler
-);
+  app.get(
+    '/api/health',
+    validate(healthCheckSchema, 'query'),
+    healthHandler
+  );
 
 // ========================================
 // SPA Fallback (production only)
@@ -541,32 +544,37 @@ app.get(
  * In development/test, this is unnecessary because index.html is served by
  * the express.static('.') handler above.
  */
-if (isProduction) {
-  app.get('*', (req, res, next) => {
-    const isApi =
-      req.path.startsWith('/api') ||
-      req.path.startsWith('/metrics') ||
-      req.path.startsWith('/api-docs');
-    if (!isApi) {
-      res.sendFile(path.resolve(__dirname, 'dist/public/index.html'));
-    } else {
-      next();
-    }
-  });
-}
+  if (isProduction) {
+    app.get('*', (req, res, next) => {
+      const isApi =
+        req.path.startsWith('/api') ||
+        req.path.startsWith('/metrics') ||
+        req.path.startsWith('/api-docs');
+      if (!isApi) {
+        res.sendFile(path.resolve(__dirname, 'dist/public/index.html'));
+      } else {
+        next();
+      }
+    });
+  }
 
 // ========================================
 // Error Handling
 // ========================================
 
 // Sentry error handler (must be before other error handlers)
-app.use(sentryErrorHandler());
+  app.use(sentryErrorHandler());
 
 // 404 handler (must be after all routes)
-app.use(notFoundHandler);
+  app.use(notFoundHandler);
 
 // Global error handler (must be last)
-app.use(errorHandler);
+  app.use(errorHandler);
+
+  return app;
+}
+
+const app = createApp();
 
 // ========================================
 // Server Startup
@@ -679,7 +687,10 @@ const startServer = (port, attempt = 0) => {
   process.on('SIGINT', () => shutdown('SIGINT'));
 };
 
-// Start the server
-startServer(BASE_PORT);
+const isEntrypoint = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isEntrypoint) {
+  startServer(BASE_PORT);
+}
 
 export default app;
