@@ -32,6 +32,8 @@ import {
   testRunnerSchema
 } from './src/security/validation-schemas.js';
 import { simulationRouter } from './src/simulation/simulation-router.js';
+import { authRouter } from './src/auth/auth-router.js';
+import { closeDb } from './src/config/database.js';
 
 // Error handling
 import {
@@ -378,6 +380,12 @@ app.get(
 app.use('/api/v1', simulationRouter);
 
 /**
+ * /api/v1/auth/* — Authentication endpoints (register, login, logout,
+ * refresh, forgot/reset password, me). See src/auth/auth-router.ts.
+ */
+app.use('/api/v1/auth', authRouter);
+
+/**
  * POST /api/v1/cache/flush — Flush Yahoo Finance in-memory cache (dev/test only)
  * Not available in production; intended for testing and cache invalidation during development.
  */
@@ -649,6 +657,9 @@ const startServer = (port, attempt = 0) => {
 
       // Close Redis connection if active
       await closeRedisClient();
+
+      // Close the SQLite auth database connection
+      closeDb();
 
       log.info('Shutdown complete');
       console.log('✅ Servidor cerrado correctamente\n');

@@ -27,6 +27,7 @@ export default defineConfig({
         'src/portfolio/**/*.ts',
         'src/allocation/**/*.ts',
         'src/config/**/*.ts',
+        'src/auth/**/*.ts',
       ],
       // Phase 2.1.2 thresholds (Feb 2026)
       thresholds: {

@@ -288,6 +288,86 @@ const schemas = {
     },
   },
 
+  // ── Authentication ──────────────────────────────────────────────
+  PublicUser: {
+    type: 'object',
+    required: ['id', 'email', 'role', 'email_verified', 'created_at'],
+    properties: {
+      id: { type: 'string', example: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4' },
+      email: { type: 'string', format: 'email', example: 'user@example.com' },
+      role: { type: 'string', enum: ['admin', 'analyst', 'viewer'], example: 'viewer' },
+      email_verified: { type: 'boolean', example: false },
+      created_at: { type: 'string', format: 'date-time', example: '2026-02-20T12:00:00.000Z' },
+    },
+  },
+
+  AuthResult: {
+    type: 'object',
+    required: ['user', 'accessToken', 'refreshToken'],
+    properties: {
+      user: { $ref: '#/components/schemas/PublicUser' },
+      accessToken: { type: 'string', description: 'Short-lived JWT (see JWT_EXPIRES_IN).' },
+      refreshToken: { type: 'string', description: 'Long-lived JWT used to obtain new token pairs (see JWT_REFRESH_EXPIRES_IN).' },
+    },
+  },
+
+  TokenPair: {
+    type: 'object',
+    required: ['accessToken', 'refreshToken'],
+    properties: {
+      accessToken: { type: 'string' },
+      refreshToken: { type: 'string' },
+    },
+  },
+
+  RegisterRequest: {
+    type: 'object',
+    required: ['email', 'password'],
+    properties: {
+      email: { type: 'string', format: 'email', example: 'user@example.com' },
+      password: { type: 'string', minLength: 8, maxLength: 128, example: 'correcthorsebattery' },
+      role: {
+        type: 'string',
+        enum: ['admin', 'analyst', 'viewer'],
+        description: 'Ignored for the first-ever user, who is always promoted to admin.',
+      },
+    },
+  },
+
+  LoginRequest: {
+    type: 'object',
+    required: ['email', 'password'],
+    properties: {
+      email: { type: 'string', format: 'email', example: 'user@example.com' },
+      password: { type: 'string', example: 'correcthorsebattery' },
+    },
+  },
+
+  RefreshRequest: {
+    type: 'object',
+    required: ['refreshToken'],
+    properties: {
+      refreshToken: { type: 'string' },
+    },
+  },
+
+  ForgotPasswordRequest: {
+    type: 'object',
+    required: ['email'],
+    properties: {
+      email: { type: 'string', format: 'email', example: 'user@example.com' },
+    },
+  },
+
+  ResetPasswordRequest: {
+    type: 'object',
+    required: ['token', 'password'],
+    properties: {
+      token: { type: 'string', description: 'Raw reset token received by email.' },
+      password: { type: 'string', minLength: 8, maxLength: 128, example: 'newcorrecthorse' },
+    },
+  },
+
   // ── Error Responses ─────────────────────────────────────────────
   ValidationErrorDetail: {
     type: 'object',
@@ -399,6 +479,20 @@ const responses = {
           error: 'Authentication required',
           timestamp: '2026-02-20T12:00:00.000Z',
           statusCode: 401,
+        },
+      },
+    },
+  },
+
+  Conflict: {
+    description: 'The resource already exists (e.g. email already registered).',
+    content: {
+      'application/json': {
+        schema: { $ref: '#/components/schemas/ErrorResponse' },
+        example: {
+          error: 'Email address is already registered',
+          timestamp: '2026-02-20T12:00:00.000Z',
+          statusCode: 409,
         },
       },
     },
@@ -582,6 +676,145 @@ const paths = {
       },
     },
   },
+
+  // ── /auth/* ─────────────────────────────────────────────────────
+  '/auth/register': {
+    post: {
+      tags: ['Authentication'],
+      summary: 'Register a new user account',
+      description: 'Creates a user account. The first-ever registered user is automatically promoted to admin.',
+      operationId: 'authRegister',
+      requestBody: {
+        required: true,
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterRequest' } } },
+      },
+      responses: {
+        201: {
+          description: 'User created.',
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/AuthResult' } } },
+        },
+        400: { $ref: '#/components/responses/ValidationError' },
+        409: { $ref: '#/components/responses/Conflict' },
+        500: { $ref: '#/components/responses/InternalError' },
+      },
+    },
+  },
+
+  '/auth/login': {
+    post: {
+      tags: ['Authentication'],
+      summary: 'Exchange credentials for a token pair',
+      operationId: 'authLogin',
+      requestBody: {
+        required: true,
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/LoginRequest' } } },
+      },
+      responses: {
+        200: {
+          description: 'Login successful.',
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/AuthResult' } } },
+        },
+        400: { $ref: '#/components/responses/ValidationError' },
+        401: { $ref: '#/components/responses/Unauthorized' },
+        500: { $ref: '#/components/responses/InternalError' },
+      },
+    },
+  },
+
+  '/auth/logout': {
+    post: {
+      tags: ['Authentication'],
+      summary: 'Invalidate a refresh token',
+      operationId: 'authLogout',
+      requestBody: {
+        required: true,
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/RefreshRequest' } } },
+      },
+      responses: {
+        204: { description: 'Refresh token invalidated.' },
+        400: { $ref: '#/components/responses/ValidationError' },
+        401: { $ref: '#/components/responses/Unauthorized' },
+        500: { $ref: '#/components/responses/InternalError' },
+      },
+    },
+  },
+
+  '/auth/refresh': {
+    post: {
+      tags: ['Authentication'],
+      summary: 'Rotate an access/refresh token pair',
+      description: 'Exchanges a valid, non-revoked refresh token for a new token pair. The old refresh token is invalidated (rotation).',
+      operationId: 'authRefresh',
+      requestBody: {
+        required: true,
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/RefreshRequest' } } },
+      },
+      responses: {
+        200: {
+          description: 'New token pair issued.',
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/TokenPair' } } },
+        },
+        400: { $ref: '#/components/responses/ValidationError' },
+        401: { $ref: '#/components/responses/Unauthorized' },
+        500: { $ref: '#/components/responses/InternalError' },
+      },
+    },
+  },
+
+  '/auth/forgot-password': {
+    post: {
+      tags: ['Authentication'],
+      summary: 'Initiate a password reset',
+      description: 'Always returns 202, regardless of whether the email is registered, to prevent user enumeration.',
+      operationId: 'authForgotPassword',
+      requestBody: {
+        required: true,
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/ForgotPasswordRequest' } } },
+      },
+      responses: {
+        202: { description: 'If the email is registered, a reset link has been sent.' },
+        400: { $ref: '#/components/responses/ValidationError' },
+        500: { $ref: '#/components/responses/InternalError' },
+      },
+    },
+  },
+
+  '/auth/reset-password': {
+    post: {
+      tags: ['Authentication'],
+      summary: 'Complete a password reset',
+      description: 'Consumes a reset token (valid for 1 hour, single use) and sets a new password. Invalidates all existing refresh tokens for the user.',
+      operationId: 'authResetPassword',
+      requestBody: {
+        required: true,
+        content: { 'application/json': { schema: { $ref: '#/components/schemas/ResetPasswordRequest' } } },
+      },
+      responses: {
+        200: { description: 'Password reset successfully.' },
+        400: { $ref: '#/components/responses/ValidationError' },
+        401: { $ref: '#/components/responses/Unauthorized' },
+        500: { $ref: '#/components/responses/InternalError' },
+      },
+    },
+  },
+
+  '/auth/me': {
+    get: {
+      tags: ['Authentication'],
+      summary: "Get the authenticated user's profile",
+      operationId: 'authMe',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Current user profile.',
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/PublicUser' } } },
+        },
+        401: { $ref: '#/components/responses/Unauthorized' },
+        404: { description: 'The authenticated user no longer exists.' },
+        500: { $ref: '#/components/responses/InternalError' },
+      },
+    },
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -624,6 +857,7 @@ export const swaggerSpec = {
     { name: 'Market Data', description: 'Market data proxy endpoints (Yahoo Finance)' },
     { name: 'Utilities', description: 'Development and diagnostic utilities' },
     { name: 'Simulation', description: 'Investment simulation endpoints' },
+    { name: 'Authentication', description: 'User registration, login, token refresh, and password reset' },
   ],
   paths,
   components: {

@@ -1173,8 +1173,51 @@ for (const envVar of requiredEnvVars) {
 
 ### 4.1 Authentication and Authorisation
 
+> ✅ **Rebuilt and verified 2026-07-02** after the original implementation (recorded as
+> complete in a prior session's memory) was found missing from the repo — see the
+> `auth_phase_reverted` memory entry for the forensics. This time: `tsc --noEmit` clean,
+> full unit+integration suite green (1231 tests total, 70 covering auth), and the flow was
+> smoke-tested end-to-end against a **running server** over real HTTP (register →
+> duplicate→409 → login → GET /me → refresh-rotation → logout-of-stale-token all behaved
+> correctly). **Not yet committed** — see the working-tree note below.
+>
+> **What's actually built** (backend only, by explicit scope decision this session):
+> `src/config/database.ts` (SQLite singleton, WAL, idempotent DDL), `src/auth/user-model.ts`
+> (sync CRUD), `src/auth/auth-service.ts` (register/login/logout/refresh/forgot+reset
+> password — bcrypt 12 rounds, constant-time login, JWT refresh rotation with `jti`),
+> `src/auth/auth-middleware.ts` (`requireAuth`/`requireRole`), `src/auth/auth-router.ts`
+> (7 endpoints, mounted at `/api/v1/auth`). New env vars: `JWT_SECRET`, `JWT_EXPIRES_IN`,
+> `JWT_REFRESH_EXPIRES_IN`, `DATABASE_PATH`, `APP_URL`. OpenAPI spec updated
+> (`src/config/swagger.ts`, new `Authentication` tag). First user → admin.
+>
+> **Explicitly deferred, by user decision this session**: wiring `requireAuth`/`requireRole`
+> into the *existing* endpoints (`/yahoo`, `/jobs/*`, `/metrics`, `/simulate`) was scoped
+> out of this pass, because `/simulate`'s current stub `requireAuth` (accepts any bearer
+> string) is what today's 12 simulator integration tests rely on — swapping it for real JWT
+> verification breaks those tests until they're rewritten to mint real tokens. Frontend
+> login/registration UI, login rate-limiting/lockout, email-verification delivery, and
+> per-user data isolation (4.1.3) are likewise not built yet — see the per-subsection status
+> below.
+>
+> **Working-tree note**: like 4.4 before it, this is uncommitted on `main` as of 2026-07-02:
+> `package.json`/`package-lock.json` (new deps: `better-sqlite3`, `jsonwebtoken`, `bcrypt`,
+> `nodemailer` + `@types/*`), `server.js`, `src/config/environment.ts`,
+> `src/config/swagger.ts`, `src/security/validation-schemas.ts`, `src/tests/vitest.setup.js`,
+> `vitest.config.js`, `.gitignore`, `.env.example`, plus new `src/auth/`,
+> `src/config/database.ts`, and their tests. Commit before moving on.
+>
+> **Separately discovered while re-verifying this phase**: the project's global coverage
+> gate (`vitest --coverage`, thresholds 80/60/85/80 in `vitest.config.js`) was **already
+> failing on `main` before this session's changes** (78.11% stmts / 78.34% lines / 83.54%
+> funcs — confirmed via `git stash` comparison), largely because `src/config/swagger.ts`
+> (0% covered, 656 lines) and `src/core/scanner.ts` (~20%) drag the average down. This
+> session's auth work nudged the numbers slightly *up* (78.63/78.94/84.07), not down, but
+> the gate itself is a pre-existing, unrelated problem worth a dedicated pass later (either
+> add `scanner.ts` tests, or scope coverage `include` away from declarative/generated files
+> like `swagger.ts`).
+
 #### 4.1.1 Authentication System Design
-**Current Gap**: No user authentication system exists; application is single-user.
+**Status**: ✅ COMPLETED — 2026-07-02 (Option A: JWT-based auth selected and implemented)
 
 **Actions**:
 - Design authentication strategy:
@@ -1193,66 +1236,64 @@ for (const envVar of requiredEnvVars) {
 **Deliverable**: Authentication design document
 
 #### 4.1.2 User Management Implementation
+**Status**: 🟡 PARTIALLY COMPLETED — 2026-07-02 (backend core done; see gaps below)
+
 **Actions**:
 - Create user database schema:
-  - Users table (id, email, password_hash, created_at, updated_at)
-  - Sessions table (if using session-based auth)
-  - User preferences table
-  - User roles table
+  - ✅ Users table (id, email, password_hash, role, email_verified, created_at, updated_at) — plus `refresh_tokens` and `password_resets` tables
+  - N/A Sessions table — not needed, this is stateless JWT auth
+  - ❌ User preferences table — not built (no preferences feature exists yet)
+  - ❌ Separate user roles table — role is a `CHECK`-constrained enum column on `users` instead; sufficient for the 3 fixed roles (admin/analyst/viewer), revisit only if custom roles are needed
 - Implement authentication endpoints:
-  - POST `/api/v1/auth/register` (user registration)
-  - POST `/api/v1/auth/login` (user login)
-  - POST `/api/v1/auth/logout` (user logout)
-  - POST `/api/v1/auth/refresh` (token refresh)
-  - POST `/api/v1/auth/forgot-password` (password reset request)
-  - POST `/api/v1/auth/reset-password` (password reset confirmation)
+  - ✅ POST `/api/v1/auth/register` (user registration)
+  - ✅ POST `/api/v1/auth/login` (user login)
+  - ✅ POST `/api/v1/auth/logout` (user logout)
+  - ✅ POST `/api/v1/auth/refresh` (token refresh, with rotation)
+  - ✅ POST `/api/v1/auth/forgot-password` (password reset request)
+  - ✅ POST `/api/v1/auth/reset-password` (password reset confirmation)
+  - ✅ GET `/api/v1/auth/me` (bonus — not in the original plan, added for convenience)
 - Implement password security:
-  - Use bcrypt or Argon2 for password hashing
-  - Implement password strength requirements
-  - Implement rate limiting on login attempts
-  - Implement account lockout after failed attempts
+  - ✅ bcrypt (12 rounds) for password hashing
+  - ✅ Password strength requirement (min 8 characters via Zod schema)
+  - ❌ Rate limiting on login attempts — not implemented; `/api/v1/auth/login` has no stricter limit than the global 100 req/15min
+  - ❌ Account lockout after failed attempts — not implemented
 - Implement email verification:
-  - Send verification email on registration
-  - Create email verification endpoint
-  - Prevent login until email verified
+  - 🟡 `email_verified` column + `markEmailVerified()` exist in the data layer, but no verification email is sent and no verification endpoint exists — registration does not currently gate login on this
+  - ❌ Prevent login until email verified — not implemented (by design for now; would need SMTP configured in all environments)
 - Create authentication middleware:
-  - Verify JWT tokens or sessions
-  - Attach user object to request
-  - Handle expired tokens
+  - ✅ Verify JWT tokens (`requireAuth()`)
+  - ✅ Attach user object to `req.user`
+  - ✅ Handle expired/invalid tokens (401)
+  - ✅ `requireRole(...roles)` for RBAC (see 4.1.3)
 - Update frontend for authentication:
-  - Login page
-  - Registration page
-  - Password reset flow
-  - Token storage and refresh
-  - Redirect to login when unauthorised
+  - ❌ Login page, registration page, password reset flow, token storage/refresh, redirect-when-unauthorised — **none built**. This session was backend/API-only by design; the existing frontend (`src/core/scanner.ts`) has no auth UI or token handling yet.
 
 **Success Criteria**:
-- Users can register and log in
-- Passwords stored securely (hashed)
-- Email verification works
-- Authentication required for protected endpoints
+- ✅ Users can register and log in
+- ✅ Passwords stored securely (hashed)
+- ❌ Email verification works — schema exists, delivery/enforcement does not
+- 🟡 Authentication required for protected endpoints — the auth *system* enforces it correctly (verified via `requireAuth`/`requireRole` unit+integration tests and live HTTP smoke test), but it is not yet wired onto any of the app's actual existing endpoints (see 4.1.3 note)
 
 #### 4.1.3 Role-Based Access Control (RBAC)
+**Status**: 🟡 PARTIALLY COMPLETED — 2026-07-02 (roles + middleware built; not wired to existing routes yet)
+
 **Actions**:
 - Define user roles:
-  - Admin (full access)
-  - Analyst (read/write access to scans and portfolios)
-  - Viewer (read-only access)
-  - Custom roles (optional)
+  - ✅ Admin (full access), Analyst, Viewer — enforced via SQLite `CHECK` constraint and the `UserRole` TS type
+  - ❌ Custom roles — out of scope, not needed yet
 - Implement permission system:
-  - Define permissions (create_scan, edit_portfolio, configure_alerts, etc.)
-  - Assign permissions to roles
-  - Create authorization middleware
-  - Protect endpoints with permission checks
+  - 🟡 Role-based (not fine-grained permission-based): `requireRole('admin', 'analyst')` etc. exists and is tested, but there's no `create_scan`/`edit_portfolio`/`configure_alerts`-style permission table — coarser than originally scoped, and sufficient for 3 roles
+  - ✅ Authorization middleware (`requireRole`)
+  - ❌ Protect endpoints with permission checks — **deferred**: `/api/v1/yahoo`, `/api/v1/jobs/*`, `/metrics`, and `/api/v1/simulate` (currently a local stub `requireAuth` accepting any bearer string) are not yet wired to the real middleware. Explicit scope decision this session, because `/simulate`'s 12 integration tests mint fake tokens and would need rewriting to real JWTs first — tracked as the next concrete step for this phase.
 - Implement data isolation:
-  - Users see only their own scans and portfolios
-  - Admins can see all data
-  - Implement row-level security in database
-- Update UI to show/hide features based on permissions
+  - ❌ Users see only their own scans/portfolios — not applicable yet; the app has no per-user data ownership model (scans/portfolios aren't currently associated with a user_id anywhere)
+  - ❌ Row-level security — not implemented, same reason
+- ❌ Update UI to show/hide features based on permissions — no frontend auth UI exists yet (see 4.1.2)
 
 **Success Criteria**:
-- Different user roles have appropriate access
-- Unauthorised actions blocked
+- ✅ Different user roles have appropriate access **at the middleware level** (verified in isolation)
+- ❌ Unauthorised actions blocked **on real endpoints** — not yet, pending the wiring step above
+- ❌ Data properly isolated between users — no per-user data model exists yet in this codebase
 - Data properly isolated between users
 
 ### 4.2 Data Protection and Compliance
@@ -2058,7 +2099,7 @@ installation behaviour, and offline expectations before committing to a second c
 
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Test Coverage | 81.5%+ stmts/lines (1173+ tests: 1161 unit + 12 integration for simulator alone, plus 76 E2E — see note below) | 80%+ | ✅ End of Phase 2.1.4 |
+| Test Coverage | 1231 unit+integration tests passing (2026-07-02), but the `vitest --coverage` global gate (80/60/85/80) is **currently failing** (~78.6/66.4/84.1/78.9%) — pre-existing on `main`, not caused by recent auth/simulator work; driven by `swagger.ts` (0%) and `scanner.ts` (~20%) | 80%+ | 🔴 Gate broken — needs a dedicated pass |
 | Performance Benchmarks | 49 benchmarks across 7 modules + 3 load tests | Tracked in CI | ✅ End of Phase 2.1.5 |
 | Security Vulnerabilities | Unknown | 0 Critical, 0 High | End of Phase 1 |
 | API Response Time (p97.5) | 7ms (health), rate limiting validated | < 500ms | ✅ Measured in Phase 2.1.5 |
@@ -2119,7 +2160,12 @@ capabilities in parallel. The next decision is architectural as much as function
    local-only IndexedDB vs authenticated server-synced user data
 
 ### Priority 2 — Next platform milestone
-4. Re-implement Authentication and Authorisation (4.1) if multi-user or cross-device sync is required
+4. ✅🟡 Authentication and Authorisation (4.1) — backend rebuilt and verified 2026-07-02
+   (JWT + SQLite, 7 endpoints, RBAC middleware, 70 tests, live HTTP smoke-tested); **not
+   yet wired into existing endpoints** (`/yahoo`, `/jobs/*`, `/metrics`, `/simulate`) and
+   **no frontend UI** — see §4.1 for the precise gap list. Next concrete step: rewrite the
+   12 simulator integration tests to mint real JWTs, then wire real `requireAuth` onto
+   `/simulate` and the other endpoints.
 5. Define backend persistence strategy for user portfolios, alerts, and preferences
 6. Close remaining production-readiness gaps that matter for real users, not just internal demos
 

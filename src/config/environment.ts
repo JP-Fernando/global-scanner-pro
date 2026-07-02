@@ -107,6 +107,15 @@ const envSchema = z.object({
     z.string().transform((val: string) => val !== 'false')
   ),
 
+  // Authentication (JWT + SQLite user database)
+  JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters')
+    .optional()
+    .default('insecure-default-jwt-secret-change-in-production'),
+  JWT_EXPIRES_IN: z.string().default('15m'),
+  JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
+  DATABASE_PATH: z.string().default('./data/app.db'),
+  APP_URL: z.string().url().default('http://localhost:3000'),
+
   // Redis (optional — enables shared cache for horizontal scaling)
   // Format: redis://[:password@]host[:port][/db] or rediss:// for TLS
   REDIS_URL: z.string().regex(/^rediss?:\/\//).optional(),
@@ -182,6 +191,13 @@ interface Config {
     };
   };
   smtp: SmtpConfig | null;
+  auth: {
+    jwtSecret: string;
+    jwtExpiresIn: string;
+    jwtRefreshExpiresIn: string;
+    databasePath: string;
+    appUrl: string;
+  };
   webhooks: {
     slack: string | undefined;
     teams: string | undefined;
@@ -232,6 +248,13 @@ function validateEnv(): Env {
       if (parsed.SESSION_SECRET === 'insecure-default-secret-change-in-production') {
         throw new Error(
           'SESSION_SECRET must be set to a secure value in production. ' +
+          'Generate one with: openssl rand -base64 32'
+        );
+      }
+
+      if (parsed.JWT_SECRET === 'insecure-default-jwt-secret-change-in-production') {
+        throw new Error(
+          'JWT_SECRET must be set to a secure value in production. ' +
           'Generate one with: openssl rand -base64 32'
         );
       }
@@ -293,6 +316,14 @@ export const config: Config = {
       pass: env.SMTP_PASS
     }
   } : null,
+
+  auth: {
+    jwtSecret: env.JWT_SECRET,
+    jwtExpiresIn: env.JWT_EXPIRES_IN,
+    jwtRefreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN,
+    databasePath: env.DATABASE_PATH,
+    appUrl: env.APP_URL
+  },
 
   webhooks: {
     slack: env.SLACK_WEBHOOK_URL,
@@ -358,6 +389,7 @@ export function printConfig(): void {
   console.log(`     - Attribution Analysis: ${config.features.attributionAnalysis ? '✓' : '✗'}`);
   console.log(`   Sentry: ${config.sentry ? '✓ Enabled' : '✗ Disabled'}`);
   console.log(`   SMTP: ${config.smtp ? '✓ Configured' : '✗ Not configured'}`);
+  console.log(`   Database: ${config.auth.databasePath}`);
   console.log('');
 }
 

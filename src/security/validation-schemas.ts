@@ -103,6 +103,78 @@ export type SimulationRequestInput = z.input<typeof simulationRequestSchema>;
 export type SimulationRequestOutput = z.output<typeof simulationRequestSchema>;
 
 /**
+ * Schema for POST /api/v1/auth/register
+ */
+export const registerSchema = z.object({
+  email: z.string()
+    .email('Invalid email format')
+    .max(255, 'Email must be 255 characters or less'),
+
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be 128 characters or less'),
+
+  role: z.enum(['admin', 'analyst', 'viewer']).optional()
+});
+
+/** Inferred type for the register schema */
+export type RegisterInput = z.infer<typeof registerSchema>;
+
+/**
+ * Schema for POST /api/v1/auth/login
+ */
+export const loginSchema = z.object({
+  email: z.string()
+    .email('Invalid email format')
+    .max(255, 'Email must be 255 characters or less'),
+
+  password: z.string()
+    .min(1, 'Password is required')
+    .max(128, 'Password must be 128 characters or less')
+});
+
+/** Inferred type for the login schema */
+export type LoginInput = z.infer<typeof loginSchema>;
+
+/**
+ * Schema for POST /api/v1/auth/logout and POST /api/v1/auth/refresh
+ */
+export const refreshSchema = z.object({
+  refreshToken: z.string()
+    .min(1, 'refreshToken is required')
+});
+
+/** Inferred type for the refresh schema */
+export type RefreshInput = z.infer<typeof refreshSchema>;
+
+/**
+ * Schema for POST /api/v1/auth/forgot-password
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string()
+    .email('Invalid email format')
+    .max(255, 'Email must be 255 characters or less')
+});
+
+/** Inferred type for the forgot-password schema */
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+/**
+ * Schema for POST /api/v1/auth/reset-password
+ */
+export const resetPasswordSchema = z.object({
+  token: z.string()
+    .min(1, 'token is required'),
+
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be 128 characters or less')
+});
+
+/** Inferred type for the reset-password schema */
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+/**
  * Common schemas for reuse across different endpoints
  */
 export const commonSchemas = {

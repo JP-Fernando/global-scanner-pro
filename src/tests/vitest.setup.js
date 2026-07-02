@@ -5,6 +5,12 @@
  * Equivalent to the old setup-globals.js but for the Vitest environment.
  */
 
+// Auth database: use an isolated in-memory SQLite DB for the whole test run
+// (must be set before src/config/environment.ts is first imported anywhere).
+if (!process.env.DATABASE_PATH) {
+  process.env.DATABASE_PATH = ':memory:';
+}
+
 // Browser global mocks (required by storage, UI, and report modules)
 if (!globalThis.localStorage) {
   const store = new Map();

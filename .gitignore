@@ -33,6 +33,14 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# SQLite auth database (data/app.db by default — never commit user data)
+data/
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+
 # Test coverage
 coverage/
 .nyc_output/
