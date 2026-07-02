@@ -348,11 +348,11 @@ const healthHandler = asyncHandler(async (req, res) => {
 
 /**
  * GET /api/v1/yahoo — Yahoo Finance historical price proxy (v1)
- * Rate-limited to 20 requests/minute per IP.
+ * Public (no auth) — this is the core scanner data feed and the frontend
+ * has no login flow yet. Rate-limited to 20 requests/minute per IP.
  */
   app.get(
     '/api/v1/yahoo',
-    requireAuth(),
     configureYahooRateLimit(),
     validate(yahooFinanceSchema, 'query'),
     yahooHandler
@@ -504,11 +504,11 @@ const healthHandler = asyncHandler(async (req, res) => {
 
 /**
  * GET /api/yahoo — Yahoo Finance proxy (legacy, deprecated)
+ * Public (no auth), same as /api/v1/yahoo.
  * @deprecated Use GET /api/v1/yahoo
  */
   app.get(
     '/api/yahoo',
-    requireAuth(),
     configureYahooRateLimit(),
     validate(yahooFinanceSchema, 'query'),
     yahooHandler

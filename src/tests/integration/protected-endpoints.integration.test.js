@@ -15,9 +15,9 @@ function getRouteHandlers(path, method) {
 }
 
 describe('Protected application endpoints', () => {
-  it('protects /api/v1/yahoo with requireAuth', () => {
+  it('leaves /api/v1/yahoo public (no login flow exists yet) but Yahoo-rate-limited', () => {
     const handlers = getRouteHandlers('/api/v1/yahoo', 'get');
-    expect(handlers.some((handle) => handle.authGuard === 'requireAuth')).toBe(true);
+    expect(handlers.some((handle) => handle.authGuard === 'requireAuth')).toBe(false);
   });
 
   it('protects analyst job endpoints with requireAuth and requireRole(admin,analyst)', () => {

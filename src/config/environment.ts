@@ -32,16 +32,19 @@ const envSchema = z.object({
     .default('insecure-default-secret-change-in-production'),
 
   // Rate Limiting
+  // Defaults are relaxed for NODE_ENV=development so local scanning isn't
+  // throttled; explicit env vars always win, and production keeps the
+  // strict defaults below.
   RATE_LIMIT_WINDOW_MS: z.preprocess(
     (val: unknown) => val || '900000',
     z.string().regex(/^\d+$/).transform(Number)
   ),
   RATE_LIMIT_MAX_REQUESTS: z.preprocess(
-    (val: unknown) => val || '100',
+    (val: unknown) => val || (process.env.NODE_ENV === 'development' ? '5000' : '100'),
     z.string().regex(/^\d+$/).transform(Number)
   ),
   RATE_LIMIT_YAHOO_MAX: z.preprocess(
-    (val: unknown) => val || '20',
+    (val: unknown) => val || (process.env.NODE_ENV === 'development' ? '500' : '20'),
     z.string().regex(/^\d+$/).transform(Number)
   ),
 
