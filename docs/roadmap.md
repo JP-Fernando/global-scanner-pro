@@ -1173,17 +1173,6 @@ for (const envVar of requiredEnvVars) {
 
 ### 4.1 Authentication and Authorisation
 
-> ⚠️ **Status check (2026-07-02)**: project memory from a prior session claimed this phase
-> (JWT auth + SQLite user DB via `better-sqlite3`/`jsonwebtoken`/`bcrypt`) was completed in
-> February 2026. That is **not what's in the repository or git history today**:
-> `src/auth/` and `src/tests/unit/auth/` exist but are empty, `src/config/database.ts` does
-> not exist, the auth packages are absent from `package.json`, and there is no commit in
-> `git log --all` touching any of these paths. Leftover compiled output survives at
-> `dist/src/auth/*.js` and `dist/src/config/database.js` (gitignored, ~570 lines total,
-> dated 2026-02-26 22:10 — about 44 minutes before the source files were emptied at 22:54),
-> which can serve as a reference if this work is redone. **Treat 4.1 as not started** until
-> re-verified and re-committed. This phase remains genuinely pending.
-
 #### 4.1.1 Authentication System Design
 **Current Gap**: No user authentication system exists; application is single-user.
 
