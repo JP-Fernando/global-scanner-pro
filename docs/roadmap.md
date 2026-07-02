@@ -1192,12 +1192,20 @@ for (const envVar of requiredEnvVars) {
 > (`src/config/swagger.ts`, new `Authentication` tag). First user → admin.
 >
 > **Updated 2026-07-02 (follow-up pass)**: the deferred wiring step is now done. Real
-> `requireAuth()` JWT verification protects `/api/v1/simulate` and `/api/v1/yahoo`, while
-> `/api/v1/jobs/*` requires `admin|analyst` and `/metrics` requires `admin`. The simulator
-> integration suite was rewritten to mint real JWTs instead of relying on the previous local
-> stub. Frontend login/registration UI, login rate-limiting/lockout, email-verification
+> `requireAuth()` JWT verification protects `/api/v1/simulate`, while `/api/v1/jobs/*`
+> requires `admin|analyst` and `/metrics` requires `admin`. The simulator integration
+> suite was rewritten to mint real JWTs instead of relying on the previous local stub.
+> Frontend login/registration UI, login rate-limiting/lockout, email-verification
 > delivery, and per-user data isolation (4.1.3) are still not built yet — see the
 > per-subsection status below.
+>
+> **Reverted the same day**: `requireAuth()` was briefly wired onto `/api/v1/yahoo` too,
+> but that broke scanning outright — the frontend has no login flow, so every fetch
+> 401'd and every stock was rejected as "Insufficient history". `/api/v1/yahoo` (and the
+> legacy `/api/yahoo`) are public again, same as before this phase; only rate limiting
+> applies. Dev-mode rate limit defaults were also relaxed (`RATE_LIMIT_MAX_REQUESTS`/
+> `RATE_LIMIT_YAHOO_MAX` default higher when `NODE_ENV=development`) so a full-market
+> scan doesn't exhaust the limiter mid-run.
 >
 > **Working-tree note**: like 4.4 before it, this is uncommitted on `main` as of 2026-07-02:
 > `package.json`/`package-lock.json` (new deps: `better-sqlite3`, `jsonwebtoken`, `bcrypt`,
@@ -1272,7 +1280,7 @@ for (const envVar of requiredEnvVars) {
 - ✅ Users can register and log in
 - ✅ Passwords stored securely (hashed)
 - ❌ Email verification works — schema exists, delivery/enforcement does not
-- ✅ Authentication required for protected endpoints — wired onto `/api/v1/yahoo`, `/api/v1/simulate`, `/api/v1/jobs/*`, and `/metrics`
+- ✅ Authentication required for protected endpoints — wired onto `/api/v1/simulate`, `/api/v1/jobs/*`, and `/metrics` (`/api/v1/yahoo` is deliberately public — see note above)
 
 #### 4.1.3 Role-Based Access Control (RBAC)
 **Status**: 🟡 PARTIALLY COMPLETED — 2026-07-02 (roles + middleware built and wired; no per-user data isolation or auth-aware UI yet)
@@ -1284,7 +1292,7 @@ for (const envVar of requiredEnvVars) {
 - Implement permission system:
   - 🟡 Role-based (not fine-grained permission-based): `requireRole('admin', 'analyst')` etc. exists and is tested, but there's no `create_scan`/`edit_portfolio`/`configure_alerts`-style permission table — coarser than originally scoped, and sufficient for 3 roles
   - ✅ Authorization middleware (`requireRole`)
-- ✅ Protect endpoints with permission checks — `/api/v1/yahoo` and `/api/v1/simulate` now require real JWT auth; `/api/v1/jobs/*` requires `admin|analyst`; `/metrics` requires `admin`. Simulator integration tests were rewritten to use real JWTs.
+- ✅ Protect endpoints with permission checks — `/api/v1/simulate` now requires real JWT auth; `/api/v1/jobs/*` requires `admin|analyst`; `/metrics` requires `admin`. `/api/v1/yahoo` remains public by design (see note above). Simulator integration tests were rewritten to use real JWTs.
 - Implement data isolation:
   - ❌ Users see only their own scans/portfolios — not applicable yet; the app has no per-user data ownership model (scans/portfolios aren't currently associated with a user_id anywhere)
   - ❌ Row-level security — not implemented, same reason
@@ -1292,7 +1300,7 @@ for (const envVar of requiredEnvVars) {
 
 **Success Criteria**:
 - ✅ Different user roles have appropriate access **at the middleware level** (verified in isolation)
-- ✅ Unauthorised actions blocked **on real endpoints** — auth + RBAC are now wired onto `/api/v1/yahoo`, `/api/v1/simulate`, `/api/v1/jobs/*`, and `/metrics`
+- ✅ Unauthorised actions blocked **on real endpoints** — auth + RBAC are wired onto `/api/v1/simulate`, `/api/v1/jobs/*`, and `/metrics` (`/api/v1/yahoo` is public by design, not an oversight)
 - ❌ Data properly isolated between users — no per-user data model exists yet in this codebase
 - Data properly isolated between users
 
@@ -2192,9 +2200,11 @@ capabilities in parallel. The next decision is architectural as much as function
 
 ### Priority 2 — Next platform milestone
 4. ✅🟡 Authentication and Authorisation (4.1) — backend rebuilt and verified 2026-07-02
-   (JWT + SQLite, 7 endpoints, RBAC middleware, protected `/yahoo` + `/simulate` +
-   `/jobs/*` + `/metrics`, simulator tests rewritten to mint real JWTs); **no frontend UI**
-   and no per-user data model yet — see §4.1 for the precise remaining gap list.
+   (JWT + SQLite, 7 endpoints, RBAC middleware, protected `/simulate` + `/jobs/*` +
+   `/metrics`; `/yahoo` was briefly protected too but reverted the same day since the
+   frontend has no login flow, so it's public again), simulator tests rewritten to mint
+   real JWTs); **no frontend UI** and no per-user data model yet — see §4.1 for the
+   precise remaining gap list.
 5. ✅ Define backend persistence strategy for user portfolios, alerts, and preferences
    in [Backend Persistence Strategy](backend-persistence-strategy.md) — SQLite-backed
    authenticated source of truth with IndexedDB retained as the PWA cache/offline layer.
