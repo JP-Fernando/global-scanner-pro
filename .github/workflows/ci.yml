@@ -205,6 +205,12 @@ jobs:
           du -sh dist/public/assets/*.js dist/public/assets/*.css 2>/dev/null | sort -h || true
 
       - name: Verify server starts (production)
+        env:
+          # CI-only smoke-test values (not real secrets) — production mode
+          # refuses to boot with the insecure-default placeholders, so this
+          # step needs values that pass validation without being production creds.
+          SESSION_SECRET: 'ci-smoke-test-session-secret-PAhfiXIenihtAV0HpUGTI'
+          JWT_SECRET: 'ci-smoke-test-jwt-secret-zJfBNKsHFayEJvLWMZxYAdLi'
         run: |
           timeout 10s npm start || code=$?
           if [ $code -eq 124 ]; then

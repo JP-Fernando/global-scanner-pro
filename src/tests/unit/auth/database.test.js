@@ -12,7 +12,7 @@ describe('config/database', () => {
     expect(db1).toBe(db2);
   });
 
-  it('creates the users, refresh_tokens, and password_resets tables', () => {
+  it('creates the auth and user-data persistence tables', () => {
     const db = getDb();
     const tables = db
       .prepare("SELECT name FROM sqlite_master WHERE type='table'")
@@ -22,6 +22,14 @@ describe('config/database', () => {
     expect(tables).toContain('users');
     expect(tables).toContain('refresh_tokens');
     expect(tables).toContain('password_resets');
+    expect(tables).toContain('user_preferences');
+    expect(tables).toContain('portfolios');
+    expect(tables).toContain('portfolio_positions');
+    expect(tables).toContain('portfolio_snapshots');
+    expect(tables).toContain('portfolio_rebalances');
+    expect(tables).toContain('alert_settings');
+    expect(tables).toContain('alert_events');
+    expect(tables).toContain('alert_deliveries');
   });
 
   it('running migrations twice does not throw (idempotent DDL)', () => {

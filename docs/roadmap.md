@@ -2163,7 +2163,9 @@ capabilities in parallel. The next decision is architectural as much as function
    (JWT + SQLite, 7 endpoints, RBAC middleware, protected `/yahoo` + `/simulate` +
    `/jobs/*` + `/metrics`, simulator tests rewritten to mint real JWTs); **no frontend UI**
    and no per-user data model yet — see §4.1 for the precise remaining gap list.
-5. Define backend persistence strategy for user portfolios, alerts, and preferences
+5. ✅ Define backend persistence strategy for user portfolios, alerts, and preferences
+   in [Backend Persistence Strategy](backend-persistence-strategy.md) — SQLite-backed
+   authenticated source of truth with IndexedDB retained as the PWA cache/offline layer.
 6. Close remaining production-readiness gaps that matter for real users, not just internal demos
 
 ### Priority 3 — After the first mobile release proves demand
