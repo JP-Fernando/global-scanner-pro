@@ -5,6 +5,7 @@
 
 import { dbStore } from '../storage/indexed-db-store.js';
 import { calculatePortfolioMetrics } from '../analytics/risk_engine.js';
+import { API_BASE_URL } from '../config/api-base.js';
 
 export class PerformanceTracker {
   priceCache: Map<string, any>;
@@ -40,7 +41,7 @@ export class PerformanceTracker {
     const to = Math.floor(new Date(toDate).getTime() / 1000);
 
     try {
-      const response = await fetch(`/api/yahoo?symbol=${ticker}&from=${from}&to=${to}`);
+      const response = await fetch(`${API_BASE_URL}/api/yahoo?symbol=${ticker}&from=${from}&to=${to}`);
       if (!response.ok) {
         console.warn(`Failed to fetch price data for ${ticker}`);
         return [];

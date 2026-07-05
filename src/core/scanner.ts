@@ -3,6 +3,7 @@
 // =====================================================
 
 import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from './config.js';
+import { API_BASE_URL } from '../config/api-base.js';
 import * as ind from '../indicators/indicators.js';
 import * as scoring from '../indicators/scoring.js';
 import * as allocation from '../allocation/allocation.js';
@@ -183,7 +184,7 @@ async function loadYahooData(ticker: string, suffix: string): Promise<any[] | nu
   }
 
   try {
-    const res = await fetch(`/api/yahoo?symbol=${fullSymbol}&from=${from}&to=${to}`);
+    const res = await fetch(`${API_BASE_URL}/api/yahoo?symbol=${fullSymbol}&from=${from}&to=${to}`);
     const json = await res.json();
     if (!json.chart?.result?.[0]) return [];
 
@@ -2582,7 +2583,7 @@ async function onCalculate(isAuto = false) {
       tickerInvestments[simulationTickers[i]] = simulatorState.tickerInvestments[displayTicker] ?? 0;
     });
 
-    const response = await fetch('/api/v1/simulate', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/simulate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

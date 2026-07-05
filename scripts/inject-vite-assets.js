@@ -19,6 +19,12 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, '..');
 
+// Base path prefix for every emitted asset/link (default: root, matching the
+// self-hosted Express deployment). Set VITE_BASE_PATH to a subpath (e.g.
+// '/global-scanner-pro/') when building for a GitHub Pages project page.
+const basePath = (process.env.VITE_BASE_PATH || '/').replace(/\/?$/, '/');
+const withBase = (p) => `${basePath}${p}`;
+
 // ── 1. Read Vite manifest ──────────────────────────────────────────────────
 const manifestPath = resolve(rootDir, 'dist/public/.vite/manifest.json');
 if (!existsSync(manifestPath)) {
@@ -55,12 +61,12 @@ function collectProductionShellAssets() {
   const assets = new Set();
 
   for (const entry of Object.values(manifest)) {
-    if (entry.file) assets.add(`/${entry.file}`);
+    if (entry.file) assets.add(withBase(entry.file));
     if (Array.isArray(entry.css)) {
-      for (const cssFile of entry.css) assets.add(`/${cssFile}`);
+      for (const cssFile of entry.css) assets.add(withBase(cssFile));
     }
     if (Array.isArray(entry.assets)) {
-      for (const assetFile of entry.assets) assets.add(`/${assetFile}`);
+      for (const assetFile of entry.assets) assets.add(withBase(assetFile));
     }
   }
 
@@ -75,60 +81,65 @@ if (cssEntry && cssEntry.css && cssEntry.css.length > 0) {
   const hashedCss = cssEntry.css[0];
   html = html.replace(
     '<link rel="stylesheet" href="src/dashboard/attribution-dashboard.css" />',
-    `<link rel="stylesheet" href="/${hashedCss}" />`
+    `<link rel="stylesheet" href="${withBase(hashedCss)}" />`
   );
-  console.log(`  ✓ CSS: src/dashboard/attribution-dashboard.css → /${hashedCss}`);
+  console.log(`  ✓ CSS: src/dashboard/attribution-dashboard.css → ${withBase(hashedCss)}`);
 } else if (cssEntry && cssEntry.file) {
   // CSS-as-module entry: the CSS is embedded in the JS entry — no separate link needed
   html = html.replace(
     '<link rel="stylesheet" href="src/dashboard/attribution-dashboard.css" />\n',
     ''
   );
-  console.log(`  ✓ CSS: inlined via /${cssEntry.file}`);
+  console.log(`  ✓ CSS: inlined via ${withBase(cssEntry.file)}`);
 }
 
 // ── 5. Replace JS script tags ──────────────────────────────────────────────
 if (scannerEntry) {
   html = html.replace(
     '<script type="module" src="dist/src/core/scanner.js"></script>',
-    `<script type="module" src="/${scannerEntry.file}"></script>`
+    `<script type="module" src="${withBase(scannerEntry.file)}"></script>`
   );
-  console.log(`  ✓ scanner.ts → /${scannerEntry.file}`);
+  console.log(`  ✓ scanner.ts → ${withBase(scannerEntry.file)}`);
 }
 
 if (translatorEntry) {
   html = html.replace(
     '<script type="module" src="dist/src/i18n/ui-translator.js"></script>',
-    `<script type="module" src="/${translatorEntry.file}"></script>`
+    `<script type="module" src="${withBase(translatorEntry.file)}"></script>`
   );
-  console.log(`  ✓ ui-translator.ts → /${translatorEntry.file}`);
+  console.log(`  ✓ ui-translator.ts → ${withBase(translatorEntry.file)}`);
 }
 
 if (initEntry) {
   html = html.replace(
     '<script type="module" src="dist/src/i18n/ui-init.js"></script>',
-    `<script type="module" src="/${initEntry.file}"></script>`
+    `<script type="module" src="${withBase(initEntry.file)}"></script>`
   );
-  console.log(`  ✓ ui-init.ts → /${initEntry.file}`);
+  console.log(`  ✓ ui-init.ts → ${withBase(initEntry.file)}`);
 }
 
 if (pwaInitEntry) {
   html = html.replace(
     '<script type="module" src="dist/src/pwa/pwa-init.js"></script>',
-    `<script type="module" src="/${pwaInitEntry.file}"></script>`
+    `<script type="module" src="${withBase(pwaInitEntry.file)}"></script>`
   );
-  console.log(`  ✓ pwa-init.ts → /${pwaInitEntry.file}`);
+  console.log(`  ✓ pwa-init.ts → ${withBase(pwaInitEntry.file)}`);
 }
 
 // ── 6. Inject <link rel="modulepreload"> hints for shared chunks ───────────
 if (chunkFiles.length > 0) {
   const preloadTags = chunkFiles
-    .map((f) => `  <link rel="modulepreload" href="/${f}" />`)
+    .map((f) => `  <link rel="modulepreload" href="${withBase(f)}" />`)
     .join('\n');
   // Insert before </head>
   html = html.replace('</head>', `${preloadTags}\n</head>`);
   console.log(`  ✓ Injected ${chunkFiles.length} modulepreload hint(s)`);
 }
+
+// ── 6b. Rewrite icon/manifest links for subpath deployments ────────────────
+html = html.replace('href="/manifest.webmanifest"', `href="${withBase('manifest.webmanifest')}"`);
+html = html.replace('href="/icons/favicon.ico"', `href="${withBase('icons/favicon.ico')}"`);
+html = html.replace('href="/icons/apple-touch-icon.png"', `href="${withBase('icons/apple-touch-icon.png')}"`);
 
 // ── 7. Write dist/public/index.html ───────────────────────────────────────
 mkdirSync(resolve(rootDir, 'dist/public'), { recursive: true });
@@ -149,17 +160,26 @@ if (existsSync(universesDir)) {
 // files from Vite so offline boot works without waiting for runtime caching.
 const manifestSrc = resolve(rootDir, 'manifest.webmanifest');
 if (existsSync(manifestSrc)) {
-  cpSync(manifestSrc, resolve(rootDir, 'dist/public/manifest.webmanifest'));
+  const manifestJson = JSON.parse(readFileSync(manifestSrc, 'utf-8'));
+  manifestJson.start_url = basePath;
+  manifestJson.scope = basePath;
+  manifestJson.icons = manifestJson.icons.map((icon) => ({
+    ...icon,
+    src: withBase(icon.src.replace(/^\//, ''))
+  }));
+  writeFileSync(resolve(rootDir, 'dist/public/manifest.webmanifest'), JSON.stringify(manifestJson, null, 2));
 }
 
 const swSrc = resolve(rootDir, 'sw.js');
 if (existsSync(swSrc)) {
   const swTemplate = readFileSync(swSrc, 'utf-8');
   const productionShellAssets = collectProductionShellAssets();
-  const swOutput = swTemplate.replace(
-    /const APP_SHELL_ASSETS = \[[\s\S]*?\];/,
-    `const APP_SHELL_ASSETS = ${JSON.stringify(productionShellAssets, null, 2)};`
-  );
+  const swOutput = swTemplate
+    .replace(/const BASE_PATH = '\/';/, `const BASE_PATH = '${basePath}';`)
+    .replace(
+      /const APP_SHELL_ASSETS = \[[\s\S]*?\];/,
+      `const APP_SHELL_ASSETS = ${JSON.stringify(productionShellAssets, null, 2)};`
+    );
   writeFileSync(resolve(rootDir, 'dist/public/sw.js'), swOutput);
 }
 

@@ -8,6 +8,12 @@
 import { restoreLastScanFromCache, restoreLastSimulationFromCache } from '../core/scanner.js';
 import i18n from '../i18n/i18n.js';
 
+/**
+ * Replaced at build time via VITE_BASE_PATH for subpath deployments (e.g. a
+ * GitHub Pages project page). Defaults to root, matching self-hosted Express.
+ */
+const BASE_PATH: string = (import.meta as any).env?.VITE_BASE_PATH ?? '/';
+
 /** Chrome/Edge-only event — not yet part of the standard lib.dom.d.ts Event map. */
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -49,7 +55,7 @@ export function setOfflineBannerState(
 export async function registerServiceWorker(): Promise<void> {
   if (!('serviceWorker' in navigator)) return;
   try {
-    await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.register(`${BASE_PATH}sw.js`);
     await navigator.serviceWorker.ready;
   } catch (e: any) {
     console.warn('Service worker registration failed:', e?.message);

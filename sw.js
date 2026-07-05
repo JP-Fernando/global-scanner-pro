@@ -22,15 +22,20 @@ const SHELL_CACHE = `gsp-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `gsp-runtime-${CACHE_VERSION}`;
 const CURRENT_CACHES = [SHELL_CACHE, RUNTIME_CACHE];
 
+// Replaced at build time by scripts/inject-vite-assets.js for subpath
+// deployments (e.g. a GitHub Pages project page). Defaults to root, matching
+// self-hosted Express where the app is always served at the domain root.
+const BASE_PATH = '/';
+
 const SHELL_URLS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/icon-512-maskable.png',
-  '/icons/apple-touch-icon.png',
-  '/icons/favicon.ico'
+  BASE_PATH,
+  `${BASE_PATH}index.html`,
+  `${BASE_PATH}manifest.webmanifest`,
+  `${BASE_PATH}icons/icon-192.png`,
+  `${BASE_PATH}icons/icon-512.png`,
+  `${BASE_PATH}icons/icon-512-maskable.png`,
+  `${BASE_PATH}icons/apple-touch-icon.png`,
+  `${BASE_PATH}icons/favicon.ico`
 ];
 
 // Replaced at build time for production with the hashed Vite asset graph. In
@@ -105,11 +110,11 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           if (response && response.ok) {
-            caches.open(SHELL_CACHE).then((cache) => cache.put('/index.html', response.clone()));
+            caches.open(SHELL_CACHE).then((cache) => cache.put(`${BASE_PATH}index.html`, response.clone()));
           }
           return response;
         })
-        .catch(() => caches.match('/index.html', { cacheName: SHELL_CACHE }))
+        .catch(() => caches.match(`${BASE_PATH}index.html`, { cacheName: SHELL_CACHE }))
     );
     return;
   }

@@ -40,7 +40,7 @@
     "perf:baseline": "vitest bench --outputJson src/tests/performance/results/bench-baseline.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "docker:build": "docker build -t global-scanner-pro .",
     "docker:run": "docker run --rm -p 3000:3000 --env-file .env global-scanner-pro",
     "docker:up": "docker-compose up",
