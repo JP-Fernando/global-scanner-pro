@@ -8,7 +8,7 @@
  * Usage: node src/tests/performance/load/rate-limiting.load.js
  */
 import {
-  startServer, runLoadTest, stopServer, printResults,
+  startServer, stopServer,
 } from './load-test-runner.js';
 
 let server;
@@ -22,20 +22,32 @@ try {
 
   console.log('\n  Testing rate limiting (limit=20, sending 50 requests) ...\n');
 
-  const result = await runLoadTest({
-    url: `http://localhost:${server.port}/api/run-tests`,
-    connections: 5,
-    amount: 50,
-    pipelining: 1,
-  });
+  const startedAt = Date.now();
+  const responses = await Promise.all(
+    Array.from({ length: 50 }, async () => {
+      const response = await fetch(`http://localhost:${server.port}/api/v1/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      return response.status;
+    })
+  );
+  const elapsedMs = Date.now() - startedAt;
+
+  const counts = responses.reduce((acc, status) => {
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+  const rateLimited = counts[429] || 0;
+  const validationFailures = counts[400] || 0;
 
   console.log('\n  Results:');
-  printResults(result);
-
-  const rateLimited = result.non2xx || 0;
-
-  console.log(`\n    2xx responses: ${result['2xx'] || 0}`);
-  console.log(`    Non-2xx (429): ${rateLimited}`);
+  console.log(`    Total requests: ${responses.length}`);
+  console.log(`    Duration:       ${elapsedMs} ms`);
+  console.log(`    400 responses:  ${validationFailures}`);
+  console.log(`    429 responses:  ${rateLimited}`);
 
   if (rateLimited === 0) {
     console.error('\n  FAILURE: Expected 429 responses but got none.');

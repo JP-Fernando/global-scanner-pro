@@ -184,7 +184,7 @@ export function configureGlobalRateLimit(): ReturnType<typeof rateLimit> {
     },
     skip: (req: Request): boolean => {
       // Skip rate limiting for health check
-      return req.path === '/api/health';
+      return req.path === '/api/health' || req.path === '/api/v1/health';
     }
   });
 }

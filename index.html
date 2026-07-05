@@ -1073,11 +1073,13 @@
     <div id="mlAnomalies" style="display: none;"></div>
 
     <div class="main-tab-bar" role="tablist" aria-label="Main tabs">
-      <button id="mainTabResults" class="main-tab-btn active" type="button">Results</button>
-      <button id="mainTabSimulator" class="main-tab-btn" type="button">Simulator</button>
+      <button id="mainTabResults" class="main-tab-btn active" type="button" role="tab" aria-selected="true"
+        aria-controls="tab-results" tabindex="0">Results</button>
+      <button id="mainTabSimulator" class="main-tab-btn" type="button" role="tab" aria-selected="false"
+        aria-controls="tab-simulator" tabindex="-1">Simulator</button>
     </div>
 
-    <div id="tab-results" class="table-container">
+    <div id="tab-results" class="table-container" role="tabpanel" aria-labelledby="mainTabResults">
       <table>
         <thead>
           <tr>
@@ -1879,7 +1881,8 @@
         }
       </style>
     </div>
-    <div id="tab-simulator" class="simulator-tab-panel" style="display:none;">
+    <div id="tab-simulator" class="simulator-tab-panel" role="tabpanel" aria-labelledby="mainTabSimulator"
+      style="display:none;">
       <div class="sim-empty-state">Select up to 4 securities from the results table to get started.</div>
     </div>
   </div>

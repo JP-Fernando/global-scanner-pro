@@ -28,8 +28,8 @@ export async function startServer(envOverrides = {}) {
   };
 
   const child = spawn(
-    path.join(ROOT_DIR, 'node_modules', '.bin', 'tsx'),
-    ['server.js'],
+    process.execPath,
+    ['--import', 'tsx', 'server.js'],
     { env, cwd: ROOT_DIR, stdio: 'pipe' }
   );
 

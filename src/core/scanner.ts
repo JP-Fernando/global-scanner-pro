@@ -2701,9 +2701,15 @@ function switchMainTab(tab: 'results' | 'simulator') {
   const showingResults = tab === 'results';
   resultsPanel.style.display = showingResults ? 'block' : 'none';
   simulatorPanel.style.display = showingResults ? 'none' : 'block';
+  resultsPanel.hidden = !showingResults;
+  simulatorPanel.hidden = showingResults;
 
   resultsButton.classList.toggle('active', showingResults);
   simulatorButton.classList.toggle('active', !showingResults);
+  resultsButton.setAttribute('aria-selected', showingResults ? 'true' : 'false');
+  simulatorButton.setAttribute('aria-selected', showingResults ? 'false' : 'true');
+  resultsButton.tabIndex = showingResults ? 0 : -1;
+  simulatorButton.tabIndex = showingResults ? -1 : 0;
 
   if (!showingResults) {
     renderSimulatorTab();
