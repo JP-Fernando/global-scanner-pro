@@ -23,13 +23,15 @@ no longer "can we build features?" but "what product shape are we shipping next?
 - Real authentication and user ownership model
 - A clear decision between local-first single-user usage vs multi-user synced product
   (this milestone shipped the local-first branch; account-based sync is still open, §5.5.3.3)
-- Mobile UX hardening for dense tables/tap targets on narrow screens (§5.5.3.2 — next up)
+- Frontend separation planning: preserve the current desktop-optimised experience while adding
+  an Android-focused frontend over the same backend and shared domain logic (§5.5.3.2 — next up)
 
 ### Recommendation
-PWA enablement (local-first branch) is done. Treat the next milestone as **mobile UX hardening**
-(§5.5.3.2) — the installable shell now exists, so the fastest remaining path to user value is
-making the core scan/portfolio/alerts/simulator flows comfortable on real phone screens before
-revisiting the local-first vs account-based sync decision (§5.5.3.3).
+PWA enablement (local-first branch) is done. Treat the next milestone as **frontend separation
+and Android UX hardening** (§5.5.3.2) — the installable shell now exists, but the next step
+should not be "make desktop worse so mobile fits". Instead, preserve the current desktop
+workflow, extract shared application logic, and build an Android-focused presentation layer over
+the same backend before revisiting the local-first vs account-based sync decision (§5.5.3.3).
 
 ---
 
@@ -2064,19 +2066,78 @@ installation behaviour, and offline expectations before committing to a second c
 **Deliberately out of scope for this pass** (tracked in 5.5.3.3): push notifications,
 background sync, and the local-only vs account-synced product decision.
 
-#### 5.5.3.2 Mobile UX Hardening
+#### 5.5.3.2 Frontend Separation and Android UX Hardening
 **Target**: immediately after PWA foundation
 
-**Actions**:
-- Rework dense tables for narrow screens (progressive disclosure, cards, sticky summary areas)
-- Optimise tap targets, scrolling behaviour, and simulator interactions for touch
-- Measure performance on mid-range Android devices
-- Ensure tab switching, reload, and resume states are resilient on mobile browsers
+**Decision**:
+- Do **not** collapse the current desktop UI into a compromised one-size-fits-all layout
+- Keep a common backend and shared business/domain logic
+- Split presentation into two frontend tracks:
+  - Desktop/web analytical experience, preserving dense tables and comparison-heavy workflows
+  - Android-focused frontend, optimised for touch, installation, narrow screens, and shorter task flows
+
+**Implementation principle**:
+- Duplicate the **UI layer where necessary**, not the product logic. Scanning, portfolio
+  construction, simulator calculations, alerts, storage contracts, i18n data, validation, and
+  API integrations should remain shared wherever practical.
+
+**Architecture steps**:
+1. Audit the current frontend and classify code into:
+   - shared domain logic
+   - shared state/storage/services
+   - desktop-only presentation
+   - mobile/Android presentation candidates
+2. Extract reusable frontend services behind stable interfaces:
+   - scan runner / result adapters
+   - portfolio builder inputs and outputs
+   - simulator request/response shaping
+   - alerts settings persistence
+   - offline cache restore/save flows
+3. Define the target repository structure for dual frontends, for example:
+   - `src/shared/` for adapters, types, formatting helpers, service wrappers, storage access
+   - `src/desktop/` for the current web UI
+   - `src/android/` for the Android-oriented frontend shell and views
+4. Preserve the current desktop layout as a first-class product surface
+5. Design Android-specific flows for:
+   - run scan
+   - review results
+   - add/remove simulator selections
+   - view portfolio summary and positions
+   - review alerts and edit essential thresholds
+6. Reduce Android flow complexity through cards, drill-down views, sticky action areas, and
+   progressive disclosure instead of trying to keep all desktop tables visible at once
+7. Decide the Android delivery wrapper:
+   - installable PWA only, if sufficient
+   - Android Studio project wrapping the mobile frontend if install/test/distribution needs justify it
+8. Add platform-aware test coverage:
+   - desktop regression tests to ensure no analytical UX loss
+   - Android viewport/task-flow tests for touch interactions and narrow screens
+   - offline/resume/installability checks for the Android track
+
+**Execution phases**:
+1. Frontend boundary definition
+   - Extract shared modules from the current `index.html` + `src/core/scanner.ts` driven UI
+   - Replace ad-hoc inline coupling with reusable classes/modules in the areas touched by the split
+2. Desktop stabilisation
+   - Keep the current desktop information density intact
+   - Add regression coverage for results tables, portfolio dashboard, alerts, and simulator
+3. Android frontend build-out
+   - Create dedicated Android-first views for scanner, results, portfolio, alerts, and simulator
+   - Optimise for 360-430px widths and touch-first navigation
+4. Android packaging evaluation
+   - Validate whether the mobile frontend is sufficient as a PWA
+   - Only then decide whether Android Studio packaging should become a committed delivery track
 
 **Success Criteria**:
-- Core scan, portfolio, alerts, and simulator flows are comfortable on 360-430px widths
-- No horizontal overflow in critical workflows
-- Mobile interaction latency stays acceptable on real devices
+- Desktop workflows remain as strong as today for analysis-heavy usage
+- Android workflows are comfortable and visually coherent on 360-430px widths
+- No duplication of core scanning/portfolio/simulator/alerts logic beyond unavoidable UI concerns
+- Shared backend contracts remain the single source of truth
+- The team can test/install the Android experience with a clear path, without forcing the desktop
+  app into a mobile-first compromise
+
+**Planning reference**:
+- See [Frontend Separation Plan](frontend-separation-plan.md) for the concrete execution checklist
 
 #### 5.5.3.3 Sync, Notifications, and Device Features
 **Target**: after auth/data strategy decision
@@ -2194,7 +2255,7 @@ capabilities in parallel. The next decision is architectural as much as function
 ### Priority 1 — Next 2 to 4 weeks
 1. ✅ PWA foundation (`manifest`, icons, service worker, install flow, offline shell) —
    completed 2026-07-02, see §5.5.3.1
-2. Mobile UX hardening for scanner, results, portfolio, alerts, and simulator (§5.5.3.2 — next up)
+2. Frontend separation and Android UX hardening while preserving desktop quality (§5.5.3.2 — next up)
 3. Product decision on persistence model:
    local-only IndexedDB vs authenticated server-synced user data
 
@@ -2213,7 +2274,7 @@ capabilities in parallel. The next decision is architectural as much as function
 ### Priority 3 — After the first mobile release proves demand
 7. Push notifications and background sync
 8. Advanced mobile ergonomics and tablet-specific layouts
-9. Native Android packaging or React Native evaluation only if the PWA ceiling is reached
+9. Native Android packaging or React Native evaluation only if the Android-focused frontend/PWA ceiling is reached
 
 ### Foundations Already Strong
 10. Security hardening (1.1) ✅
