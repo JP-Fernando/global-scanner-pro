@@ -2,7 +2,6 @@ import express from 'express';
 import { validate } from '../middleware/validation.js';
 import { simulationRequestSchema } from '../security/validation-schemas.js';
 import { simulateInvestment, SimulationInputError } from './simulation-service.js';
-import { requireAuth } from '../auth/auth-middleware.js';
 
 interface RouterOptions {
   fetchImpl?: any;
@@ -11,7 +10,10 @@ interface RouterOptions {
 export function createSimulationRouter(options: RouterOptions = {}): express.Router {
   const router = express.Router();
 
-  router.post('/simulate', requireAuth(), validate(simulationRequestSchema, 'body'), async (req, res) => {
+  // Keep the simulator publicly callable so the deployed web/PWA frontend can
+  // use it without a login flow. Future account-aware simulator features should
+  // layer on top of this route or introduce a protected variant.
+  router.post('/simulate', validate(simulationRequestSchema, 'body'), async (req, res) => {
     try {
       const body = req.body as {
         tickers: string[];

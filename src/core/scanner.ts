@@ -44,6 +44,18 @@ import {
   getAnomalySummary
 } from '../ml/anomaly-detection.js';
 import { dbStore } from '../storage/indexed-db-store.js';
+import {
+  MAX_SIMULATOR_TICKERS,
+  clearSimulatorSelection as clearStoredSimulatorSelection,
+  loadSimulatorSelection as loadStoredSimulatorSelection,
+  normalizeSimulatorTicker,
+  reconcileSimulatorSelection,
+  saveSimulatorSelection as saveStoredSimulatorSelection
+} from '../shared/frontend/simulator-selection.js';
+import {
+  persistLastScanReview,
+  persistLastSimulationReview
+} from '../shared/frontend/offline-review-cache.js';
 
 const sleep = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 let currentResults: any[] = [];
@@ -53,8 +65,6 @@ let lastBacktestResults: any[] = [];
 let lastBacktestInitialCapital: number | null = null;
 const dataCache = new Map<string, any>();
 let isScanning = false; // Control flag
-const SIMULATOR_SELECTION_KEY = 'simulatorSelection';
-const MAX_SIMULATOR_TICKERS = 4;
 let selectedForSimulator: string[] = [];
 let activeMainTab: 'results' | 'simulator' = 'results';
 const simulatorChart = new SimulatorChart();
@@ -89,20 +99,16 @@ const appState: any = {
  * save (e.g. private browsing without IndexedDB) should not interrupt scanning.
  */
 function persistLastScan(): void {
-  dbStore
-    .saveLastScan({
-      market: appState.market,
-      strategy: appState.strategy,
-      timestamp: Date.now(),
-      results: currentResults
-    })
-    .catch((e: any) => console.warn('Failed to persist last scan for offline review:', e?.message));
+  persistLastScanReview({
+    market: appState.market,
+    strategy: appState.strategy,
+    timestamp: Date.now(),
+    results: currentResults
+  });
 }
 
 function persistLastSimulation(request: any, response: any): void {
-  dbStore
-    .saveLastSimulation({ request, response, timestamp: Date.now() })
-    .catch((e: any) => console.warn('Failed to persist last simulation for offline review:', e?.message));
+  persistLastSimulationReview({ request, response, timestamp: Date.now() });
 }
 
 function getMarketSelectValue(market: any): string {
@@ -127,7 +133,7 @@ function syncControlsFromRestoredScan(saved: any): void {
 }
 
 function normaliseDisplayTicker(rawTicker: any): string {
-  return String(rawTicker || '').trim().toUpperCase();
+  return normalizeSimulatorTicker(rawTicker);
 }
 
 function getDisplayTickerForStoredSymbol(symbol: string): string {
@@ -2304,47 +2310,28 @@ function getSimulatorHorizonMonths() {
 }
 
 function saveSimulatorSelection() {
-  try {
-    localStorage.setItem(SIMULATOR_SELECTION_KEY, JSON.stringify(selectedForSimulator));
-  } catch {
-    // Ignore storage failures in private mode / restricted environments
-  }
+  saveStoredSimulatorSelection(selectedForSimulator);
 }
 
 function syncSimulatorSelectionWithResults() {
-  const available = new Set(currentResults.map((result: any) => String(result.ticker || '').toUpperCase()));
-  selectedForSimulator = selectedForSimulator.filter(ticker => available.has(ticker));
+  selectedForSimulator = reconcileSimulatorSelection(
+    selectedForSimulator,
+    currentResults.map((result: any) => String(result.ticker || ''))
+  );
 }
 
 function loadSimulatorSelection() {
-  try {
-    const raw = localStorage.getItem(SIMULATOR_SELECTION_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return;
-    selectedForSimulator = parsed
-      .filter(item => typeof item === 'string')
-      .map(item => item.trim().toUpperCase())
-      .filter(Boolean)
-      .slice(0, MAX_SIMULATOR_TICKERS);
-    // Ensure every restored ticker has a default investment amount
-    for (const ticker of selectedForSimulator) {
-      if (!(ticker in simulatorState.tickerInvestments)) {
-        simulatorState.tickerInvestments[ticker] = 100;
-      }
+  selectedForSimulator = loadStoredSimulatorSelection();
+  for (const ticker of selectedForSimulator) {
+    if (!(ticker in simulatorState.tickerInvestments)) {
+      simulatorState.tickerInvestments[ticker] = 100;
     }
-  } catch {
-    selectedForSimulator = [];
   }
 }
 
 function clearSimulatorSelection() {
   selectedForSimulator = [];
-  try {
-    localStorage.removeItem(SIMULATOR_SELECTION_KEY);
-  } catch {
-    // Ignore storage failures
-  }
+  clearStoredSimulatorSelection();
   simulatorState.lastResponse = null;
 }
 
@@ -2586,8 +2573,7 @@ async function onCalculate(isAuto = false) {
     const response = await fetch(`${API_BASE_URL}/api/v1/simulate`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer simulator-ui'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         tickers: simulationTickers,
