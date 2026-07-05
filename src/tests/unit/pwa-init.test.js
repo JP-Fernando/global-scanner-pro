@@ -19,17 +19,29 @@ vi.mock('../../core/scanner.js', () => ({
 }));
 
 // Minimal browser globals so the module's top-level init doesn't throw.
-globalThis.navigator = { onLine: true };
-globalThis.document = {
+Object.defineProperty(globalThis, 'navigator', {
+  configurable: true,
+  writable: true,
+  value: { onLine: true },
+});
+Object.defineProperty(globalThis, 'document', {
+  configurable: true,
+  writable: true,
+  value: {
   readyState: 'complete',
   getElementById: () => null,
   addEventListener: () => {},
-};
-globalThis.window = {
-  ...(globalThis.window || {}),
-  addEventListener: () => {},
-  matchMedia: () => ({ matches: false }),
-};
+  },
+});
+Object.defineProperty(globalThis, 'window', {
+  configurable: true,
+  writable: true,
+  value: {
+    ...(globalThis.window || {}),
+    addEventListener: () => {},
+    matchMedia: () => ({ matches: false }),
+  },
+});
 
 const pwaInit = await import('../../pwa/pwa-init.js');
 const scannerMock = await import('../../core/scanner.js');
