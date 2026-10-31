@@ -76,6 +76,13 @@ const normalizeDrawdownThreshold = (value: unknown): number => {
   return value > 0 ? -Math.abs(value) : value;
 };
 
+export function createDefaultAlertSettings(strategy: string, userId = DEFAULT_USER_ID): AlertSettingsRecord {
+  const now = new Date().toISOString();
+  return { id: toSettingsId(userId, strategy), user_id: userId, strategy,
+    thresholds: { ...DEFAULT_THRESHOLDS }, channels: { ...DEFAULT_CHANNELS },
+    notifyOn: { ...DEFAULT_NOTIFY }, created_at: now, updated_at: now };
+}
+
 export async function getAlertSettings(
   strategy: string,
   userId: string = DEFAULT_USER_ID,
@@ -85,16 +92,7 @@ export async function getAlertSettings(
   let settings = await store.getAlertSettings(settingsId) as AlertSettingsRecord | null;
 
   if (!settings) {
-    settings = {
-      id: settingsId,
-      user_id: userId,
-      strategy,
-      thresholds: { ...DEFAULT_THRESHOLDS },
-      channels: { ...DEFAULT_CHANNELS },
-      notifyOn: { ...DEFAULT_NOTIFY },
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    settings = createDefaultAlertSettings(strategy, userId);
     await store.saveAlertSettings(settings);
   } else {
     // Keep the strategy/user_id indexes populated when a legacy record is re-saved.

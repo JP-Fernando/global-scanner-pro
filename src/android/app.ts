@@ -1,6 +1,6 @@
 /** Android presentation/controller. Domain calculations and API contracts stay shared. */
 import i18n from '../i18n/i18n.js';
-import { STRATEGY_PROFILES } from '../core/config.js';
+import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from '../core/config.js';
 import { MARKET_OPTIONS } from '../shared/frontend/market-options.js';
 import { runMarketScan } from '../shared/frontend/scan-runner.js';
 import { analyzeStock, loadBenchmark } from '../shared/frontend/scan-analysis.js';
@@ -16,6 +16,9 @@ import { formatNumber, formatCurrencyValue, formatReturn } from '../shared/front
 import { dbStore } from '../storage/indexed-db-store.js';
 import { notifyStrongSignals } from '../alerts/alert-manager.js';
 import { registerAppServiceWorker } from '../pwa/service-worker.js';
+import { loadOperationsSession, saveOperationsSession } from './operations-session.js';
+import { PortfolioScreen } from './portfolio-screen.js';
+import { AlertsScreen } from './alerts-screen.js';
 import { loadAndroidSession, saveAndroidSession, VIEW_KEYS } from './session.js';
 
 const app = document.getElementById('androidApp')!;
@@ -37,6 +40,9 @@ let response: any = null;
 let responseSignature = '';
 let previousRoute = '';
 let filtersOpen = false;
+let scanStrategy = 'balanced';
+let scanBenchmark = '^IBEX';
+let scanRegime: { min_score: number } | null = null;
 
 const t = (key: string, params: Record<string, string> = {}) => i18n.t(`android.${key}`, params);
 const esc = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, char =>
@@ -56,6 +62,21 @@ const viewNames = ['views.overall', 'views.short_term', 'views.medium_term', 'vi
 const request = () => buildSimulationRequest(session.selection, session.investments,
   getHorizonMonths(session.horizon), results, 'symbol');
 const signature = () => JSON.stringify(request());
+
+const operations = loadOperationsSession();
+const persistOperations = () => {
+  if (!saveOperationsSession(operations)) { notice = t('notSaved'); updateStatus(); }
+};
+const portfolios = new PortfolioScreen(operations, () => ({ results, strategy: scanStrategy,
+  benchmark: scanBenchmark, regimeAdjustment: scanRegime, scanning }), () => render(), persistOperations);
+const alerts = new AlertsScreen(operations, () => render(), persistOperations);
+function enterOperations(): void {
+  const path = route();
+  if (path === 'portfolios') void portfolios.enter();
+  else if (path.startsWith('position/')) {
+    try { const parts = path.split('/'); if (parts.length === 3) void portfolios.enter(decodeURIComponent(parts[1])); } catch { /* Invalid route is rendered locally. */ }
+  } else if (path === 'alerts') void alerts.enter();
+}
 
 function persistDraft(): void {
   if (!saveAndroidSession(session)) {
@@ -154,6 +175,7 @@ function resultScreen(): string {
       <option value="high" ${session.filter.volume === 'high' ? 'selected' : ''}>${esc(i18n.t('filters.volume_high'))}</option></select></label>
     <button type="button" class="secondary" data-action="reset-filters">${esc(t('reset'))}</button></div></details>
     <p id="resultCount" class="results-count">${esc(t('found', { shown: String(filteredResults().length), total: String(available().length) }))}</p>
+    <a class="secondary full" href="#/portfolios">${esc(t('buildPortfolio'))}</a>
     <div id="assetCards">${cardsMarkup()}</div>`;
 }
 
@@ -244,12 +266,16 @@ function render(focus = false): void {
   else if (path === 'simulator') content = simulatorScreen();
   else if (path.startsWith('asset/')) {
     try { content = detailScreen(decodeURIComponent(path.slice(6))); } catch { content = emptyScreen(t('unknown')); }
-  } else if (['portfolios', 'alerts'].includes(path)) {
-    content = `<section class="screen-head"><h1 tabindex="-1">${esc(t(path))}</h1></section>
-      <section class="panel"><p class="muted">${esc(t('desktopHint'))}</p>
-      <a class="primary full" href="./#portfolioDashboardSection">${esc(t('openDesktop'))} ↗</a></section>`;
+  } else if (path === 'portfolios') content = portfolios.render();
+  else if (path === 'alerts') content = alerts.render();
+  else if (path.startsWith('position/')) {
+    try {
+      const parts = path.split('/');
+      content = parts.length === 3 ? portfolios.render(decodeURIComponent(parts[2]), decodeURIComponent(parts[1])) : emptyScreen(t('notFound'));
+    } catch { content = emptyScreen(t('notFound')); }
   } else content = emptyScreen(t('notFound'));
-  const active = path.startsWith('asset/') || path === 'simulator' ? 'results' : path;
+  const active = path.startsWith('position/') ? 'portfolios'
+    : path.startsWith('asset/') || path === 'simulator' ? 'results' : path;
   app.setAttribute('aria-busy', String(!ready));
   document.documentElement.lang = i18n.getCurrentLanguage();
   document.title = `Global Quant Scanner · ${t(path === 'simulator' ? 'simulator' : 'touch')}`;
@@ -323,20 +349,25 @@ async function startScan(confirmed = false): Promise<void> {
         }
       });
     let finalResults = scan.results;
+    let finalRegime: { min_score: number } | null = null;
     if (markets.length === 1) {
       progress = t('advanced'); updateStatus();
       const enriched = await enrichScanResults({ currentResults: finalResults, benchmarkData: scan.benchmark,
         strategyKey: strategy, mlEnabled: true, performanceTracker: null, currentRegime: null,
         mlRegimePrediction: null, mlAnomalies: [], mlRecommendations: [] }, { loadYahooData: loadHistory });
       finalResults = enriched.currentResults;
+      finalRegime = enriched.currentRegime?.strategyAdjustment || null;
     }
     results = finalResults;
+    scanRegime = finalRegime;
+    scanStrategy = strategy;
+    scanBenchmark = (MARKET_BENCHMARKS as Record<string, string>)[markets.length === 1 ? markets[0].suffix : ''] || '^GSPC';
     partial = null;
     session.selection = session.selection.filter(symbol => results.some(asset => getAssetSymbol(asset) === symbol));
     lastScanAt = Date.now();
     const market = markets.length === 1 ? { file: markets[0].file, suffix: markets[0].suffix }
       : { file: 'ALL_MARKETS', suffix: '' };
-    try { await dbStore.saveLastScan({ results, market, strategy, timestamp: lastScanAt }); }
+    try { await dbStore.saveLastScan({ results, market, strategy, timestamp: lastScanAt, regimeAdjustment: scanRegime }); }
     catch { notice = t('notSaved'); }
     progress = i18n.t('status.scan_complete', { count: String(results.length) });
     persistDraft();
@@ -375,11 +406,15 @@ async function calculate(): Promise<void> {
 
 app.addEventListener('submit', event => {
   event.preventDefault();
-  if ((event.target as HTMLElement).id === 'scanForm') void startScan();
+  const id = (event.target as HTMLElement).id;
+  if (id === 'scanForm') void startScan();
+  else if (id === 'alertSettingsForm') void alerts.save();
+  else if (id === 'portfolioBuildForm' || id === 'portfolioSaveForm') void portfolios.submit(id);
 });
 
 app.addEventListener('click', event => {
   const target = event.target as HTMLElement;
+  if (target.closest('[data-position-link]')) { operations.portfolioScroll = window.scrollY; persistOperations(); }
   if (target.closest('[data-result-link]')) {
     session.resultsScroll = window.scrollY; persistDraft();
   }
@@ -399,6 +434,7 @@ app.addEventListener('click', event => {
     });
   }
   const action = target.closest<HTMLElement>('[data-action]')?.dataset.action;
+  if (action && (portfolios.click(action) || alerts.click(action))) return;
   if (action === 'calculate') void calculate();
   else if (action === 'cancel-scan') app.querySelector<HTMLDialogElement>('#scanConfirmation')?.close();
   else if (action === 'confirm-scan') void startScan(true);
@@ -411,6 +447,9 @@ function editInput(event: Event): void {
   const input = event.target as HTMLInputElement | HTMLSelectElement;
   const { name, value } = input;
   if (name === 'language' && event.type === 'change') { i18n.setLanguage(value); return; }
+  if (input.tagName === 'SELECT' || input.type === 'checkbox' ? event.type === 'change' : event.type === 'input') {
+    if (portfolios.input(input) || alerts.input(input)) return;
+  } else if (name.startsWith('portfolio-') || name.startsWith('alert-') || ['savedPortfolio', 'alertStrategy'].includes(name)) return;
   if (['query', 'minScore'].includes(name) && event.type !== 'input') return;
   if (['market', 'strategy', 'viewKey', 'signal', 'volume', 'preset', 'customUnit'].includes(name)
     && event.type !== 'change') return;
@@ -450,9 +489,11 @@ app.addEventListener('input', editInput);
 app.addEventListener('change', editInput);
 window.addEventListener('hashchange', () => {
   const returning = route() === 'results' && previousRoute.startsWith('asset/');
+  const returningPortfolio = route() === 'portfolios' && previousRoute.startsWith('position/');
   previousRoute = route();
   render(true);
-  window.scrollTo(0, returning ? session.resultsScroll : 0);
+  enterOperations();
+  window.scrollTo(0, returning ? session.resultsScroll : returningPortfolio ? operations.portfolioScroll : 0);
 });
 window.addEventListener('languageChanged', () => render());
 window.addEventListener('online', () => render());
@@ -465,6 +506,9 @@ async function bootstrap(): Promise<void> {
     const saved = await loadLastScanReview();
     if (saved) {
       results = saved.results;
+      scanStrategy = saved.strategy && Object.hasOwn(STRATEGY_PROFILES, saved.strategy) ? saved.strategy : 'balanced';
+      scanRegime = saved.regimeAdjustment || null;
+      scanBenchmark = (MARKET_BENCHMARKS as Record<string, string>)[String(saved.market?.suffix || '')] || '^GSPC';
       lastScanAt = saved.timestamp;
       if (!session.hasDraft) {
         session.market = saved.market?.file === 'ALL_MARKETS' ? 'all'
@@ -493,6 +537,7 @@ async function bootstrap(): Promise<void> {
   ready = true;
   previousRoute = route();
   render();
+  enterOperations();
 }
 
 void bootstrap();

@@ -124,6 +124,22 @@ export interface Position {
   sectorId?: number;
 }
 
+export interface PortfolioConstructionReport {
+  risk_profile: string;
+  regime_adjustment: { min_score: number } | null;
+  corrections: unknown[];
+  violations: unknown[];
+  risk_excluded_assets: string[];
+}
+
+export interface PortfolioPriceReview {
+  /** Invalidates quotes after positions or the latest stored snapshot change. */
+  basis: string;
+  prices: Record<string, number>;
+  refreshed_at: string;
+  missing_symbols: string[];
+}
+
 /** Portfolio definition */
 export interface Portfolio {
   id: string;
@@ -140,6 +156,8 @@ export interface Portfolio {
   total_return?: number;
   total_return_pct?: number;
   status?: 'active' | 'archived';
+  construction_report?: PortfolioConstructionReport;
+  price_review?: PortfolioPriceReview;
   last_rebalance?: string;
   rebalanceHistory?: RebalanceEvent[];
 }

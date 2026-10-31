@@ -4,7 +4,7 @@
 
 This document presents a phased approach organised into four major phases, followed by ongoing continuous improvement initiatives.
 
-## Current Snapshot — 2026-10-31
+## Current Snapshot — 2026-11-01
 
 The repository is in a stronger state than the original roadmap suggests in terms of engineering
 foundations: security hardening, test coverage, API documentation, performance work, reporting,
@@ -20,8 +20,8 @@ no longer "can we build features?" but "what product shape are we shipping next?
   review, install prompt) — completed 2026-07-02, see §5.5.3.1
 - ✅ Split hosting path: frontend auto-deployed to GitHub Pages on every push to `main`
   (`.github/workflows/deploy-pages.yml`, `VITE_BASE_PATH`/`VITE_API_BASE_URL`), backend on Render
-- ✅ Test baseline (2026-10-31): 1336 unit+integration tests, 95 Chromium E2E tests (14 specs) + 1 production-build check,
-  coverage gate passing (94.86 / 82.37 / 96.10 / 96.20 — see §2.1.2 for scope caveats)
+- ✅ Test baseline (2026-11-01): 1361 unit+integration tests, 102 Chromium E2E tests (15 specs) + 1 production-build check,
+  coverage gate passing (94.88 / 82.48 / 95.99 / 96.26 — see §2.1.2 for scope caveats)
 
 ### What is still strategically missing
 - Auth is backend-only: no frontend login/registration UI and no per-user data ownership (§4.1)
@@ -29,7 +29,7 @@ no longer "can we build features?" but "what product shape are we shipping next?
   (this milestone shipped the local-first branch; account-based sync is still open, §5.5.3.3)
 - Frontend separation: preserve the current desktop-optimised experience while adding
   an Android-focused frontend over the same backend and shared domain logic (§5.5.3.2 — Phase A
-  Phase A extracted; Phase B Chromium baseline verified; Phase C2 initial Android flow implemented; C3 next)
+  extracted; Phase B Chromium baseline verified; Phase C2/C3 Android flows implemented; C4 next)
 - Deployment/operations debt: the Docker image was rebuilt but not yet built with real Docker
   (§3.2.1), production dependencies have open advisories (§5.1.2), and `CHANGELOG.md` stops at Phase 3 (§4.3.4)
 
@@ -38,7 +38,8 @@ PWA enablement (local-first branch) is done and **frontend separation and Androi
 (§5.5.3.2) is the active milestone — Phase A has extracted results filtering, simulator,
 market data, formatting, alert settings, portfolio building, offline restore and scan/regime/ML
 orchestration into `src/shared/frontend/`. Phase B has a verified Chromium regression baseline; the C2 Android scan/results/detail/simulator flow is implemented in `android.html`.
-C3 portfolio/alerts screens are next; see [Android Frontend Flows](android-frontend-flows.md).
+C3 adds Android portfolio construction/save/reopen, position detail and strategy alert settings;
+C4 web hardening is next. See [Android Frontend Flows](android-frontend-flows.md).
 The installable shell exists, but the next step
 should not be "make desktop worse so mobile fits". Instead, preserve the current desktop
 workflow, keep shared application services covered, and build an Android-focused presentation layer over
@@ -474,11 +475,11 @@ and printed at startup, but no code path reads `config.features` yet — they ha
 #### 2.1.2 Expand Unit Test Coverage
 **Status**: ✅ COMPLETED - February 2026
 
-> **Current state (2026-10-31)**: 76 files / 1336 unit+integration tests passing; coverage gate
-> passing at **94.86% stmts / 82.37% branches / 96.10% funcs / 96.20% lines** (thresholds
+> **Current state (2026-11-01)**: 78 files / 1361 unit+integration tests passing; coverage gate
+> passing at **94.88% stmts / 82.48% branches / 95.99% funcs / 96.26% lines** (thresholds
 > 80/60/85/80). Caveat: the figure is scoped by `vitest.config.js` — `src/core/scanner.ts` is
 > explicitly excluded (DOM-bound, exercised via Playwright). `src/shared/` is now included; `src/simulation/`,
-> `src/dashboard/`, `src/utils/`, `src/pwa/`, `src/queue/`, `src/data/` and `src/i18n/` are not in
+> `src/android/`, `src/dashboard/`, `src/utils/`, `src/pwa/`, `src/queue/`, `src/data/` and `src/i18n/` are not in
 > the `include` list, so their (existing) tests do not count toward the gate. The February
 > results below are historical.
 
@@ -508,7 +509,7 @@ and printed at startup, but no code path reads `config.features` yet — they ha
   - ~~Increase `core/scanner.js` coverage beyond 24%~~ — superseded: `scanner.ts` is now excluded
     from coverage, and its reusable logic is being extracted into tested `src/shared/frontend/`
     modules (§5.5.3.2 Phase A). ✅ `src/shared/**/*.ts` added to the coverage `include` list
-    during Phase B; shared frontend coverage: 94.71 / 89.88 / 91.74 / 95.89 (stmts/branches/functions/lines).
+    during Phase B; shared frontend coverage (C3): 95.27 / 90.66 / 92.50 / 96.52 (stmts/branches/functions/lines).
 
 **Results** (February 2026 — Final):
 - 47 test files with 1025 tests (was 15 files / ~200 tests at Phase 2.1.1)
@@ -2071,7 +2072,7 @@ are not read by any feature (§1.5.1).
 **Future Deliverable**: Real-time collaboration features
 
 #### 5.5.3 Mobile Application
-**Status**: 🟡 ACTIVE DELIVERY TRACK — 5.5.3.1 done, 5.5.3.2 in progress (updated 2026-10-31)
+**Status**: 🟡 ACTIVE DELIVERY TRACK — 5.5.3.1 done, 5.5.3.2 in progress (updated 2026-11-01)
 
 **Recommendation**: build a **PWA first** and treat it as the bridge between the current web app
 and any future Android product. The app already has the right ingredients for this approach:
@@ -2154,8 +2155,17 @@ canonical identities, request coordination, explicit calculation and offline rev
 Docker and PWA cache/fallback include the new shell, including static subpath hosting.
 C2 validation: 1336 unit/integration tests, 95 Chromium E2E tests (87 desktop + 8 Android)
 and 1 production-subpath/offline build test pass. TypeScript/build/coverage checks also pass.
-Carteras/Alertas currently link to desktop management; their Android-native presentation is C3,
-followed by C4 web hardening and Phase D packaging. The manifest still starts desktop.
+C3 (2026-11-01) adds Android portfolio construction/save/reopen, position detail, and
+strategy-specific alert editing/history using shared services and same-origin IndexedDB.
+Portfolios use the complete scan, preserve canonical symbols/capital/weights/construction
+reports, and expose explicit price refresh without inventing historical snapshots or ratios.
+Android drafts and return context use an independent storage key; failed saves retain inputs.
+Creation commits the definition and first snapshot atomically; alert saves await transaction
+completion. C3 validation: 1361 unit/integration tests in 78 files, 102 Chromium E2E tests
+(87 desktop + 15 Android), and 1 production-subpath/offline check pass. Coverage, build,
+TypeScript and changed-file ESLint pass; the production check includes offline portfolio/alert
+persistence and restores the normal build afterwards.
+C4 web hardening and Phase D packaging remain open. The manifest still starts desktop.
 [Android Frontend Flows](android-frontend-flows.md) records the scope and remaining validation.
 Firefox/WebKit and physical Android devices were not validated in this delivery.
 The desktop baseline includes:
@@ -2174,7 +2184,7 @@ retains the storage contract and cold-offline-load behaviour, with shared model/
 tests and Chromium E2E coverage for scan review and simulation amount/horizon/projection
 recovery without recalculation. Simulator rendering is deferred until its tab opens to avoid
 startup calculations overwriting the cached projection. See
-[Frontend Separation Plan](frontend-separation-plan.md#progress).
+[Frontend Separation Plan](frontend-separation-plan.md).
 
 **Decision**:
 - Do **not** collapse the current desktop UI into a compromised one-size-fits-all layout
@@ -2304,7 +2314,7 @@ startup calculations overwriting the cached projection. See
 
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Test Coverage | 1336 unit+integration tests; gate passing at 94.86/82.37/96.10/96.20% (2026-10-31), including `src/shared/`; `scanner.ts` remains excluded (§2.1.2) | 80%+ | ✅ Passing — shared frontend scope included |
+| Test Coverage | 1361 unit+integration tests; gate passing at 94.88/82.48/95.99/96.26% (2026-11-01), including `src/shared/`; `scanner.ts` remains excluded (§2.1.2) | 80%+ | ✅ Passing — shared frontend scope included |
 | Performance Benchmarks | 49 benchmarks across 7 modules + 3 load tests | Tracked in CI | ✅ End of Phase 2.1.5 |
 | Security Vulnerabilities | 33 prod advisories: 3 critical, 12 high, 18 moderate (`npm audit --omit=dev`, 2026-10-31) | 0 Critical, 0 High | 🔴 Needs triage (§5.1.2) |
 | API Response Time (p97.5) | 7ms (health), rate limiting validated | < 500ms | ✅ Measured in Phase 2.1.5 |
@@ -2362,7 +2372,7 @@ capabilities in parallel. The next decision is architectural as much as function
 ### Priority 1 — Next 2 to 4 weeks
 1. ✅ PWA foundation (`manifest`, icons, service worker, install flow, offline shell) —
    completed 2026-07-02, see §5.5.3.1
-2. Frontend separation and Android UX hardening while preserving desktop quality (§5.5.3.2 — Phases A/B baseline verified; C2 Android flow implemented; C3 next)
+2. Frontend separation and Android UX hardening while preserving desktop quality (§5.5.3.2 — Phases A/B baseline verified; C2/C3 Android flows implemented; C4 next)
 3. Product decision on persistence model:
    local-only IndexedDB vs authenticated server-synced user data
 

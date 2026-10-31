@@ -378,8 +378,7 @@ describe('Rebalancing lifecycle', () => {
     expect(mockStore._rebalances).toHaveLength(1);
 
     // Post-rebalance snapshot was created (createPortfolio creates 1, executeRebalance creates 1)
-    // saveSnapshot is called for initial snapshot + rebalance snapshot
-    expect(mockStore.saveSnapshot.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(mockStore._snapshots).toHaveLength(2);
   });
 
   it('retrieves rebalance history', async () => {

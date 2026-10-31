@@ -22,15 +22,15 @@ export class PerformanceTracker {
    * @param {string} toDate - End date (YYYY-MM-DD)
    * @returns {Promise<Array>} Array of {date, price}
    */
-  async loadPriceData(ticker: string, fromDate: string, toDate: string) {
+  async loadPriceData(ticker: string, fromDate: string, toDate: string, forceRefresh = false) {
     const cacheKey = `${ticker}_${fromDate}_${toDate}`;
 
-    if (this.priceCache.has(cacheKey)) {
+    if (!forceRefresh && this.priceCache.has(cacheKey)) {
       return this.priceCache.get(cacheKey);
     }
 
     // Try to get from IndexedDB cache first
-    const cached: any = await dbStore.getPriceCache(ticker, fromDate, toDate);
+    const cached: any = forceRefresh ? [] : await dbStore.getPriceCache(ticker, fromDate, toDate);
 
     if (cached.length > 0) {
       this.priceCache.set(cacheKey, cached);
@@ -73,13 +73,14 @@ export class PerformanceTracker {
    * @param {Array} tickers - Array of tickers
    * @returns {Promise<Object>} Object with ticker: price mapping
    */
-  async loadCurrentPrices(tickers: string[]) {
+  async loadCurrentPrices(tickers: string[], forceRefresh = false) {
     const prices: Record<string, any> = {};
     const today = new Date().toISOString().split('T')[0];
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     for (const ticker of tickers) {
-      const data = await this.loadPriceData(ticker, oneWeekAgo, today);
+      const data = forceRefresh ? await this.loadPriceData(ticker, oneWeekAgo, today, true)
+        : await this.loadPriceData(ticker, oneWeekAgo, today);
       if (data.length > 0) {
         prices[ticker] = data[data.length - 1].price; // Most recent price
       }
@@ -118,8 +119,8 @@ export class PerformanceTracker {
    * @param {Object} portfolio - Portfolio object
    * @returns {Promise<Object>} P&L data
    */
-  async calculatePnL(portfolio: any) {
-    const currentPrices = await this.loadCurrentPrices(portfolio.positions.map((p: any) => p.ticker));
+  async calculatePnL(portfolio: any, suppliedPrices?: Record<string, number>) {
+    const currentPrices = suppliedPrices ?? await this.loadCurrentPrices(portfolio.positions.map((p: any) => p.ticker));
 
     const positions = portfolio.positions.map((pos: any) => {
       const currentPrice = currentPrices[pos.ticker] || pos.entry_price;

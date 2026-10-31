@@ -99,16 +99,23 @@ export class IndexedDBStore {
    * @param {Object} portfolio - Portfolio object
    * @returns {Promise<string>} Portfolio ID
    */
-  async savePortfolio(portfolio: any): Promise<any> {
+  async savePortfolio(portfolio: any, initialSnapshot?: any): Promise<any> {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(['portfolios'], 'readwrite');
-      const store = transaction.objectStore('portfolios');
-      const request = store.put(portfolio);
-
-      request.onsuccess = () => resolve(portfolio.id);
-      request.onerror = () => reject(request.error);
+      // Creation commits definition and first observation together, or neither.
+      const stores = initialSnapshot ? ['portfolios', 'snapshots'] : ['portfolios'];
+      const transaction = this.db!.transaction(stores, 'readwrite');
+      transaction.oncomplete = () => resolve(portfolio.id);
+      transaction.onabort = () => reject(transaction.error || new Error('Portfolio transaction aborted'));
+      transaction.onerror = () => reject(transaction.error);
+      try {
+        transaction.objectStore('portfolios').put(portfolio);
+        if (initialSnapshot) transaction.objectStore('snapshots').put(initialSnapshot);
+      } catch (error) {
+        transaction.abort();
+        reject(error);
+      }
     });
   }
 
@@ -443,7 +450,9 @@ export class IndexedDBStore {
       const store = transaction.objectStore('alert_settings');
       const request = store.put(settings);
 
-      request.onsuccess = () => resolve(settings.id);
+      transaction.oncomplete = () => resolve(settings.id);
+      transaction.onabort = () => reject(transaction.error || new Error('Alert settings transaction aborted'));
+      transaction.onerror = () => reject(transaction.error);
       request.onerror = () => reject(request.error);
     });
   }

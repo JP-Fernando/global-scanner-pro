@@ -117,3 +117,29 @@ describe('portfolio-builder shared service', () => {
     expect(portfolio.allocation.map(a => a.ticker)).toContain('T4');
   });
 });
+
+it('keeps colliding display tickers distinct through allocation and save shaping', () => {
+  const assets = scanResults(3).map((asset, index) => ({ ...asset, ticker: index < 2 ? 'SAN' : 'OTHER',
+    yahooSymbol: ['SAN.MC', 'SAN', 'OTHER'][index], price: [5, 50, 100][index] }));
+  const { portfolio } = buildPortfolioModel(assets, { ...baseOptions, topN: 3 });
+  expect(portfolio.allocation.map(asset => [asset.yahooSymbol, asset.price])).toEqual([
+    ['SAN.MC', 5], ['SAN', 50], ['OTHER', 100]
+  ]);
+  expect(buildPortfolioSaveRequest(portfolio).assets.map(asset => asset.ticker)).toEqual(['SAN.MC', 'SAN', 'OTHER']);
+  expect(assets[0].ticker).toBe('SAN');
+});
+
+it.each([{ topN: 0 }, { topN: 1.5 }, { topN: NaN }, { totalCapital: 0 },
+  { totalCapital: Infinity }, { method: 'unknown' }, { riskProfile: 'unknown' }])('rejects invalid builder inputs %o', patch => {
+  expect(() => buildPortfolioModel(scanResults(10), { ...baseOptions, ...patch })).toThrow();
+});
+
+it('preserves construction corrections, exclusions and risk/regime context in the save contract', () => {
+  const assets = scanResults(3);
+  assets[0].pricesWithDates = [];
+  const built = buildPortfolioModel(assets, { ...baseOptions, topN: 3, regimeAdjustment: { min_score: 5 } });
+  const request = buildPortfolioSaveRequest(built.portfolio);
+  expect(request.options.construction_report).toEqual({ risk_profile: 'moderate',
+    regime_adjustment: { min_score: 5 }, corrections: built.corrections, violations: built.violations,
+    risk_excluded_assets: ['T0'] });
+});

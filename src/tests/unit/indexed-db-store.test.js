@@ -516,3 +516,39 @@ describe('IndexedDBStore', () => {
     });
   });
 });
+
+describe('transaction commit confirmation', () => {
+  it('saves definition and initial snapshot together and waits for the commit', async () => {
+    const store = new IndexedDBStore();
+    const writes = [];
+    const transaction = { objectStore: name => ({ put: value => { writes.push({ name, value }); return {}; } }) };
+    store.db = { transaction: stores => { expect(stores).toEqual(['portfolios', 'snapshots']); return transaction; } };
+    let resolved = false;
+    const saved = store.savePortfolio({ id: 'atomic' }, { portfolio_id: 'atomic' }).then(value => { resolved = true; return value; });
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+    expect(writes.map(write => write.name)).toEqual(['portfolios', 'snapshots']);
+    transaction.oncomplete();
+    await expect(saved).resolves.toBe('atomic');
+  });
+  it('rejects an aborted settings transaction instead of announcing persistence', async () => {
+    const store = new IndexedDBStore();
+    const transaction = { error: new Error('quota'), objectStore: () => ({ put: () => ({}) }) };
+    store.db = { transaction: () => transaction };
+    const saved = store.saveAlertSettings({ id: 'default:balanced' });
+    const rejected = expect(saved).rejects.toThrow('quota');
+    transaction.onabort();
+    await rejected;
+  });
+  it('aborts all creation writes if a snapshot cannot be queued', async () => {
+    const store = new IndexedDBStore();
+    let aborted = false;
+    const transaction = { abort: () => { aborted = true; }, objectStore: name => ({ put: () => {
+      if (name === 'snapshots') throw new Error('snapshot quota');
+      return {};
+    } }) };
+    store.db = { transaction: () => transaction };
+    await expect(store.savePortfolio({ id: 'atomic' }, { portfolio_id: 'atomic' })).rejects.toThrow('snapshot quota');
+    expect(aborted).toBe(true);
+  });
+});

@@ -74,7 +74,7 @@ happen mainly in the presentation layer.
   - alerts editing
   - simulator flow
 
-### Phase C — Android Frontend (🟡 C2 initial functional flow implemented, C3 next)
+### Phase C — Android Frontend (🟡 C2/C3 implemented, C4 next)
 
 The flow map in [Android Frontend Flows](android-frontend-flows.md) now has its first working
 increment: `android.html` serves **Scan → Results → Asset detail → Simulator** through
@@ -98,8 +98,8 @@ checks static subpath hosting and restores the normal build afterwards.
 
 Android task-flow E2E runs at 360/390/430 px and includes same-ticker markets, cross-surface
 restore/recalculation, API failure/retry, stale responses, invalid routes and blocked storage.
-Carteras and Alertas currently link to their functional desktop management; native Android
-portfolio/alerts screens are C3 work. Full Android installation, physical-device/keyboard
+C3 adds dedicated Android portfolio construction/save/reopen, position detail and strategy-specific
+alert settings/history; these destinations no longer redirect to desktop management. Full Android installation, physical-device/keyboard
 validation and remaining offline/resume hardening remain C4/D work. The PWA manifest still
 starts the desktop entry; no native wrapper has been added.
 
@@ -110,10 +110,40 @@ Production build and TypeScript pass; changed-file ESLint has no errors. Coverag
 (statements / branches / functions / lines). Browser screenshots were inspected for the
 results and simulator views. These are browser/emulated-touch checks, not physical-device tests.
 
+### C3 — Portfolios and alerts (implemented 2026-11-01)
+
+`portfolio-screen.ts` and `alerts-screen.ts` own Android presentation and interactions. The
+portfolio builder uses the full last completed scan and its strategy/benchmark/regime context,
+independently of result filters or the next scan's inputs. Method, count, capital and risk
+profile are editable; an inline name form saves through the shared portfolio manager.
+Canonical symbols, weights, capital and construction corrections/risk exclusions survive saving.
+Creation commits the definition and initial snapshot atomically; settings save also waits for
+the IndexedDB transaction to finish before confirming persistence.
+Shared allocation now qualifies colliding display tickers before enrichment to avoid mixing
+prices/history from different markets.
+
+`portfolio-review.ts` reads saved snapshots and optional quote-review metadata without fetching
+prices. It delegates P&L and historical metrics to the shared tracker. A new portfolio has
+insufficient history for ratios. Explicit online refresh bypasses quote caches and persists
+review prices; partial quotes identify missing symbols and keep their previous valuation.
+Refreshing never creates historical snapshots; a position/snapshot change invalidates the
+stored quote review. Saved portfolios and position deep links work
+without a new scan, including offline when the shell is cached.
+
+Alert editing uses the shared defaults, update shaping, drawdown normalization and persistence,
+with a separate strategy selector, channel/event controls and local history. Saving settings
+sends no notifications. Android builder/alert drafts, selected portfolio and return scroll use
+`gsp.android.operations.v1`, independently of desktop presentation keys. Errors preserve drafts
+for retry; confirmation follows the awaited persistence operation. The existing IndexedDB
+stores remain shared on the same origin; this increment adds no account or tab synchronization.
+
+C3 validation is recorded in [Android Frontend Flows](android-frontend-flows.md#implementación-y-validación-de-c3).
+C4 remains open for broader offline/resume/accessibility and physical Android checks; Phase D
+still owns packaging. The PWA manifest continues to start the desktop entry.
+
 ## Near-Term Next Actions
 
-1. Implement C3: Android portfolio construction/save/reopen and strategy-specific alert settings
+1. Complete C4: offline/resume, accessibility, keyboard/safe-area and Android installation validation
 2. Stop adding new inline-coupled UI logic to the existing monolithic page where avoidable
 3. Keep the Phase B desktop regression and shared coverage gates passing alongside Android task-flow E2E
 4. Validate Android installation/offline behaviour before deciding in Phase D whether a native wrapper is needed
-5. Complete C4 Android web offline/resume/accessibility validation before the Phase D packaging decision

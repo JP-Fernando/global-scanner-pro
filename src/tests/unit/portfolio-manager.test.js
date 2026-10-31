@@ -95,9 +95,18 @@ describe('PortfolioManager', () => {
       expect(dbStore.savePortfolio).toHaveBeenCalledTimes(1);
     });
 
-    it('creates initial snapshot', async () => {
-      await manager.createPortfolio('Test', assets);
-      expect(dbStore.saveSnapshot).toHaveBeenCalledTimes(1);
+    it('commits the initial snapshot together with the portfolio', async () => {
+      const portfolio = await manager.createPortfolio('Test', assets);
+      expect(dbStore.savePortfolio).toHaveBeenCalledWith(portfolio, expect.objectContaining({ portfolio_id: portfolio.id, positions: expect.any(Array) }));
+      expect(dbStore.saveSnapshot).not.toHaveBeenCalled();
+    });
+
+    it('keeps the previous active portfolio when committing a new one fails', async () => {
+      const previous = { id: 'previous' };
+      manager.currentPortfolio = previous;
+      dbStore.savePortfolio.mockRejectedValueOnce(new Error('aborted'));
+      await expect(manager.createPortfolio('Test', assets)).rejects.toThrow('aborted');
+      expect(manager.currentPortfolio).toBe(previous);
     });
 
     it('sets currentPortfolio', async () => {

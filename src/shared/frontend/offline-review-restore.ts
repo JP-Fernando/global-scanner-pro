@@ -7,6 +7,7 @@ import { getAssetSymbol, getSimulatorSelectionKey } from './asset-identity.js';
 type CachedResult = Record<string, unknown>;
 
 export type ScanReviewModel = {
+  regimeAdjustment?: { min_score: number };
   results: CachedResult[];
   market: Record<string, unknown> | null;
   strategy: string | null;
@@ -43,7 +44,10 @@ export function buildScanReviewModel(saved: unknown): ScanReviewModel | null {
     results: saved.results,
     market: isRecord(saved.market) ? saved.market : null,
     strategy: typeof saved.strategy === 'string' ? saved.strategy : null,
-    timestamp: readTimestamp(saved.timestamp)
+    timestamp: readTimestamp(saved.timestamp),
+    ...(isRecord(saved.regimeAdjustment) && typeof saved.regimeAdjustment.min_score === 'number'
+      && Number.isFinite(saved.regimeAdjustment.min_score)
+      ? { regimeAdjustment: { min_score: saved.regimeAdjustment.min_score } } : {})
   };
 }
 

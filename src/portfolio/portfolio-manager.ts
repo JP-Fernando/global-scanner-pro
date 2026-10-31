@@ -11,6 +11,7 @@ import type {
   PortfolioSnapshot,
   RebalanceEvent,
   AllocationMethod,
+  PortfolioConstructionReport,
 } from '../types/index.js';
 
 /** Asset input from the scanner to be transformed into a position */
@@ -38,6 +39,7 @@ interface CreatePortfolioOptions {
   strategy?: string;
   allocation_method?: AllocationMethod;
   initial_capital?: number;
+  construction_report?: PortfolioConstructionReport;
 }
 
 /** Extended position with portfolio-manager-specific fields */
@@ -194,14 +196,13 @@ export class PortfolioManager {
       current_value: initial_capital, // Will be updated with market data
       total_return: 0,
       total_return_pct: 0,
-      status: 'active' // active, closed, archived
+      status: 'active', // active, closed, archived
+      ...(options.construction_report ? { construction_report: options.construction_report } : {})
     };
 
-    await dbStore.savePortfolio(portfolio);
+    const snapshot = await this.createSnapshot(portfolio, null, false);
+    await dbStore.savePortfolio(portfolio, snapshot);
     this.currentPortfolio = portfolio;
-
-    // Create initial snapshot
-    await this.createSnapshot(portfolio);
 
     return portfolio;
   }
@@ -368,7 +369,8 @@ export class PortfolioManager {
    */
   async createSnapshot(
     portfolio: ManagedPortfolio,
-    priceData: PriceData | null = null
+    priceData: PriceData | null = null,
+    persist = true
   ): Promise<ManagedSnapshot> {
     const date: string = new Date().toISOString().split('T')[0];
 
@@ -416,7 +418,7 @@ export class PortfolioManager {
       benchmark_return: null
     };
 
-    await dbStore.saveSnapshot(snapshot);
+    if (persist) await dbStore.saveSnapshot(snapshot);
     return snapshot;
   }
 

@@ -159,7 +159,11 @@ export const createMockDbStore = () => {
 
   return {
     // Portfolios
-    savePortfolio: vi.fn(async (p) => { portfolios.set(p.id, JSON.parse(JSON.stringify(p))); return p.id; }),
+    savePortfolio: vi.fn(async (p, initialSnapshot) => {
+      portfolios.set(p.id, JSON.parse(JSON.stringify(p)));
+      if (initialSnapshot) snapshots.push(JSON.parse(JSON.stringify(initialSnapshot)));
+      return p.id;
+    }),
     getPortfolio: vi.fn(async (id) => { const p = portfolios.get(id); return p ? JSON.parse(JSON.stringify(p)) : null; }),
     getAllPortfolios: vi.fn(async () => [...portfolios.values()]),
     deletePortfolio: vi.fn(async (id) => { portfolios.delete(id); }),

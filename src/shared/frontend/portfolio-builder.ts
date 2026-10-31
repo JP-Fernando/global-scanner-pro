@@ -4,9 +4,13 @@
  * No DOM access; callers read their own inputs and render the result.
  */
 
+import { buildSelectionKeyIndex, getAssetSymbol } from './asset-identity.js';
 import * as allocation from '../../allocation/allocation.js';
 import * as risk from '../../analytics/risk_engine.js';
 import * as governance from '../../analytics/governance.js';
+
+export const PORTFOLIO_METHOD_KEYS = Object.keys(allocation.ALLOCATION_METHODS);
+export const PORTFOLIO_RISK_KEYS = Object.keys(governance.RISK_PROFILES);
 
 export type PortfolioBuildOptions = {
   method: string;
@@ -51,7 +55,8 @@ export function buildPortfolioSaveRequest(portfolio: any, strategy = 'balanced',
       strategy,
       benchmark,
       allocation_method: portfolio.method,
-      initial_capital: portfolio.totalCapital
+      initial_capital: portfolio.totalCapital,
+      ...(portfolio.construction_report ? { construction_report: portfolio.construction_report } : {})
     }
   };
 }
@@ -64,6 +69,17 @@ export function validatePortfolioRequest(
   if (topN > scanResults.length) {
     return { code: 'not_enough_assets', available: scanResults.length };
   }
+  return null;
+}
+
+/** Shared input validation for presentation adapters. */
+export function validatePortfolioInputs(results: any[], options: PortfolioBuildOptions): string | null {
+  if (!Number.isInteger(options.topN) || options.topN < 1) return 'invalid_count';
+  const issue = validatePortfolioRequest(results, options.topN);
+  if (issue) return issue.code;
+  if (!Number.isFinite(options.totalCapital) || options.totalCapital <= 0) return 'invalid_capital';
+  if (!PORTFOLIO_METHOD_KEYS.includes(options.method)) return 'invalid_method';
+  if (!PORTFOLIO_RISK_KEYS.includes(options.riskProfile)) return 'invalid_risk';
   return null;
 }
 
@@ -98,9 +114,16 @@ export function buildPortfolioModel(
   scanResults: any[],
   options: PortfolioBuildOptions
 ): PortfolioBuildResult {
+  const issue = validatePortfolioInputs(scanResults, options);
+  if (issue) throw new Error(issue);
+  // Allocation/governance use ticker keys: qualify display collisions before the pipeline.
+  const keys = buildSelectionKeyIndex(scanResults);
+  const identifiedResults = scanResults.map(asset => ({ ...asset,
+    ticker: keys.get(getAssetSymbol(asset)) || asset.ticker,
+    yahooSymbol: getAssetSymbol(asset) || asset.yahooSymbol }));
   const { method, topN, totalCapital, riskProfile, strategy, regimeAdjustment } = options;
 
-  let selectedAssets = scanResults.slice(0, topN);
+  let selectedAssets = identifiedResults.slice(0, topN);
   if (regimeAdjustment) {
     selectedAssets = applyRegimeAdjustment(selectedAssets, regimeAdjustment);
   }
@@ -126,7 +149,7 @@ export function buildPortfolioModel(
     );
   }
 
-  const enrichedAllocation = enrichAllocationWithScanData(withCapital, scanResults);
+  const enrichedAllocation = enrichAllocationWithScanData(withCapital, identifiedResults);
 
   // Assets without enough history are excluded from the risk report (degraded mode)
   const invalidAssets = enrichedAllocation.filter(
@@ -157,7 +180,10 @@ export function buildPortfolioModel(
       totalCapital,
       riskReport,
       governanceReport,
-      complianceCheck
+      complianceCheck,
+      construction_report: { risk_profile: riskProfile, regime_adjustment: regimeAdjustment || null,
+        corrections, violations: complianceCheck.compliant ? [] : complianceCheck.violations,
+        risk_excluded_assets: invalidAssets.map(asset => asset.yahooSymbol || asset.ticker) }
     },
     violations: complianceCheck.compliant ? [] : complianceCheck.violations,
     corrections

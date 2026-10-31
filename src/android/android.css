@@ -463,3 +463,16 @@ footer{
   gap:8px}
 }
 
+
+/* Portfolio and alert forms use the same touch targets as the scan flow. */
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+fieldset > label, fieldset > button { margin-top: 14px; }
+legend { font-size: 1.1rem; font-weight: 650; margin-bottom: 14px; }
+.check-label { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.check-label input { width: 24px; min-height: 24px; flex-shrink: 0; }
+.position-card { padding: 16px 0; border-top: 1px solid var(--border, #334155); }
+.position-card a { display: flex; flex-direction: column; gap: 6px; min-height: 48px; }
+.position-card .row, .breakdown-row { flex-wrap: wrap; }
+#portfolioReview > .secondary, #portfolioPreview form { margin-top: 16px; }
+#portfolioBuildForm { margin-top: 16px; }
+#portfolioPreview, #portfolioReview { overflow-wrap: anywhere; }

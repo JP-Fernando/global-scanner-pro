@@ -101,3 +101,11 @@ describe('offline review restore models', () => {
     await expect(loadLastSimulationReview(results, store)).rejects.toThrow('blocked');
   });
 });
+
+it('restores optional finite regime metadata without changing legacy scan records', () => {
+  const stored = { results, regimeAdjustment: { min_score: 5, other: 'ignored' } };
+  expect(buildScanReviewModel(stored).regimeAdjustment).toEqual({ min_score: 5 });
+  for (const value of [null, {}, { min_score: Infinity }, { min_score: '5' }]) {
+    expect(buildScanReviewModel({ results, regimeAdjustment: value })).not.toHaveProperty('regimeAdjustment');
+  }
+});

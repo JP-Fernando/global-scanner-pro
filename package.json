@@ -47,7 +47,7 @@
     "docker:up:build": "docker-compose up --build",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f app",
-    "test:e2e:android": "playwright test src/tests/e2e/android.spec.js --project=chromium",
+    "test:e2e:android": "playwright test src/tests/e2e/android*.spec.js --project=chromium",
     "test:e2e:build": "node scripts/test-android-build.js"
   },
   "keywords": [

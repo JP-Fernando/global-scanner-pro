@@ -429,3 +429,26 @@ describe('PerformanceTracker - Extended (Async)', () => {
     });
   });
 });
+
+describe('explicit quote refresh and injected valuations', () => {
+  it('bypasses memory and IndexedDB quote reads on explicit refresh', async () => {
+    const tracker = new PerformanceTracker();
+    const today = new Date().toISOString().split('T')[0];
+    const week = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+    tracker.priceCache.set(`SAN.MC_${week}_${today}`, [{ date: today, price: 1 }]);
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true,
+      json: async () => [{ date: today, close: 7 }] });
+    dbStore.getPriceCache.mockClear();
+    expect(await tracker.loadCurrentPrices(['SAN.MC'], true)).toEqual({ 'SAN.MC': 7 });
+    expect(dbStore.getPriceCache).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledOnce();
+    fetchMock.mockRestore();
+  });
+  it('calculates supplied valuations without requesting prices', async () => {
+    const tracker = new PerformanceTracker();
+    const load = vi.spyOn(tracker, 'loadCurrentPrices');
+    const pnl = await tracker.calculatePnL({ positions: [{ ticker: 'A', quantity: 3, entry_price: 10 }] }, { A: 12 });
+    expect(pnl.total_pnl).toBe(6);
+    expect(load).not.toHaveBeenCalled();
+  });
+});

@@ -1,7 +1,7 @@
 # Frontend Android: flujos y primer alcance
 
-Estado: C1 especificado y **primer flujo funcional C2 implementado** (2026-10-31).
-Las pantallas de carteras/posiciones y la edición Android de alertas siguen pendientes en C3.
+Estado: C1 especificado, **C2 y C3 implementados** (2026-11-01).
+C4 sigue pendiente: cierre de recuperación, accesibilidad, teclado e instalación Android.
 Este documento concreta el alcance de
 [§5.5.3.2 del roadmap](roadmap.md#5532-frontend-separation-and-android-ux-hardening) y el
 [plan de separación](frontend-separation-plan.md).
@@ -51,11 +51,9 @@ no existen resultados o carteras; en ese caso se presenta el estado vacío corre
 | `#/position/:portfolioId/:symbol` | Cantidad, precio de entrada/actual, peso y P&L de una posición. Volver conserva la cartera y sección elegidas. | Modelo de cartera/P&L compartido |
 | `#/alerts` | Selector de estrategia, umbrales, canales y notificaciones; **Guardar ajustes**. Historial local de la estrategia en una sección secundaria. | `alert-settings.ts`, `getAlertLogs` del gestor de alertas |
 
-Las rutas de Analizar, Resultados, Detalle y Simulador están implementadas. Las rutas de
-Carteras y Alertas ofrecen acceso explícito a la gestión de escritorio hasta C3; el detalle
-de posición sigue pendiente. Los parámetros se codificarán al
-construir URLs y se validarán al leerlas. Un activo o una cartera inexistentes mostrarán una
-explicación y un enlace de retorno; no provocarán una descarga o cálculo implícitos.
+Todas las rutas de la tabla están implementadas. Los parámetros se codifican al
+construir URLs y se validan al leerlas. Un activo o una cartera inexistentes muestran una
+explicación y un enlace de retorno; no provocan una descarga o cálculo implícitos.
 
 ## Comportamiento por flujo
 
@@ -166,7 +164,7 @@ navegación y universos; no se incrustan rutas absolutas a `/` que fallen en Git
 | --- | --- | --- |
 | C1 — especificación (definida) | Este mapa, decisiones de navegación, estados e integración. | Contraste con los contratos actuales; enlaces/documentación coherentes. |
 | C2 — primer flujo funcional (implementado) | Entrada Android + Analizar → Resultados → Detalle → Simulador; selección y coordinación compartidas. | A 360/390/430 px: completar escaneo, filtrar, volver del detalle, seleccionar 4 activos, convertir años a meses, calcular, error/reintento y descartar respuestas tardías. |
-| C3 — carteras y alertas (pendiente) | Construir/guardar/reabrir cartera, detalle de posición, editar alertas por estrategia. | Capital/pesos/símbolos conservados; sin ratios ficticios; persistencia de ajustes y errores de guardado. |
+| C3 — carteras y alertas (implementado) | Construir/guardar/reabrir cartera, detalle de posición, editar alertas por estrategia. | Capital/pesos/símbolos conservados; sin ratios ficticios; persistencia de ajustes y errores de guardado. |
 | C4 — cierre Android web (pendiente) | Recuperación de sesión, shell offline, idioma y accesibilidad de los flujos anteriores. | Recarga online/offline sin cálculo implícito, rutas profundas, teclado/área segura, conexión intermitente e IndexedDB bloqueado. |
 
 En cada incremento se mantiene el gate de cobertura compartida y la suite de escritorio de
@@ -188,7 +186,7 @@ este primer alcance no promete paridad completa de presentación.
   trabajo invalidado actualice resultados o caché. `simulator-service.ts` ofrece modos de
   identidad explícitos y comprobación estructural de proyecciones.
 - Construcción: `canBuildPortfolio` comparte la condición de elegibilidad de escritorio
-  (al menos tres resultados con 30 puntos históricos). La construcción Android llegará en C3.
+  (al menos tres resultados con 30 puntos históricos). C3 consume esta condición al construir.
 - PWA: registro independiente del arranque DOM de escritorio y fallback separado para cada
   HTML. Los assets precargados también pueden leerse desde el shell cache antes de una segunda
   visita. El manifiesto conserva su entrada de escritorio hasta la validación de instalación.
@@ -208,13 +206,51 @@ npm run test:e2e:build
 La suite Android cubre el flujo a 360/390/430 px, identidad entre mercados y entre superficies,
 error/reintento, respuestas tardías, recarga offline, rutas inválidas y almacenamiento bloqueado.
 La validación de esta entrega es Chromium en navegador; no equivale a pruebas en un dispositivo
-Android físico ni a validar un wrapper nativo. Carteras/alertas propias de Android, ajustes
-finos de teclado/área segura y validación completa de instalación siguen en C3/C4/D.
+Android físico ni a validar un wrapper nativo. Los ajustes finos de teclado/área segura y
+la validación completa de instalación siguen en C4/D.
 
 Validación de C2 (2026-10-31): **1336 tests unitarios/integración** y **95 E2E Chromium**
 (87 de escritorio + 8 Android), más **1 comprobación del build de producción con prefijo**.
 Compilación, TypeScript, cobertura y ESLint de los archivos cambiados pasan. Se han revisado
 capturas de Resultados y Simulador; los datos de API en E2E son fixtures deterministas.
 
-**Siguiente incremento: C3**, con construcción/guardado/reapertura de carteras y alertas por
-estrategia en la propia interfaz Android, manteniendo las suites de escritorio y C2.
+## Implementación y validación de C3
+
+- Carteras: formulario propio para método, cantidad de activos, capital, perfil de riesgo y
+  ajuste de régimen opcional; utiliza el último escaneo completo sin los filtros visuales.
+  El nombre se introduce en pantalla. Se guardan símbolos canónicos, capital, método, pesos
+  y el informe de construcción (correcciones, exclusiones, perfil y ajuste aplicado).
+  La cartera y su primera instantánea se confirman en una sola transacción: un fallo no deja
+  una cartera parcial ni la duplica al reintentar.
+- Revisión: selector de carteras desde el arranque, tarjetas de posiciones, detalle por ruta
+  y retorno a la cartera/posición de lista. `portfolio-review.ts` reutiliza el tracker para
+  valorar datos guardados sin consultas implícitas. Los ratios requieren historial suficiente;
+  el gráfico y las métricas históricas quedan en una sección plegable.
+- Precios: **Actualizar precios** exige conexión, omite cachés de cotización y guarda una
+  revisión local con fecha de consulta. Los símbolos sin cotización conservan el valor anterior
+  y se indican expresamente. Si cambian posiciones o la instantánea guardada, esa revisión
+  deja de aplicarse. No crea snapshots diarios ni fabrica historial.
+- Alertas: estrategia independiente o preseleccionada desde la cartera, umbrales normalizados,
+  canales, eventos e historial local. Guardar no envía avisos. Los borradores por estrategia
+  sobreviven a navegación/recarga, incluso si un umbral se dejó vacío.
+- Persistencia: `gsp.android.operations.v1` conserva los borradores de construcción/alertas y
+  el contexto de cartera. IndexedDB conserva los mismos stores compartidos con escritorio.
+  Los errores de guardado conservan entradas y ofrecen reintento; no anuncian éxito.
+
+Validación de C3 (2026-11-01): **1361 pruebas unitarias/integración en 78 archivos**; cobertura
+**94.88 / 82.48 / 95.99 / 96.26%** global y **95.27 / 90.66 / 92.50 / 96.52%** en frontend
+compartido (sentencias / ramas / funciones / líneas). Build/TypeScript y ESLint de los archivos
+cambiados pasan sin errores. **102 E2E Chromium en 15 specs** pasan (87 de escritorio +
+15 Android, incluidos 7 escenarios C3): construcción a 360/390/430 px, persistencia de
+capital/pesos/símbolos, detalle, normalización y borradores por estrategia, errores de
+guardado con rollback/reintento, revisión offline, precios explícitos y lectura entre superficies.
+Además pasa **1 comprobación de producción con prefijo y recarga offline inmediata**,
+ampliada a carteras y alertas, en `src/tests/production/android.production.spec.js` (fuera de
+las carpetas `build/` ignoradas por Git). La prueba restaura el build normal al terminar.
+Los E2E con Express usan módulos sin empaquetar y calientan su grafo bajo control del service
+worker antes de la recarga offline; la comprobación de producción verifica la precarga completa.
+Las capturas de carteras y alertas se han inspeccionado en Chromium; se mantienen las
+limitaciones de emulación y dispositivo físico indicadas para C2.
+
+**Siguiente incremento: C4**, cierre Android web de recuperación de sesión, accesibilidad,
+teclado/área segura e instalación, antes de decidir el empaquetado de Fase D.

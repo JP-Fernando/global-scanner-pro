@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 // Dedicated production-artifact check, including a static-hosting subpath.
 export default defineConfig({
-  testDir: './src/tests/build',
+  testDir: './src/tests/production',
   testMatch: '**/*.spec.js',
   outputDir: './test-results/build',
   reporter: 'list',
