@@ -29,15 +29,16 @@ no longer "can we build features?" but "what product shape are we shipping next?
   (this milestone shipped the local-first branch; account-based sync is still open, §5.5.3.3)
 - Frontend separation: preserve the current desktop-optimised experience while adding
   an Android-focused frontend over the same backend and shared domain logic (§5.5.3.2 — Phase A
-  boundary extraction in progress)
+  initial boundary extraction complete; Phase B desktop stabilisation next)
 - Deployment/operations debt: the Docker image was rebuilt but not yet built with real Docker
   (§3.2.1), production dependencies have open advisories (§5.1.2), and `CHANGELOG.md` stops at Phase 3 (§4.3.4)
 
 ### Recommendation
 PWA enablement (local-first branch) is done and **frontend separation and Android UX hardening**
 (§5.5.3.2) is the active milestone — Phase A has extracted results filtering, simulator,
-market data, formatting, alert settings and portfolio building into `src/shared/frontend/`;
-scan orchestration and offline restore remain. The installable shell exists, but the next step
+market data, formatting, alert settings, portfolio building, offline restore and scan/regime/ML
+orchestration into `src/shared/frontend/`. Phase B desktop stabilisation is next.
+The installable shell exists, but the next step
 should not be "make desktop worse so mobile fits". Instead, preserve the current desktop
 workflow, extract shared application logic, and build an Android-focused presentation layer over
 the same backend before revisiting the local-first vs account-based sync decision (§5.5.3.3).
@@ -2141,11 +2142,20 @@ background sync, and the local-only vs account-synced product decision.
 
 #### 5.5.3.2 Frontend Separation and Android UX Hardening
 **Target**: immediately after PWA foundation
-**Status**: 🟡 IN PROGRESS — Phase A (boundary extraction): results filtering, simulator
-service, market data client, formatting, alert settings persistence and portfolio builder
-extracted to `src/shared/frontend/` (2026-10-31); scan orchestration and offline restore flows
-pending. Alert settings retain the existing storage contract and compatibility exports, with
-unit/integration coverage and a desktop E2E save/reopen regression test. See
+**Status**: 🟡 IN PROGRESS — Phase A initial boundary extraction complete (2026-10-31):
+results filtering, simulator service, market data client, formatting, alert settings persistence,
+portfolio builder, offline restore models/readers and scan orchestration now live in
+`src/shared/frontend/`. Phase B (desktop stabilisation) is next.
+The shared scan runner handles individual/all-markets batches and structured progress, while
+the optional regime/ML pipeline remains exclusive to individual-market scans as before.
+Desktop adapters retain controls, confirmation, rendering, persistence and signal notification
+hooks; regression coverage includes combined markets, cancellation and retry after errors.
+Alert settings retain the existing storage contract and compatibility exports, with
+unit/integration coverage and a desktop E2E save/reopen regression test. Offline restore
+retains the storage contract and cold-offline-load behaviour, with shared model/reader unit
+tests and Chromium E2E coverage for scan review and simulation amount/horizon/projection
+recovery without recalculation. Simulator rendering is deferred until its tab opens to avoid
+startup calculations overwriting the cached projection. See
 [Frontend Separation Plan](frontend-separation-plan.md#progress).
 
 **Decision**:
@@ -2334,7 +2344,7 @@ capabilities in parallel. The next decision is architectural as much as function
 ### Priority 1 — Next 2 to 4 weeks
 1. ✅ PWA foundation (`manifest`, icons, service worker, install flow, offline shell) —
    completed 2026-07-02, see §5.5.3.1
-2. Frontend separation and Android UX hardening while preserving desktop quality (§5.5.3.2 — next up)
+2. Frontend separation and Android UX hardening while preserving desktop quality (§5.5.3.2 — Phase A extracted; Phase B next)
 3. Product decision on persistence model:
    local-only IndexedDB vs authenticated server-synced user data
 

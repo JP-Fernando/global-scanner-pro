@@ -2,13 +2,9 @@
 // GLOBAL QUANT SCANNER - PROFESSIONAL VERSION
 // =====================================================
 
-import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from './config.js';
-import * as ind from '../indicators/indicators.js';
-import * as scoring from '../indicators/scoring.js';
-import * as regime from '../analytics/market_regime.js';
+import { STRATEGY_PROFILES } from './config.js';
 import * as backtesting from '../analytics/backtesting.js';
-import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from '../data/sectors.js';
-import { detectAnomalies } from '../data/anomalies.js';
+import { SECTOR_TAXONOMY } from '../data/sectors.js';
 import i18n from '../i18n/i18n.js';
 import { initDashboard } from '../dashboard/portfolio-dashboard.js';
 import { SimulatorChart } from '../simulation/simulator-chart.js';
@@ -20,31 +16,11 @@ import {
   generateComparativeExcel
 } from '../reports/index.js';
 import { notifyStrongSignals } from '../alerts/alert-manager.js';
-import {
-  adjustScoresBatch,
-  PerformanceTracker,
-  loadPerformanceTracker,
-  savePerformanceTracker as _savePerformanceTracker,
-  PerformanceRecord as _PerformanceRecord
-} from '../ml/adaptive-scoring.js';
-import {
-  predictRegime as _predictRegimeML,
-  extractRegimeFeatures
-} from '../ml/regime-prediction.js';
-import {
-  generateRecommendations,
-  analyzeAssetML
-} from '../ml/recommendation-engine.js';
-import {
-  detectAllAnomalies as detectMLAnomalies,
-  getAnomalySummary
-} from '../ml/anomaly-detection.js';
-import { dbStore } from '../storage/indexed-db-store.js';
+import { analyzeAssetML } from '../ml/recommendation-engine.js';
 import {
   MAX_SIMULATOR_TICKERS,
   clearSimulatorSelection as clearStoredSimulatorSelection,
   loadSimulatorSelection as loadStoredSimulatorSelection,
-  normalizeSimulatorTicker,
   reconcileSimulatorSelection,
   saveSimulatorSelection as saveStoredSimulatorSelection
 } from '../shared/frontend/simulator-selection.js';
@@ -52,6 +28,10 @@ import {
   persistLastScanReview,
   persistLastSimulationReview
 } from '../shared/frontend/offline-review-cache.js';
+import {
+  loadLastScanReview,
+  loadLastSimulationReview
+} from '../shared/frontend/offline-review-restore.js';
 import {
   formatPct,
   formatNumber,
@@ -69,6 +49,10 @@ import {
   requestSimulation
 } from '../shared/frontend/simulator-service.js';
 import { buildPortfolioModel, validatePortfolioRequest } from '../shared/frontend/portfolio-builder.js';
+import { analyzeStock as analyzeScanStock, loadBenchmark as loadScanBenchmark }
+  from '../shared/frontend/scan-analysis.js';
+import { runMarketScan } from '../shared/frontend/scan-runner.js';
+import { enrichScanResults } from '../shared/frontend/scan-enrichment.js';
 
 const sleep = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 let currentResults: any[] = [];
@@ -145,22 +129,6 @@ function syncControlsFromRestoredScan(saved: any): void {
   syncSelectValue('strategySelect', saved?.strategy ?? '');
 }
 
-function normaliseDisplayTicker(rawTicker: any): string {
-  return normalizeSimulatorTicker(rawTicker);
-}
-
-function getDisplayTickerForStoredSymbol(symbol: string): string {
-  const normalized = normaliseDisplayTicker(symbol);
-  const match = currentResults.find((item: any) => {
-    const ticker = normaliseDisplayTicker(item.ticker);
-    const yahooSymbol = normaliseDisplayTicker(item.yahooSymbol);
-    return ticker === normalized || yahooSymbol === normalized;
-  });
-
-  return match ? normaliseDisplayTicker(match.ticker) : normalized;
-}
-
-
 const SECTOR_COLORS = {
   100: '#ef4444', // Energy
   200: '#94a3b8', // Materials
@@ -208,157 +176,10 @@ async function loadYahooData(ticker: string, suffix: string): Promise<any[] | nu
 // INDIVIDUAL ASSET ANALYSIS
 // =====================================================
 
-async function analyzeStock(stock: any, suffix: string, config: any, benchmarkROCs: any, benchmarkVol: any): Promise<any> {
-  try {
-    const data = await loadYahooData(stock.ticker, suffix);
-
-    if (!data || data.length < config.filters.min_days_history) {
-      return { passed: false, reason: 'Insufficient history' };
-    }
-
-    const prices = data.map(d => d.close); // Indicator calculations
-    const pricesWithDates = data.map(d => ({
-      date: d.date,
-      close: d.close
-    }));
-    const volumes = data.map(d => d.volume);
-    const candleData = data.map(d => ({ c: d.close, h: d.high, l: d.low }));
-
-    const filterResult = scoring.applyHardFilters(candleData, prices, volumes, config.filters);
-
-    if (!filterResult.passed) {
-      return {
-        passed: false,
-        ticker: stock.ticker,
-        name: stock.name,
-        reason: filterResult.reasons.join('; ')
-      };
-    }
-
-    const trendResult = scoring.calculateTrendScore(candleData, prices, config.indicators);
-    const momentumResult = scoring.calculateMomentumScore(
-      prices,
-      config.indicators,
-      benchmarkROCs?.roc6m,
-      benchmarkROCs?.roc12m
-    );
-    const riskResult = scoring.calculateRiskScore(
-      candleData,
-      prices,
-      config.indicators,
-      benchmarkVol
-    );
-    const liquidityResult = scoring.calculateLiquidityScore(volumes, config.filters);
-
-    const scoreShort = scoring.calculateShortTermScore(
-      candleData, prices, volumes, config.indicators
-    );
-    const scoreMedium = scoring.calculateMediumTermScore(candleData, prices, config.indicators);
-    const scoreLong = scoring.calculateLongTermScore(candleData, prices, config.indicators);
-
-    const finalScore = scoring.calculateFinalScore(
-      trendResult.score,
-      momentumResult.score,
-      riskResult.score,
-      liquidityResult.score,
-      config.weights
-    );
-
-    const signal = scoring.generateSignal(finalScore, config.signals);
-
-    const avgVol = ind.SMA(volumes.slice(-50), 50);
-    const vRatio = volumes[volumes.length - 1] / avgVol;
-
-    let priceChange60d;
-    if (prices.length >= 61) {
-      const current = prices[prices.length - 1];
-      const past = prices[prices.length - 61];
-      priceChange60d = ((current - past) / past) * 100;
-    }
-
-    return {
-      passed: true,
-      ticker: stock.ticker,
-      name: stock.name,
-      prices,
-      pricesWithDates,
-      quant_score: finalScore,
-      volatility: Number(riskResult.details.volatility),
-      volume: volumes[volumes.length - 1],
-      momentum: momentumResult.score,
-      price_change_60d: priceChange60d,
-      warnings: filterResult.reasons,
-      price: prices[prices.length - 1],
-      scoreTotal: finalScore,
-      scoreShort,
-      scoreMedium,
-      scoreLong,
-      scoreTrend: Math.round(trendResult.score),
-      scoreMomentum: Math.round(momentumResult.score),
-      scoreRisk: Math.round(riskResult.score),
-      scoreLiquidity: Math.round(liquidityResult.score),
-      signal,
-      vRatio,
-      details: {
-        trend: trendResult.details,
-        momentum: momentumResult.details,
-        risk: riskResult.details,
-        liquidity: liquidityResult.details
-      }
-    };
-
-  } catch (err) {
-    console.warn(i18n.t('errors.analyse_stock', {
-      ticker: stock.ticker,
-      name: stock.name
-    }), (err as any).message);
-    return {
-      passed: false,
-      ticker: stock.ticker,
-      name: stock.name,
-      reason: (err as any).message
-    };
-  }
-}
-
-// =====================================================
-// BENCHMARK LOADING AND ANALYSIS
-// =====================================================
-
-async function loadBenchmark(suffix: string) {
-  const benchmarkSymbol = (MARKET_BENCHMARKS as any)[suffix];
-
-  if (!benchmarkSymbol) {
-    console.log(i18n.t('errors.no_benchmark_market'));
-    return null;
-  }
-
-  console.log(`Loading benchmark: ${benchmarkSymbol}`);
-  const data = await loadYahooData(benchmarkSymbol, '');
-
-  if (!data || data.length < 252) {
-    console.warn(i18n.t('errors.insufficient_benchmark_data'));
-    return null;
-  }
-
-  const prices = data.map(d => d.close);
-
-  try {
-    const roc6m = ind.ROC(prices, 126);
-    const roc12m = ind.ROC(prices, 252);
-    const volatility = ind.Volatility(prices, 252);
-
-    return {
-      symbol: benchmarkSymbol,
-      rocs: { roc6m, roc12m },
-      volatility,
-      prices
-    };
-  } catch (e) {
-    console.warn(i18n.t('errors.benchmark_calculation_failed'), (e as Error).message);
-    return null;
-  }
-}
+// Compatibility adapters for the desktop and backtest exports.
+const analyzeStock = (...args: Parameters<typeof analyzeScanStock>) =>
+  analyzeScanStock(args[0], args[1], args[2], args[3], args[4], loadYahooData);
+const loadBenchmark = (suffix: string) => loadScanBenchmark(suffix, loadYahooData);
 
 function getRSIDescription(rsi: number) {
   if (rsi >= 70) {
@@ -1378,80 +1199,6 @@ function getAllMarketOptions() {
   return markets;
 }
 
-// Helper function to scan a single market
-async function scanSingleMarket(file: any, suffix: any, config: any, status: any, isPartOfAllMarkets = false) {
-  const tbody = document.getElementById('results');
-  const filterInfo = document.getElementById('filterInfo');
-
-  if (!isPartOfAllMarkets) {
-    // Solo limpiar si NO es parte del escaneo de todos los mercados
-    tbody!.innerHTML = '';
-    currentResults = [];
-    filterInfo!.innerHTML = '';
-  }
-
-  status.innerText = i18n.t('status.loading_benchmark');
-  benchmarkData = await loadBenchmark(suffix);
-
-  status.innerText = i18n.t('status.loading_universe');
-  const universe = await (await fetch(file)).json();
-
-  let analyzed = 0;
-  let filtered = 0;
-
-  const BATCH_SIZE = 5;
-
-  for (let i = 0; i < universe.length; i += BATCH_SIZE) {
-    const batch = universe.slice(i, i + BATCH_SIZE);
-
-    status.innerText = `${i18n.t('status.analyzing', {
-      current: String(i + 1),
-      total: String(universe.length)
-    })  } | ✓ ${analyzed} | ✖ ${filtered}`;
-
-    const batchResults = await Promise.all(
-      batch.map((stock: any) =>
-        analyzeStock(stock, suffix, config, benchmarkData?.rocs, benchmarkData?.volatility)
-      )
-    );
-
-    batchResults.forEach((res, idx) => {
-      if (res?.passed) {
-        const originalStockData = batch[idx];
-        const sectorId = getSectorId(originalStockData.sector || originalStockData.industry || 'Unknown');
-        const tempStats = calculateSectorStats(currentResults);
-        const anomalyData = detectAnomalies(res, tempStats);
-        currentResults.push({
-          ...res,
-          vRatio: Number(res.vRatio) || 1.0,
-          sectorId,
-          sectorRaw: originalStockData.sector || originalStockData.industry || 'Unknown',
-          marketSuffix: suffix,
-          yahooSymbol: originalStockData.ticker.includes('.')
-            ? originalStockData.ticker
-            : `${originalStockData.ticker}${suffix || ''}`,
-          hasAnomalies: anomalyData.hasAnomalies,
-          anomalies: anomalyData.anomalies,
-          anomalyMetrics: anomalyData.metrics || {}
-        });
-        analyzed++;
-      } else {
-        filtered++;
-      }
-    });
-
-    if (i % (BATCH_SIZE * 2) === 0) {
-      const sectorStats = calculateSectorStats(currentResults);
-      applyFilters();
-      updateSectorUI(sectorStats);
-    }
-
-    await sleep(50);
-  }
-
-  return { analyzed, filtered };
-}
-
 export async function runScan() {
   // 1. Prevent double execution if already running
   if (isScanning) return;
@@ -1480,411 +1227,129 @@ export async function runScan() {
     renderSimulatorSelectionBadge();
     renderSimulatorTab();
 
-    // Check if "ALL_MARKETS" is selected
-    if (marketValue === 'ALL_MARKETS') {
-      const allMarkets = getAllMarketOptions();
-
-      // Show warning dialog
-      const proceed = await showAllMarketsWarning(allMarkets.length);
-      if (!proceed) {
-        return; // User cancelled
-      }
-
-      // Clear results before starting
-      tbody!.innerHTML = '';
-      currentResults = [];
-      filterInfo!.innerHTML = '';
-
-      status!.innerText = i18n.t('status.initializing');
-
-      let totalAnalyzed = 0;
-      let totalFiltered = 0;
-
-      // Iterate through all markets
-      for (let i = 0; i < allMarkets.length; i++) {
-        const market = allMarkets[i];
-
-        const progressMessage = i18n.t('status.scanning_market', {
-          current: String(i + 1),
-          total: String(allMarkets.length),
-          market: market.name
-        });
-
-        status!.innerText = progressMessage;
-
-        // Update strategy info with current market being scanned
-        const strategyInfo = document.getElementById('strategyInfo');
-        if (strategyInfo) {
-          strategyInfo.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="font-size: 1.5em;">🌍</div>
-              <div>
-                <div style="font-weight: bold; color: #38bdf8; margin-bottom: 4px;">
-                  ${i18n.getCurrentLanguage() === 'es' ? 'Escaneando Todos los Mercados' : 'Scanning All Markets'}
-                </div>
-                <div style="font-size: 0.9em; color: #94a3b8;">
-                  ${i18n.getCurrentLanguage() === 'es'
-                    ? `Mercado ${i + 1} de ${allMarkets.length}: <strong style="color: #10b981;">${market.name}</strong>`
-                    : `Market ${i + 1} of ${allMarkets.length}: <strong style="color: #10b981;">${market.name}</strong>`
-                  }
-                </div>
-                <div style="margin-top: 8px; background: #0f172a; border-radius: 4px; height: 6px; overflow: hidden;">
-                  <div style="background: linear-gradient(90deg, #38bdf8 0%, #10b981 100%); height: 100%; width: ${((i + 1) / allMarkets.length * 100).toFixed(1)}%; transition: width 0.3s ease;"></div>
-                </div>
-              </div>
-            </div>
-          `;
-        }
-
-        const { analyzed, filtered } = await scanSingleMarket(
-          market.file,
-          market.suffix,
-          config,
-          status,
-          true // isPartOfAllMarkets
-        );
-
-        totalAnalyzed += analyzed;
-        totalFiltered += filtered;
-      }
-
-      // Final processing after all markets
-      currentResults.sort((a, b) => b.scoreTotal - a.scoreTotal);
-      const finalStats = calculateSectorStats(currentResults);
-
-      currentResults = currentResults.map(asset => {
-        const anomalyData = detectAnomalies(asset, finalStats);
-
-        let updatedScore = asset.scoreTotal;
-        let penalty = 0;
-
-        if (anomalyData.hasAnomalies) {
-          penalty = Math.min(15, Math.round(Number(anomalyData.metrics?.volumeZScore || 0) * 3));
-          updatedScore = Math.max(0, updatedScore - penalty);
-        }
-
-        return {
-          ...asset,
-          anomalies: anomalyData.anomalies,
-          warnings: [
-            ...(asset.warnings || []),
-            ...(anomalyData.warnings || [])
-          ],
-          hasAnomalies: anomalyData.hasAnomalies,
-          anomalyMetrics: anomalyData.metrics,
-          scoreTotal: updatedScore,
-          anomalyPenalty: penalty
-        };
-      });
-
-      applyFilters();
-      updateSectorUI(finalStats);
-
-      status!.innerText = i18n.t('status.all_markets_complete', { count: String(totalAnalyzed) });
-      filterInfo!.innerHTML = i18n.t('filters.info', {
-        approved: String(totalAnalyzed),
-        filtered: String(totalFiltered)
-      });
-
-      appState.scanResults = currentResults;
-      appState.market = { file: 'ALL_MARKETS', suffix: '' };
-      appState.strategy = strategyKey;
-      appState.scanCompleted = true;
-      persistLastScan();
-      updateStrategyInfoDisplay();
-      await notifyStrongSignals(currentResults, strategyKey);
-
-      // Show export button
-      const exportButtons = document.getElementById('scanExportButtons');
-      if (exportButtons && currentResults.length > 0) {
-        exportButtons.style.display = 'block';
-      }
-
-      const canBuildPortfolio =
-        appState.scanResults.filter(
-          (r: any) => Array.isArray(r.pricesWithDates) && r.pricesWithDates.length >= 30
-        ).length >= 3;
-
-      const buildBtn = document.querySelector('button[onclick="buildPortfolio()"]');
-      if (buildBtn) {
-        (buildBtn as HTMLButtonElement).disabled = !canBuildPortfolio;
-      }
-
-      if (!canBuildPortfolio) {
-        showInlineError(i18n.t('errors.insufficient_assets_portfolio'));
-      }
-
-      const portfolioSection = document.getElementById('portfolioSection');
-      if (portfolioSection && currentResults.length > 0) {
-        portfolioSection.style.display = 'block';
-      }
-
-      return; // Exit after processing all markets
-    }
-
-    // Original single market logic
+    const isAllMarkets = marketValue === 'ALL_MARKETS';
     const [file, suffix] = marketValue.split('|');
+    const markets = isAllMarkets ? getAllMarketOptions() : [{ file, suffix }];
+    if (isAllMarkets && !await showAllMarketsWarning(markets.length)) return;
 
-    // 3. Limpieza garantizada antes de empezar
     tbody!.innerHTML = '';
-    currentResults = []; // Limpiar array de memoria
+    currentResults = [];
     filterInfo!.innerHTML = '';
-
     status!.innerText = i18n.t('status.initializing');
 
-    status!.innerText = i18n.t('status.loading_benchmark');
-    benchmarkData = await loadBenchmark(suffix);
-
-    status!.innerText = i18n.t('status.loading_universe');
-    const universe = await (await fetch(file)).json();
-
-    let analyzed = 0;
-    let filtered = 0;
-
-    const BATCH_SIZE = 5;
-
-    for (let i = 0; i < universe.length; i += BATCH_SIZE) {
-      const batch = universe.slice(i, i + BATCH_SIZE);
-
-      status!.innerText = `${i18n.t('status.analyzing', {
-        current: String(i + 1),
-        total: String(universe.length)
-      })  } | ✓ ${analyzed} | ✖ ${filtered}`;
-
-      const batchResults = await Promise.all(
-        batch.map((stock: any) =>
-          analyzeStock(stock, suffix, config, benchmarkData?.rocs, benchmarkData?.volatility)
-        )
-      );
-
-      batchResults.forEach((res, idx) => {
-        if (res?.passed) {
-          const originalStockData = batch[idx];
-          const sectorId = getSectorId(originalStockData.sector || originalStockData.industry || 'Unknown');
-          const tempStats = calculateSectorStats(currentResults);
-          const anomalyData = detectAnomalies(res, tempStats);
-          currentResults.push({
-            ...res,
-            vRatio: Number(res.vRatio) || 1.0,
-            sectorId,
-            sectorRaw: originalStockData.sector || originalStockData.industry || 'Unknown',
-            marketSuffix: suffix,
-            yahooSymbol: originalStockData.ticker.includes('.')
-              ? originalStockData.ticker
-              : `${originalStockData.ticker}${suffix || ''}`,
-            hasAnomalies: anomalyData.hasAnomalies,
-            anomalies: anomalyData.anomalies,
-            anomalyMetrics: anomalyData.metrics || {}
+    const scan = await runMarketScan(markets, config, {
+      loadBenchmark,
+      analyzeStock,
+      onProgress(progress) {
+        if (progress.phase === 'market_started') {
+          if (!isAllMarkets) return;
+          const { market, index, totalMarkets } = progress;
+          status!.innerText = i18n.t('status.scanning_market', {
+            current: String(index + 1), total: String(totalMarkets), market: market.name || ''
           });
-          analyzed++;
+          // Update strategy info with current market being scanned
+          const strategyInfo = document.getElementById('strategyInfo');
+          if (strategyInfo) {
+            strategyInfo.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 1.5em;">🌍</div>
+                <div>
+                  <div style="font-weight: bold; color: #38bdf8; margin-bottom: 4px;">
+                    ${i18n.getCurrentLanguage() === 'es' ? 'Escaneando Todos los Mercados' : 'Scanning All Markets'}
+                  </div>
+                  <div style="font-size: 0.9em; color: #94a3b8;">
+                    ${i18n.getCurrentLanguage() === 'es'
+                      ? `Mercado ${index + 1} de ${totalMarkets}: <strong style="color: #10b981;">${market.name}</strong>`
+                      : `Market ${index + 1} of ${totalMarkets}: <strong style="color: #10b981;">${market.name}</strong>`
+                    }
+                  </div>
+                  <div style="margin-top: 8px; background: #0f172a; border-radius: 4px; height: 6px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #38bdf8 0%, #10b981 100%); height: 100%; width: ${((index + 1) / totalMarkets * 100).toFixed(1)}%; transition: width 0.3s ease;"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
+        } else if (progress.phase === 'analyzing') {
+          status!.innerText = `${i18n.t('status.analyzing', {
+            current: String(progress.current), total: String(progress.total)
+          })} | ✓ ${progress.analyzed} | ✖ ${progress.filtered}`;
         } else {
-          filtered++;
+          status!.innerText = i18n.t(`status.${progress.phase}`);
         }
-      });
-
-      if (i % (BATCH_SIZE * 2) === 0) {
-        const sectorStats = calculateSectorStats(currentResults);
+      },
+      onPartialResults(results, stats) {
+        currentResults = results;
         applyFilters();
-        updateSectorUI(sectorStats);
+        updateSectorUI(stats);
       }
-
-      await sleep(50);
-    }
-
-    currentResults.sort((a, b) => b.scoreTotal - a.scoreTotal);
-    const finalStats = calculateSectorStats(currentResults);
-
-    currentResults = currentResults.map(asset => {
-      const anomalyData = detectAnomalies(asset, finalStats);
-
-      let updatedScore = asset.scoreTotal;
-      let penalty = 0;
-
-      if (anomalyData.hasAnomalies) {
-        penalty = Math.min(15, Math.round(Number(anomalyData.metrics?.volumeZScore || 0) * 3));
-        updatedScore = Math.max(0, updatedScore - penalty);
-      }
-
-      return {
-        ...asset,
-        anomalies: anomalyData.anomalies,
-        warnings: [
-          ...(asset.warnings || []),
-          ...(anomalyData.warnings || [])
-        ],
-        hasAnomalies: anomalyData.hasAnomalies,
-        anomalyMetrics: anomalyData.metrics,
-        scoreTotal: updatedScore,
-        anomalyPenalty: penalty
-      };
     });
-
+    currentResults = scan.results;
+    benchmarkData = scan.benchmark;
+    const { analyzed, filtered } = scan;
     applyFilters();
-    updateSectorUI(finalStats);
-
-    status!.innerText = i18n.t('status.scan_complete', { count: String(analyzed) });
-    filterInfo!.innerHTML = i18n.t('filters.info', {
-      approved: String(analyzed),
-      filtered: String(filtered)
+    updateSectorUI(scan.sectorStats);
+    status!.innerText = i18n.t(isAllMarkets ? 'status.all_markets_complete' : 'status.scan_complete', {
+      count: String(analyzed)
     });
-
+    filterInfo!.innerHTML = i18n.t('filters.info', {
+      approved: String(analyzed), filtered: String(filtered)
+    });
     appState.scanResults = currentResults;
-    appState.market = { file, suffix };
+    appState.market = isAllMarkets ? { file: 'ALL_MARKETS', suffix: '' } : { file, suffix };
     appState.strategy = strategyKey;
     appState.scanCompleted = true;
     persistLastScan();
     updateStrategyInfoDisplay();
     await notifyStrongSignals(currentResults, strategyKey);
 
-    // Show export button when results are available
     const exportButtons = document.getElementById('scanExportButtons');
-    if (exportButtons && currentResults.length > 0) {
-      exportButtons.style.display = 'block';
-    }
+    if (exportButtons && currentResults.length > 0) exportButtons.style.display = 'block';
 
-    const canBuildPortfolio =
-      appState.scanResults.filter(
-        (r: any) => Array.isArray(r.pricesWithDates) && r.pricesWithDates.length >= 30
-      ).length >= 3;
-
+    const canBuildPortfolio = appState.scanResults.filter(
+      (r: any) => Array.isArray(r.pricesWithDates) && r.pricesWithDates.length >= 30
+    ).length >= 3;
     const buildBtn = document.querySelector('button[onclick="buildPortfolio()"]');
-    if (buildBtn) {
-      (buildBtn as HTMLButtonElement).disabled = !canBuildPortfolio;
+    if (buildBtn) (buildBtn as HTMLButtonElement).disabled = !canBuildPortfolio;
+    if (!canBuildPortfolio) showInlineError(i18n.t('errors.insufficient_assets_portfolio'));
+
+    if (isAllMarkets) {
+      const portfolioSection = document.getElementById('portfolioSection');
+      if (portfolioSection && currentResults.length > 0) portfolioSection.style.display = 'block';
+      return;
     }
 
-    if (!canBuildPortfolio) {
-      showInlineError(i18n.t('errors.insufficient_assets_portfolio'));
-    }
-
-    // =====================================================
-    // ML INTEGRATION: Machine Learning Analysis
-    // =====================================================
-
-    // 1. Initialize Performance Tracker (if not already loaded)
-    if (!performanceTracker && appState.mlEnabled) {
-      try {
-        status!.innerText = '🤖 Initializing ML Performance Tracker...';
-        performanceTracker = await loadPerformanceTracker();
-        console.log('✅ ML Performance Tracker loaded');
-      } catch (e) {
-        console.warn('Performance Tracker initialization failed, creating new:', (e as Error).message);
-        performanceTracker = new PerformanceTracker();
-      }
-    }
-
-    // 2. Detección de régimen (rule-based + ML)
-    if (benchmarkData && benchmarkData.symbol) {
-      try {
-        status!.innerText = i18n.t('status.detecting_regime');
-        const benchmarkFullData = await loadYahooData(benchmarkData.symbol, '');
-        if (!benchmarkFullData || benchmarkFullData.length === 0) {
-          console.warn('No se pudieron cargar datos completos del benchmark para régimen');
-        } else {
-          const benchmarkPrices = benchmarkFullData.map((d: any) => ({ date: d.date, close: d.close }));
-          if (benchmarkPrices.length >= 200) {
-            // Rule-based regime detection
-            currentRegime = regime.detectMarketRegime(benchmarkPrices as any, currentResults);
-            appState.regime = currentRegime;
-
-            // ML-based regime prediction (enhanced)
-            if (appState.mlEnabled) {
-              try {
-                status!.innerText = '🤖 ML Regime Prediction...';
-                const regimeFeatures = extractRegimeFeatures(benchmarkPrices as any);
-
-                // Note: This requires a trained model. For now, we'll use rule-based
-                // In production, you would load a trained model and use predictRegimeML()
-                mlRegimePrediction = {
-                  regime: currentRegime.regime,
-                  confidence: 0.75,
-                  method: 'rule-based',
-                  features: regimeFeatures,
-                  timestamp: Date.now()
-                };
-
-                console.log('🤖 ML Regime Prediction:', mlRegimePrediction);
-              } catch (e) {
-                console.warn('ML Regime prediction failed:', (e as Error).message);
-              }
-            }
-
-            renderRegimeIndicator(currentRegime);
-            console.log('📊 Régimen detectado:', currentRegime);
-          }
-        }
-      } catch (e) {
-        console.error('Regime detection error:', e);
-      }
-    }
-
-    // 3. ML Adaptive Score Adjustment
-    if (appState.mlEnabled && performanceTracker && currentRegime) {
-      try {
-        status!.innerText = '🤖 Applying ML Adaptive Scoring...';
-
-        // Adjust scores based on historical performance
-        currentResults = adjustScoresBatch(
-          currentResults,
-          strategyKey,
-          currentRegime.regime,
-          performanceTracker
-        );
-
-        // Update appState with adjusted results
-        appState.scanResults = currentResults;
+    const enriched = await enrichScanResults({
+      currentResults, benchmarkData, strategyKey, mlEnabled: appState.mlEnabled,
+      performanceTracker, currentRegime, mlRegimePrediction, mlAnomalies, mlRecommendations
+    }, {
+      loadYahooData,
+      onStage(stage) {
+        const messages = {
+          initializing_tracker: '🤖 Initializing ML Performance Tracker...',
+          detecting_regime: i18n.t('status.detecting_regime'),
+          predicting_regime: '🤖 ML Regime Prediction...',
+          adaptive_scoring: '🤖 Applying ML Adaptive Scoring...',
+          detecting_anomalies: '🤖 ML Anomaly Detection...',
+          recommendations: '🤖 Generating ML Recommendations...'
+        };
+        status!.innerText = messages[stage];
+      },
+      onRegime(value) {
+        currentRegime = value;
+        appState.regime = value;
+        renderRegimeIndicator(value);
+      },
+      onAdjustedResults(results) {
+        currentResults = results;
+        appState.scanResults = results;
         persistLastScan();
-
-        console.log('✅ ML Adaptive scoring applied to', currentResults.length, 'assets');
-      } catch (e) {
-        console.warn('ML Adaptive scoring failed:', (e as Error).message);
       }
-    }
-
-    // 4. ML Anomaly Detection
-    if (appState.mlEnabled && currentResults.length > 0) {
-      try {
-        status!.innerText = '🤖 ML Anomaly Detection...';
-
-        mlAnomalies = detectMLAnomalies(currentResults, null);
-        const anomalySummary = getAnomalySummary(mlAnomalies);
-
-        console.log('🔍 ML Anomalies detected:', anomalySummary);
-
-        // Store ML anomalies in appState
-        appState.mlAnomalies = mlAnomalies;
-        appState.mlAnomalySummary = anomalySummary;
-      } catch (e) {
-        console.warn('ML Anomaly detection failed:', (e as Error).message);
-      }
-    }
-
-    // 5. ML Recommendations Generation
-    if (appState.mlEnabled && currentResults.length > 0) {
-      try {
-        status!.innerText = '🤖 Generating ML Recommendations...';
-
-        // Create portfolio-like structure for recommendations
-        const mockPortfolio = {
-          positions: {},
-          sector_exposure: {}
-        };
-
-        const marketData = {
-          volatility: benchmarkData?.volatility || 20,
-          regime_prediction: mlRegimePrediction || { regime: currentRegime?.regime || 'neutral' },
-
-          assets: currentResults.slice(0, 20), // Top 20 for recommendations
-          anomalies: mlAnomalies
-        };
-
-        mlRecommendations = generateRecommendations(mockPortfolio, marketData, {});
-
-        console.log('💡 ML Recommendations generated:', mlRecommendations.length);
-        appState.mlRecommendations = mlRecommendations;
-      } catch (e) {
-        console.warn('ML Recommendations generation failed:', (e as Error).message);
-      }
-    }
+    });
+    ({ currentResults, performanceTracker, currentRegime, mlRegimePrediction,
+      mlAnomalies, mlRecommendations } = enriched);
+    Object.assign(appState, enriched.stateUpdates);
 
     // 6. Render ML Results in UI
     if (appState.mlEnabled) {
@@ -3972,8 +3437,8 @@ export function updateView() {
  * timestamp on success, or null if nothing was saved yet.
  */
 export async function restoreLastScanFromCache(): Promise<number | null> {
-  const saved = await dbStore.getLastScan();
-  if (!saved || !Array.isArray(saved.results) || saved.results.length === 0) {
+  const saved = await loadLastScanReview();
+  if (!saved) {
     return null;
   }
 
@@ -3996,43 +3461,12 @@ export async function restoreLastScanFromCache(): Promise<number | null> {
 }
 
 export async function restoreLastSimulationFromCache(): Promise<number | null> {
-  const saved = await dbStore.getLastSimulation();
-  if (!saved?.response || !saved?.request || !Array.isArray(saved.request.tickers) || saved.request.tickers.length === 0) {
-    return null;
-  }
+  const saved = await loadLastSimulationReview(currentResults);
+  if (!saved) return null;
 
-  const restoredTickers = saved.request.tickers
-    .map((ticker: any) => getDisplayTickerForStoredSymbol(ticker))
-    .filter(Boolean)
-    .slice(0, MAX_SIMULATOR_TICKERS);
-
-  if (restoredTickers.length === 0) {
-    return null;
-  }
-
-  selectedForSimulator = restoredTickers;
-  simulatorState.tickerInvestments = {};
-  for (const requestTicker of saved.request.tickers) {
-    const displayTicker = getDisplayTickerForStoredSymbol(requestTicker);
-    if (!displayTicker) continue;
-    simulatorState.tickerInvestments[displayTicker] = saved.request.tickerInvestments?.[requestTicker] ?? 0;
-  }
-
-  const horizonMonths = Number(saved.request.horizonMonths);
-  if ([12, 36, 60, 120].includes(horizonMonths)) {
-    simulatorState.useCustom = false;
-    simulatorState.preset = horizonMonths;
-  } else if (Number.isFinite(horizonMonths) && horizonMonths > 0) {
-    simulatorState.useCustom = true;
-    if (horizonMonths % 12 === 0) {
-      simulatorState.customValue = Math.max(1, Math.round(horizonMonths / 12));
-      simulatorState.customUnit = 'years';
-    } else {
-      simulatorState.customValue = Math.max(1, Math.round(horizonMonths));
-      simulatorState.customUnit = 'months';
-    }
-  }
-
+  selectedForSimulator = saved.selection;
+  simulatorState.tickerInvestments = saved.tickerInvestments;
+  Object.assign(simulatorState, saved.horizon);
   simulatorState.lastResponse = saved.response;
   saveSimulatorSelection();
   renderSimulatorSelectionBadge();
@@ -4153,7 +3587,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initMainTabs();
   switchMainTab('results');
   renderSimulatorSelectionBadge();
-  renderSimulatorTab();
+  // The simulator renders when its tab opens. Rendering it here would calculate
+  // with default inputs and overwrite the saved projection before offline restore.
 
   const selector = document.getElementById('languageSelect');
   if (selector) {

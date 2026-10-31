@@ -148,7 +148,7 @@ shared services below, platform-specific rendering above.
 
 ## Progress
 
-### Phase A — Boundary Extraction (🟡 in progress)
+### Phase A — Boundary Extraction (✅ initial extraction complete, 2026-10-31)
 
 Shared modules live in `src/shared/frontend/` (pure or dependency-injected, no DOM), each with
 unit tests in `src/tests/unit/shared/`. The scanner and portfolio dashboard consume them
@@ -158,12 +158,16 @@ instead of holding reusable logic inline:
 | --- | --- |
 | `simulator-selection.ts` | Simulator selection persistence (localStorage), normalisation, max-4 clamp |
 | `offline-review-cache.ts` | Best-effort IndexedDB save of last scan/simulation for offline review |
+| `offline-review-restore.ts` | Injectable cache readers and restore models for scans/simulations, display ticker mapping, investment and horizon restoration |
 | `simulator-service.ts` | Horizon/total/validity rules, display ticker → Yahoo symbol, request shaping, `POST /api/v1/simulate` |
 | `results-filter.ts` | Search/signal/min-score/high-volume filtering + sort by active view score |
 | `market-data-client.ts` | Yahoo proxy URL building, chart payload parsing, cached price history fetch |
 | `formatting.ts` | Percent, number, capital, currency and return formatting |
 | `alert-settings.ts` | Typed settings contract, defaults, drawdown normalisation, input shaping and injectable IndexedDB persistence |
 | `portfolio-builder.ts` | Portfolio request validation, regime score adjustment, allocation, governance corrections, price enrichment, risk (with degraded-mode exclusions) and governance reports |
+| `scan-analysis.ts` | Asset history/scoring and benchmark metrics, with injectable history access |
+| `scan-runner.ts` | Sequential markets, concurrent batches, result enrichment, counts, partial results and structured progress events |
+| `scan-enrichment.ts` | Optional post-scan regime/ML pipeline, tracker loading, adaptive scoring, anomaly summary and recommendations |
 
 Alert settings extraction (2026-10-31): the dashboard reads/writes settings through the shared
 service; `alert-manager.ts` re-exports the original functions for compatibility and consumes the
@@ -176,15 +180,48 @@ Portfolio builder extraction (2026-10-31): `buildPortfolio` in `scanner.ts` now 
 inputs, maps validation issues to messages, logs governance violations/corrections returned by
 the builder, and renders. The resulting `appState.portfolio` shape is unchanged.
 
-Remaining Phase A candidates: scan orchestration (`runScan`/`scanSingleMarket` loop vs. status rendering), and
-offline restore flows (`restoreLastScanFromCache`/`restoreLastSimulationFromCache`).
+Offline restore extraction (2026-10-31): `restoreLastScanFromCache` and
+`restoreLastSimulationFromCache` now consume shared restore models. Cache reads, basic record
+shape checks, Yahoo symbol → display ticker mapping, max-four selection, investment recovery
+and preset/custom horizon recovery live in `offline-review-restore.ts`. Readers accept an
+injected storage adapter and do not fetch market data or recalculate simulations. Stored
+records and IndexedDB keys are unchanged; missing optional metadata is tolerated, unusable
+records return null and storage errors propagate to the existing PWA error handler.
+`scanner.ts` still applies the returned model to its state, synchronises controls and renders;
+`pwa-init.ts` still controls when restoration runs (cold load while offline).
+The simulator now renders lazily when its tab opens: rendering the hidden tab during startup
+previously triggered a calculation with default inputs and overwrote the saved simulation
+before offline restoration. The E2E checks that neither reload nor review sends a new request.
+
+Coverage includes unit tests for restore models/readers and a Chromium E2E flow that calculates
+a simulation, reloads offline and verifies the saved amounts, custom horizon and projection
+without another simulation API request. The existing offline scan E2E remains in place.
+
+Scan orchestration extraction (2026-10-31): a single `runMarketScan` pipeline replaces the
+duplicated individual/all-markets loops. It retains batches of five, 50 ms pauses, sequential
+market processing, market-specific benchmark context, periodic result snapshots, sector
+statistics and the existing anomaly penalty/order rules. `enrichScanResults` owns the optional
+single-market regime/ML stages and their independent failure handling. All-markets scans
+continue to finish before those optional stages, preserving the existing behaviour.
+
+`runScan` remains the desktop adapter: it reads controls, prevents duplicate submissions,
+handles all-markets confirmation/cancellation, translates progress, renders snapshots/results,
+applies the returned state, persists successful scans and sends signal notifications.
+The benchmark/scoring compatibility adapters also remain available for backtesting.
+No presentation markup, DOM access or mutable scanner globals are required by the new services.
+Tests cover concurrency, market isolation, counts, anomaly penalties, optional ML failures,
+and browser flows for combined markets, cancellation and retry after a failed universe load.
+
+The initial Phase A boundaries are now extracted. This does not complete §5.5.3.2: desktop
+stabilisation (Phase B), dedicated Android presentation (Phase C) and packaging evaluation
+(Phase D) remain. Legacy result payload types and further UI cleanup can be refined incrementally.
 
 ## Near-Term Next Actions
 
-1. Extract shared scan orchestration and offline restore flows (results filtering, simulator requests, alert settings and portfolio building extracted)
+1. Begin Phase B: consolidate desktop regression coverage for scan/results, portfolio/dashboard, alerts and simulator on the shared services
 2. Stop adding new inline-coupled UI logic to the existing monolithic page where avoidable
 3. Define the Android flow map screen by screen
 4. Decide whether the first Android deliverable is:
    - PWA-only
    - Android Studio wrapper over the mobile frontend
-5. Implement the split incrementally, starting with results and simulator
+5. After desktop stabilisation, implement the Android results and simulator presentation on the shared services

@@ -130,4 +130,47 @@ test.describe('Scan journey', () => {
       expect(count).toBeGreaterThan(0);
     }
   });
+
+  test('all-markets scan combines results from both markets after confirmation', async ({ page }) => {
+    // Keep two representative markets so this exercises the combined flow quickly.
+    await page.locator('#marketSelect').evaluate(select => {
+      for (const option of Array.from(select.options)) {
+        if (!['ALL_MARKETS', 'universes/bme_universe.json|.MC', 'universes/us_universe.json|']
+          .includes(option.value)) option.remove();
+      }
+    });
+    await scanner.selectMarket('ALL_MARKETS');
+    await scanner.selectStrategy('balanced');
+    await scanner.scanButton.click();
+    await page.locator('#proceedBtn').click();
+    await expect(scanner.scanButton).toBeEnabled();
+    await expect(scanner.resultsTbody.locator('tr')).toHaveCount(10);
+    const scan = await page.evaluate(() => ({
+      market: window.appState.market.file,
+      suffixes: [...new Set(window.appState.scanResults.map(item => item.marketSuffix))],
+      completed: window.appState.scanCompleted,
+    }));
+    expect(scan).toEqual({ market: 'ALL_MARKETS', suffixes: expect.arrayContaining(['.MC', '']), completed: true });
+    await expect(scanner.portfolioSection).toBeVisible();
+  });
+
+  test('cancelling all-markets confirmation releases the scan button', async ({ page }) => {
+    await scanner.selectMarket('ALL_MARKETS');
+    await scanner.scanButton.click();
+    await page.locator('#cancelBtn').click();
+    await expect(scanner.scanButton).toBeEnabled();
+    expect(await page.evaluate(() => window.appState.scanCompleted)).toBe(false);
+  });
+
+  test('universe download failure releases the scan button and allows retry', async ({ page }) => {
+    await scanner.selectMarket('universes/bme_universe.json|.MC');
+    const failUniverse = route => route.abort();
+    await page.route('**/universes/**', failUniverse);
+    await scanner.runScan();
+    await expect(scanner.statusText).toContainText(/error/i);
+    await expect(scanner.scanButton).toBeEnabled();
+    await page.unroute('**/universes/**', failUniverse);
+    await scanner.runScan();
+    await expect(scanner.resultsTbody.locator('.sim-select-toggle')).toHaveCount(5);
+  });
 });
