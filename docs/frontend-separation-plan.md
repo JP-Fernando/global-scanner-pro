@@ -151,8 +151,8 @@ shared services below, platform-specific rendering above.
 ### Phase A — Boundary Extraction (🟡 in progress)
 
 Shared modules live in `src/shared/frontend/` (pure or dependency-injected, no DOM), each with
-unit tests in `src/tests/unit/shared/`. `src/core/scanner.ts` now consumes them instead of
-holding the logic inline:
+unit tests in `src/tests/unit/shared/`. The scanner and portfolio dashboard consume them
+instead of holding reusable logic inline:
 
 | Module | Responsibility |
 | --- | --- |
@@ -162,14 +162,26 @@ holding the logic inline:
 | `results-filter.ts` | Search/signal/min-score/high-volume filtering + sort by active view score |
 | `market-data-client.ts` | Yahoo proxy URL building, chart payload parsing, cached price history fetch |
 | `formatting.ts` | Percent, number, capital, currency and return formatting |
+| `alert-settings.ts` | Typed settings contract, defaults, drawdown normalisation, input shaping and injectable IndexedDB persistence |
+| `portfolio-builder.ts` | Portfolio request validation, regime score adjustment, allocation, governance corrections, price enrichment, risk (with degraded-mode exclusions) and governance reports |
 
-Remaining Phase A candidates: portfolio build orchestration (`buildPortfolio`), alerts settings
-persistence, scan orchestration (`runScan`/`scanSingleMarket` loop vs. status rendering), and
+Alert settings extraction (2026-10-31): the dashboard reads/writes settings through the shared
+service; `alert-manager.ts` re-exports the original functions for compatibility and consumes the
+same defaults. Storage keys and records remain unchanged. Rendering, status messages and DOM
+input reading remain in the dashboard; notification delivery remains in the alert manager.
+Coverage includes user/strategy isolation, partial legacy records, blank threshold fallback,
+disabled notifications, storage failures and a desktop E2E save/reopen flow.
+
+Portfolio builder extraction (2026-10-31): `buildPortfolio` in `scanner.ts` now only reads its
+inputs, maps validation issues to messages, logs governance violations/corrections returned by
+the builder, and renders. The resulting `appState.portfolio` shape is unchanged.
+
+Remaining Phase A candidates: scan orchestration (`runScan`/`scanSingleMarket` loop vs. status rendering), and
 offline restore flows (`restoreLastScanFromCache`/`restoreLastSimulationFromCache`).
 
 ## Near-Term Next Actions
 
-1. Extract shared scan/portfolio/alerts orchestration from the current frontend (results + simulator done)
+1. Extract shared scan orchestration and offline restore flows (results filtering, simulator requests, alert settings and portfolio building extracted)
 2. Stop adding new inline-coupled UI logic to the existing monolithic page where avoidable
 3. Define the Android flow map screen by screen
 4. Decide whether the first Android deliverable is:

@@ -1,40 +1,18 @@
 import { dbStore } from '../storage/indexed-db-store.js';
 import i18n from '../i18n/i18n.js';
+import {
+  DEFAULT_USER_ID,
+  DEFAULT_THRESHOLDS,
+  getAlertSettings
+} from '../shared/frontend/alert-settings.js';
+import type { AlertSettingsRecord, AlertChannels } from '../shared/frontend/alert-settings.js';
+
+// Preserve existing imports while settings consumers migrate to the shared service.
+export { getAlertSettings, saveAlertSettings } from '../shared/frontend/alert-settings.js';
 
 // ============================================================
 // Types
 // ============================================================
-
-interface AlertThresholds {
-  volatility_pct: number;
-  drawdown_pct: number;
-  score: number;
-}
-
-interface AlertChannels {
-  email: string;
-  webhook: string;
-  slack: string;
-  teams: string;
-  zapier: string;
-}
-
-interface AlertNotifyOn {
-  strongSignals: boolean;
-  rebalances: boolean;
-  riskEvents: boolean;
-}
-
-interface AlertSettingsRecord {
-  id: string;
-  user_id: string;
-  strategy: string;
-  thresholds: AlertThresholds;
-  channels: AlertChannels;
-  notifyOn: AlertNotifyOn;
-  created_at: string;
-  updated_at: string;
-}
 
 type AlertSeverity = 'info' | 'warning' | 'error' | 'critical';
 
@@ -137,39 +115,12 @@ interface GetAlertLogsOptions {
 // Constants
 // ============================================================
 
-const DEFAULT_USER_ID: string = 'default';
-const DEFAULT_THRESHOLDS: AlertThresholds = {
-  volatility_pct: 25,
-  drawdown_pct: -15,
-  score: 80
-};
-const DEFAULT_CHANNELS: AlertChannels = {
-  email: '',
-  webhook: '',
-  slack: '',
-  teams: '',
-  zapier: ''
-};
-const DEFAULT_NOTIFY: AlertNotifyOn = {
-  strongSignals: true,
-  rebalances: true,
-  riskEvents: true
-};
 const DEFAULT_THROTTLE_MS: number = 30 * 60 * 1000;
 const alertThrottleCache: Map<string, number> = new Map();
 
 // ============================================================
 // Helpers
 // ============================================================
-
-const toSettingsId = (userId: string, strategy: string): string => `${userId}:${strategy}`;
-
-const normalizeDrawdownThreshold = (value: unknown): number => {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    return DEFAULT_THRESHOLDS.drawdown_pct;
-  }
-  return value > 0 ? -Math.abs(value) : value;
-};
 
 const shouldThrottleAlert = (key: string, ttlMs: number = DEFAULT_THROTTLE_MS): boolean => {
   if (!key) return false;
@@ -185,56 +136,6 @@ const shouldThrottleAlert = (key: string, ttlMs: number = DEFAULT_THROTTLE_MS): 
 // ============================================================
 // Exported functions
 // ============================================================
-
-export async function getAlertSettings(strategy: string, userId: string = DEFAULT_USER_ID): Promise<AlertSettingsRecord> {
-  const settingsId: string = toSettingsId(userId, strategy);
-  let settings: AlertSettingsRecord | null = await dbStore.getAlertSettings(settingsId) as AlertSettingsRecord | null;
-
-  if (!settings) {
-    settings = {
-      id: settingsId,
-      user_id: userId,
-      strategy,
-      thresholds: { ...DEFAULT_THRESHOLDS },
-      channels: { ...DEFAULT_CHANNELS },
-      notifyOn: { ...DEFAULT_NOTIFY },
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    await dbStore.saveAlertSettings(settings);
-  } else {
-    settings.thresholds = { ...DEFAULT_THRESHOLDS, ...(settings.thresholds || {}) };
-    settings.channels = { ...DEFAULT_CHANNELS, ...(settings.channels || {}) };
-    settings.notifyOn = { ...DEFAULT_NOTIFY, ...(settings.notifyOn || {}) };
-    settings.thresholds.drawdown_pct = normalizeDrawdownThreshold(settings.thresholds.drawdown_pct);
-  }
-
-  return settings;
-}
-
-export async function saveAlertSettings(settings: Partial<AlertSettingsRecord> & { thresholds?: Partial<AlertThresholds>; channels?: Partial<AlertChannels>; notifyOn?: Partial<AlertNotifyOn> }): Promise<AlertSettingsRecord> {
-  const sanitized: AlertSettingsRecord = {
-    ...settings,
-    thresholds: {
-      ...DEFAULT_THRESHOLDS,
-      ...(settings.thresholds || {})
-    },
-    channels: {
-      ...DEFAULT_CHANNELS,
-      ...(settings.channels || {})
-    },
-    notifyOn: {
-      ...DEFAULT_NOTIFY,
-      ...(settings.notifyOn || {})
-    },
-    updated_at: new Date().toISOString()
-  } as AlertSettingsRecord;
-
-  sanitized.thresholds.drawdown_pct = normalizeDrawdownThreshold(sanitized.thresholds.drawdown_pct);
-
-  await dbStore.saveAlertSettings(sanitized);
-  return sanitized;
-}
 
 export async function getAlertLogs({ strategy, userId = DEFAULT_USER_ID, limit = 50 }: GetAlertLogsOptions = {}): Promise<AlertRecord[]> {
   return dbStore.getAlerts({ strategy: strategy ?? null, userId: userId ?? null, limit } as Record<string, unknown>) as Promise<AlertRecord[]>;

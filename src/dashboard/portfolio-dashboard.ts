@@ -20,12 +20,15 @@ import {
   generateClientReport
 } from '../reports/index.js';
 import {
-  getAlertSettings,
-  saveAlertSettings,
   getAlertLogs,
   notifyRiskEvent
 } from '../alerts/alert-manager.js';
 import { dbStore } from '../storage/indexed-db-store.js';
+import {
+  getAlertSettings,
+  saveAlertSettings,
+  buildAlertSettingsUpdate
+} from '../shared/frontend/alert-settings.js';
 
 declare global {
   interface Window {
@@ -541,14 +544,11 @@ async function handleAlertSettingsSave() {
   const ddValue = Number.parseFloat((document.getElementById('alertDrawdownThreshold') as HTMLInputElement)?.value);
   const scoreValue = Number.parseFloat((document.getElementById('alertScoreThreshold') as HTMLInputElement)?.value);
 
-  const updatedSettings = await saveAlertSettings({
-    ...existingSettings,
-    strategy: strategyKey,
+  const updatedSettings = await saveAlertSettings(buildAlertSettingsUpdate(existingSettings, {
     thresholds: {
-      volatility_pct:
-        Number.isNaN(volValue) ? existingSettings.thresholds.volatility_pct : volValue,
-      drawdown_pct: Number.isNaN(ddValue) ? existingSettings.thresholds.drawdown_pct : ddValue,
-      score: Number.isNaN(scoreValue) ? existingSettings.thresholds.score : scoreValue
+      volatility_pct: volValue,
+      drawdown_pct: ddValue,
+      score: scoreValue
     },
     channels: {
       email: (document.getElementById('alertEmail') as HTMLInputElement)?.value || '',
@@ -562,7 +562,7 @@ async function handleAlertSettingsSave() {
       rebalances: (document.getElementById('alertNotifyRebalances') as HTMLInputElement)?.checked ?? true,
       riskEvents: (document.getElementById('alertNotifyRisk') as HTMLInputElement)?.checked ?? true
     }
-  });
+  }));
 
   const status = document.getElementById('alertSettingsStatus');
   if (status) {

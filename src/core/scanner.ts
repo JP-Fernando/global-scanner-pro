@@ -5,10 +5,7 @@
 import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from './config.js';
 import * as ind from '../indicators/indicators.js';
 import * as scoring from '../indicators/scoring.js';
-import * as allocation from '../allocation/allocation.js';
-import * as risk from '../analytics/risk_engine.js';
 import * as regime from '../analytics/market_regime.js';
-import * as governance from '../analytics/governance.js';
 import * as backtesting from '../analytics/backtesting.js';
 import { SECTOR_TAXONOMY, getSectorId, calculateSectorStats } from '../data/sectors.js';
 import { detectAnomalies } from '../data/anomalies.js';
@@ -71,6 +68,7 @@ import {
   isSimulationInputValid,
   requestSimulation
 } from '../shared/frontend/simulator-service.js';
+import { buildPortfolioModel, validatePortfolioRequest } from '../shared/frontend/portfolio-builder.js';
 
 const sleep = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 let currentResults: any[] = [];
@@ -1936,115 +1934,39 @@ export async function runScan() {
   const totalCapital = parseFloat((document.getElementById('totalCapital') as HTMLInputElement)!.value);
   const riskProfile = (document.getElementById('riskProfile') as HTMLInputElement)?.value || 'moderate';
 
-  if (!appState.scanResults.length) {
+  const issue = validatePortfolioRequest(appState.scanResults, topN);
+  if (issue?.code === 'no_results') {
     showInlineError('Primero ejecuta un escaneo');
     return;
   }
-
-  if (topN > appState.scanResults.length) {
-    showInlineError(`Solo hay ${appState.scanResults.length} activos disponibles`);
+  if (issue?.code === 'not_enough_assets') {
+    showInlineError(`Solo hay ${issue.available} activos disponibles`);
     return;
   }
 
   try {
+    const applyRegime =
+      appState.regime && (document.getElementById('applyRegimeAdjustment') as HTMLInputElement)?.checked;
+    const regimeAdjustment = applyRegime ? appState.regime.strategyAdjustment : null;
 
-    // Si hay ajuste de régimen: Aplicar.
-    let adjustedAssets = appState.scanResults.slice(0, topN);
-
-    // Si hay régimen:
-    if (appState.regime && (document.getElementById('applyRegimeAdjustment') as HTMLInputElement)?.checked) {
-      // Recalcular scores con ajustes de régimen
-      const regimeAdjustment = appState.regime.strategyAdjustment;
-
-      adjustedAssets = adjustedAssets.map((asset: any) => ({
-        ...asset,
-        scoreTotal: Math.max(0, Math.min(100, asset.scoreTotal + regimeAdjustment.min_score))
-      }));
-
-      // Re-ordenar por nuevo score
-      adjustedAssets.sort((a: any, b: any) => b.scoreTotal - a.scoreTotal);
-
-      console.log('✅ Régimen aplicado:', regimeAdjustment);
-    }
-
-    // 1. Calcular asignación
-    const portfolioData = allocation.allocateCapital(adjustedAssets, method);
-
-    // 2. Añadir capital recomendado
-    let withCapital: any[] = allocation.calculateCapitalRecommendations(
-      portfolioData.allocation,
-      totalCapital
-    );
-
-    // 3. Aplicar gobernanza
-    const selectedRules =
-      governance.RISK_PROFILES[riskProfile]?.rules || governance.INVESTMENT_RULES;
-    // Validar cumplimiento
-    const complianceCheck = governance.validateCompliance(withCapital, selectedRules);
-
-    // Si hay violaciones, aplicar correcciones automáticas
-    if (!complianceCheck.compliant) {
-      console.warn('⚠️ Violaciones de gobernanza detectadas:', complianceCheck.violations);
-
-      const correctionResult = governance.applyComplianceCorrections(withCapital, selectedRules);
-      withCapital = correctionResult.portfolio;
-
-      // Recalcular capital después de correcciones
-      withCapital = allocation.calculateCapitalRecommendations(withCapital, totalCapital);
-
-      console.log('✅ Correcciones aplicadas:', correctionResult.corrections);
-    }
-
-    // 4. Enriquecer con precios completos para análisis de riesgo
-    const enrichedAllocation = withCapital.map(asset => {
-      const original = appState.scanResults.find((r: any) => r.ticker === asset.ticker);
-      return {
-        ...asset,
-        prices: original?.pricesWithDates || [],
-        volatility: asset.volatility || original?.details?.risk?.volatility || '20',
-        details: original?.details
-      };
+    const { portfolio, violations, corrections } = buildPortfolioModel(appState.scanResults, {
+      method,
+      topN,
+      totalCapital,
+      riskProfile,
+      strategy: appState.strategy,
+      regimeAdjustment
     });
 
+    if (regimeAdjustment) console.log('✅ Régimen aplicado:', regimeAdjustment);
+    if (violations.length) {
+      console.warn('⚠️ Violaciones de gobernanza detectadas:', violations);
+      console.log('✅ Correcciones aplicadas:', corrections);
+    }
 
-    // 4.1 Validación defensiva de datos históricos (CRÍTICO)
-    const invalidAssets = enrichedAllocation.filter(
-      a => !Array.isArray(a.prices) || a.prices.length < 30
-    );
+    appState.portfolio = portfolio;
 
-    const degradedRisk = invalidAssets.length > 0;
-
-    const finalAllocation = degradedRisk
-      ? enrichedAllocation.filter(a => !invalidAssets.includes(a))
-      : enrichedAllocation;
-
-    // 5. Generar reporte de riesgo completo
-    const riskReport = risk.generateRiskReport(finalAllocation, totalCapital);
-
-    // Meta-información UI (NO cuant)
-    (riskReport as any).meta = {
-      degraded: degradedRisk,
-      excludedAssets: invalidAssets.map(a => a.ticker)
-    };
-
-    // 6. Generar reporte de gobernanza
-    const governanceReport = governance.generateGovernanceReport(
-      enrichedAllocation,
-      appState.strategy,
-      selectedRules
-    );
-
-    // 7. Guardar en estado
-    appState.portfolio = {
-      ...portfolioData,
-      allocation: enrichedAllocation,
-      totalCapital,
-      riskReport,
-      governanceReport,
-      complianceCheck
-    };
-
-    // 8. Renderizar
+    // Renderizar
     renderPortfolio(appState.portfolio);
     
     const portfolioDashboard = document.getElementById('portfolioDashboardSection');

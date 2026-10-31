@@ -26,6 +26,7 @@ Esta carpeta contiene la documentación completa de **Global Quant Scanner Pro**
 
 **Arquitectura y Sistemas**:
 - [Arquitectura técnica](arquitectura-tecnica.md)
+- [Plan de separación de frontends desktop/Android](frontend-separation-plan.md)
 - [Módulo de reportes avanzados](reports-module.md)
 - [Mejoras de experiencia de usuario (UX)](ux-improvements.md)
 - [Machine Learning y optimización avanzada](machine-learning.md) 🆕 ✨

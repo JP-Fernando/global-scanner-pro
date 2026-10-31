@@ -2069,8 +2069,10 @@ background sync, and the local-only vs account-synced product decision.
 #### 5.5.3.2 Frontend Separation and Android UX Hardening
 **Target**: immediately after PWA foundation
 **Status**: 🟡 IN PROGRESS — Phase A (boundary extraction): results filtering, simulator
-service, market data client and formatting extracted to `src/shared/frontend/` (2026-10-31);
-portfolio, alerts and scan orchestration pending. See
+service, market data client, formatting, alert settings persistence and portfolio builder
+extracted to `src/shared/frontend/` (2026-10-31); scan orchestration and offline restore flows
+pending. Alert settings retain the existing storage contract and compatibility exports, with
+unit/integration coverage and a desktop E2E save/reopen regression test. See
 [Frontend Separation Plan](frontend-separation-plan.md#progress).
 
 **Decision**:
