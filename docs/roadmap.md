@@ -30,8 +30,8 @@ no longer "can we build features?" but "what product shape are we shipping next?
 - Frontend separation: preserve the current desktop-optimised experience while adding
   an Android-focused frontend over the same backend and shared domain logic (§5.5.3.2 — Phase A
   boundary extraction in progress)
-- Deployment/operations debt: the Docker image is currently broken (§3.2.1), production
-  dependencies have open advisories (§5.1.2), and `CHANGELOG.md` stops at Phase 3 (§4.3.4)
+- Deployment/operations debt: the Docker image was rebuilt but not yet built with real Docker
+  (§3.2.1), production dependencies have open advisories (§5.1.2), and `CHANGELOG.md` stops at Phase 3 (§4.3.4)
 
 ### Recommendation
 PWA enablement (local-first branch) is done and **frontend separation and Android UX hardening**
@@ -1000,12 +1000,22 @@ No migration tool, no IndexedDB index review, no backup procedure yet.
 ### 3.2 Containerisation and Deployment
 
 #### 3.2.1 Docker Implementation
-**Status**: ⚠️ BUILT February 2026 — **currently broken** (2026-10-31 review). The `Dockerfile`
-copies the `.ts` sources and runs `node server.js`, but `server.js` imports compiled paths such
-as `./src/config/environment.js` that only exist after `tsc` (`npm start` runs
-`dist/server.js`). The image also never runs the Vite build (no `dist/public/`) and does not
-copy `manifest.webmanifest`, `sw.js` or `icons/`. Base image is `node:20-alpine` while CI uses
-Node 22. Needs a build stage (`npm run build`) and a runtime stage serving `dist/`.
+**Status**: ✅ COMPLETED - February 2026 — **rebuilt 2026-10-31** after being found broken (it
+copied raw `.ts` sources, ran an uncompiled `server.js`, skipped the Vite build and omitted the
+PWA files). Current image: `deps` (all dependencies, native-module toolchain) → `build`
+(`npm run build`, `npm prune --omit=dev`; `VITE_*` build args) → `runtime` (`node:22-alpine`,
+non-root, `node dist/server.js`, `wget` healthcheck, `/app/data` volume for SQLite).
+Fixed alongside in `server.js`: production now serves only `dist/public/` (previously
+`express.static('.')` exposed the project root — `package.json`, compiled sources and, once
+created, `data/app.db` and `logs/`), and the SPA fallback resolved `index.html` under
+`dist/dist/` (unknown routes returned 404).
+**Verification**: Docker is not available on the dev machine, so the stages were reproduced
+manually (clean copy of the build context → `npm ci` → build → prune → runtime dir with only
+`node_modules`/`dist`/`package.json`); the full Chromium E2E suite (80/80) passed against that
+runtime. A real `docker build` has not been run yet — consider a CI job that builds the image.
+**Known trap**: `ALLOWED_ORIGINS` must include the browser origin (e.g. the published host port),
+otherwise CORS rejects the app's own module scripts with HTTP 500 — documented in the deployment
+guide; returning 403 / always allowing same-origin would be the proper fix.
 **Current Gap**: No containerisation; deployment process not documented or automated.
 
 **Actions**:
@@ -1037,8 +1047,10 @@ Node 22. Needs a build stage (`npm run build`) and a runtime stage serving `dist
 
 #### 3.2.2 Docker Compose for Local Development
 **Status**: 🟡 PARTIALLY COMPLETED — `docker-compose.yml` defines `app` and `app-dev` services
-only; there is no Redis or PostgreSQL service and no `docker-compose.override.yml`. Inherits
-the broken image from §3.2.1.
+only; there is no Redis or PostgreSQL service and no `docker-compose.override.yml`. Updated
+2026-10-31 for the rebuilt image: `wget` healthcheck, `./data` volume, `ALLOWED_ORIGINS`
+defaulting to the published port; `app-dev` targets the `deps` stage. `--scale` is not possible
+(`container_name` is set).
 **Actions**:
 - Create `docker-compose.yml`:
   - Define application service
@@ -1466,8 +1478,7 @@ the broken image from §3.2.1.
 
 > **Out of date (2026-10-31)**: the guide does not cover the deployment actually in use —
 > GitHub Pages frontend (`deploy-pages.yml`, `VITE_BASE_PATH`, `VITE_API_BASE_URL`) + Render
-> backend — still lists Node 20 (CI uses 22), and its Docker steps inherit the broken image
-> (§3.2.1).
+> backend. (Docker, build, secrets and Node version sections were corrected 2026-10-31.)
 
 **Completed Actions**:
 - ✅ Created [docs/deployment-guide.md](deployment-guide.md) covering:
@@ -2337,7 +2348,7 @@ capabilities in parallel. The next decision is architectural as much as function
    in [Backend Persistence Strategy](backend-persistence-strategy.md) — SQLite-backed
    authenticated source of truth with IndexedDB retained as the PWA cache/offline layer.
 6. Close remaining production-readiness gaps that matter for real users, not just internal demos —
-   concretely (2026-10-31): fix the Docker image (§3.2.1), triage production `npm audit`
+   concretely (2026-10-31): ✅ Docker image rebuilt (§3.2.1, pending a real `docker build`), triage production `npm audit`
    advisories (§5.1.2), bring `CHANGELOG.md` up to date (§4.3.4), and resync the OpenAPI spec
    (§2.3.1)
 

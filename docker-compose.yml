@@ -26,11 +26,15 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
+      # CORS also gates the app's own module scripts: it must include the origin the
+      # browser uses, i.e. the published host port (override in .env for a real domain)
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:${PORT:-3000}}
     volumes:
-      # Persist logs outside the container
+      # Persist logs and the SQLite user database outside the container
       - ./logs:/app/logs
+      - ./data:/app/data
     healthcheck:
-      test: ["CMD", "curl", "-fs", "http://localhost:3000/api/v1/health"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/v1/health | grep -q '\"status\":\"ok\"'"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -50,7 +54,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      # Use the deps stage so devDependencies are available
+      # Use the deps stage so devDependencies (tsx) are available
       target: deps
     image: global-scanner-pro:dev
     container_name: gsp-app-dev

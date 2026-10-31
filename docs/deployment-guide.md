@@ -22,8 +22,8 @@ This guide covers prerequisites, environment setup, and step-by-step deployment 
 
 | Requirement | Minimum Version | Notes |
 |-------------|----------------|-------|
-| Node.js | 20.x LTS | `node --version` |
-| npm | 10.x | bundled with Node 20 |
+| Node.js | 20.x (22.x recommended — used by CI and the Docker image) | `node --version` |
+| npm | 10.x | bundled with Node 20/22 |
 | Git | 2.x | for source control |
 | Docker | 24.x | optional — for containerised deployment |
 | Docker Compose | 2.x | optional — for local multi-service setup |
@@ -34,8 +34,18 @@ This guide covers prerequisites, environment setup, and step-by-step deployment 
 ```
 NODE_ENV=production
 SESSION_SECRET=<32+ random bytes — openssl rand -base64 32>
+JWT_SECRET=<32+ random bytes — openssl rand -base64 32>
 ALLOWED_ORIGINS=https://your-domain.com
 ```
+
+The server refuses to start in production if `SESSION_SECRET` or `JWT_SECRET` still have their
+insecure defaults.
+
+> **`ALLOWED_ORIGINS` must include the origin the app itself is served from.** CORS is applied to
+> every request, and browsers send an `Origin` header for the app's own `<script type="module">`
+> assets — if that origin is not listed, every JS asset fails (HTTP 500) and the page loads
+> without any functionality. For a local container on port 8080 that means
+> `ALLOWED_ORIGINS=http://localhost:8080`.
 
 ---
 
@@ -113,8 +123,8 @@ export NODE_ENV=staging
 export PORT=3000
 # ... other variables from .env
 
-# 5. Start the server
-node server.js
+# 5. Start the compiled server
+node dist/server.js
 ```
 
 ### Verify staging health
@@ -132,9 +142,14 @@ curl http://your-staging-host:3000/api/v1/health | jq '.status'
 
 ```bash
 git pull origin main
-npm ci --omit=dev
-npm run build                   # builds dist/src/ (TS) + dist/public/ (Vite)
+npm ci                          # tsc and vite are devDependencies — needed to build
+npm run build                   # builds dist/server.js + dist/src/ (TS) + dist/public/ (Vite)
+npm prune --omit=dev            # optional: drop devDependencies after building
 ```
+
+In production only `dist/public/` is served as static content (it already contains `universes/`,
+the PWA manifest, service worker and icons), so the project root — `package.json`, `data/app.db`,
+`logs/` — is never exposed over HTTP.
 
 ### 5.2 Configure environment
 
@@ -142,6 +157,7 @@ npm run build                   # builds dist/src/ (TS) + dist/public/ (Vite)
 export NODE_ENV=production
 export PORT=3000
 export SESSION_SECRET=$(openssl rand -base64 32)
+export JWT_SECRET=$(openssl rand -base64 32)
 export ALLOWED_ORIGINS=https://your-domain.com
 export SENTRY_DSN=https://...@sentry.io/...
 # Optional Redis:
@@ -154,7 +170,7 @@ export REDIS_URL=redis://redis-host:6379
 npm install -g pm2
 
 # Start
-pm2 start server.js --name gsp --env production
+pm2 start dist/server.js --name gsp --env production
 
 # Configure auto-restart on reboot
 pm2 startup
@@ -206,6 +222,12 @@ server {
 
 ### 6.1 Single container
 
+The image is multi-stage: `deps` (all dependencies) → `build` (`npm run build`, then prune to
+production dependencies) → `runtime` (`node:22-alpine`, non-root, `node dist/server.js`, same as
+`npm start`). Frontend build settings can be passed as build args
+(`--build-arg VITE_API_BASE_URL=...`, `--build-arg VITE_BASE_PATH=...`); both default to a
+same-origin app served from `/`.
+
 ```bash
 # Build image
 docker build -t gsp:latest .
@@ -214,11 +236,16 @@ docker build -t gsp:latest .
 docker run -d \
   --name gsp \
   -p 3000:3000 \
-  -e NODE_ENV=production \
   -e SESSION_SECRET=$(openssl rand -base64 32) \
-  -e ALLOWED_ORIGINS=https://your-domain.com \
+  -e JWT_SECRET=$(openssl rand -base64 32) \
+  -e ALLOWED_ORIGINS=http://localhost:3000 \
+  -v gsp-data:/app/data \
   gsp:latest
 ```
+
+`/app/data` holds the SQLite user database (`DATABASE_PATH=./data/app.db`); mount a volume so
+accounts survive container replacement. Generate the secrets once and keep them — regenerating
+`JWT_SECRET` invalidates every issued token.
 
 ### 6.2 Docker Compose (recommended for local/staging with Redis)
 
@@ -227,7 +254,7 @@ docker run -d \
 cp .env.example .env
 # Edit .env
 
-# Start all services (app + Redis)
+# Start the app (no Redis service is defined — set REDIS_URL in .env to use an external one)
 docker compose up -d
 
 # View logs
@@ -242,12 +269,10 @@ docker compose down -v
 
 ### 6.3 Scaling with Docker Compose
 
-```bash
-# Run 3 application replicas (requires Redis for shared cache)
-docker compose up -d --scale app=3
-```
-
-> **Note**: Horizontal scaling requires `REDIS_URL` to be set so all instances share the same cache. Without Redis each instance maintains its own in-process cache.
+> **Not supported with the current compose file**: the `app` service sets `container_name`,
+> which prevents `--scale`, and each replica would get its own SQLite user database and
+> in-memory rate limiter. Horizontal scaling additionally needs `REDIS_URL` for a shared cache.
+> Treat scaling as future work (see roadmap §3.4.1 / §1.1.3).
 
 ---
 

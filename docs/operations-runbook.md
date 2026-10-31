@@ -182,7 +182,7 @@ top -p $(pm2 pid gsp)
 curl -s localhost:3000/metrics | grep http_request_duration_seconds_sum
 
 # Enable profiling temporarily
-NODE_OPTIONS=--prof node server.js
+NODE_OPTIONS=--prof node dist/server.js
 # Then analyse: node --prof-process isolate-*.log
 ```
 
@@ -264,7 +264,7 @@ curl -I "http://localhost:3000/api/v1/yahoo?symbol=AAPL&from=0&to=1" 2>&1 | grep
 lsof -ti:3000
 
 # Check for env validation errors
-NODE_ENV=production node server.js 2>&1 | head -30
+NODE_ENV=production node dist/server.js 2>&1 | head -30
 
 # Check for module not found errors
 npm run build:server 2>&1
@@ -448,7 +448,7 @@ find logs/ -name "*.log" -mtime +14 -delete
 
 ```bash
 # Using PM2 cluster mode
-pm2 start server.js --name gsp -i max   # one instance per CPU core
+pm2 start dist/server.js --name gsp -i max   # one instance per CPU core
 pm2 save
 
 # Using Docker Compose

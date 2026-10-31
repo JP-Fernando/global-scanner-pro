@@ -81,7 +81,9 @@ import {
 // Observability: Prometheus metrics
 import { metricsMiddleware, metricsHandler } from './src/utils/metrics.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Production frontend build, relative to the working directory: this file runs as
+// dist/server.js, so a module-relative path would point inside dist/.
+const PUBLIC_DIR = path.resolve('dist/public');
 
 // Print full configuration only in debug mode
 if (config.development.debug) {
@@ -174,9 +176,9 @@ const cacheHeaders = (res, filePath) => {
 };
 
   if (isProduction) {
-    // Production: serve Vite-optimised build first, then fall back to project root for data files
-    app.use(express.static('dist/public', { setHeaders: cacheHeaders }));
-    app.use(express.static('.', { setHeaders: cacheHeaders }));
+    // Production: serve only the Vite build. inject-vite-assets.js copies universes/ and the
+    // PWA files into it, so the project root (package.json, data/app.db, logs/) is never exposed.
+    app.use(express.static(PUBLIC_DIR, { setHeaders: cacheHeaders }));
   } else {
     // Development / Test: serve everything from project root (tsc-compiled modules in dist/src/)
     app.use(express.static('.', { setHeaders: cacheHeaders }));
@@ -555,7 +557,7 @@ const healthHandler = asyncHandler(async (req, res) => {
         req.path.startsWith('/metrics') ||
         req.path.startsWith('/api-docs');
       if (!isApi) {
-        res.sendFile(path.resolve(__dirname, 'dist/public/index.html'));
+        res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
       } else {
         next();
       }
