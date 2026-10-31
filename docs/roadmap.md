@@ -4,7 +4,7 @@
 
 This document presents a phased approach organised into four major phases, followed by ongoing continuous improvement initiatives.
 
-## Current Snapshot — 2026-07-02
+## Current Snapshot — 2026-10-31
 
 The repository is in a stronger state than the original roadmap suggests in terms of engineering
 foundations: security hardening, test coverage, API documentation, performance work, reporting,
@@ -18,17 +18,26 @@ no longer "can we build features?" but "what product shape are we shipping next?
 - Good validation, monitoring, logging, and test foundations for expanding safely
 - ✅ Installable local-first PWA shell (manifest, service worker, offline last-scan/simulator
   review, install prompt) — completed 2026-07-02, see §5.5.3.1
+- ✅ Split hosting path: frontend auto-deployed to GitHub Pages on every push to `main`
+  (`.github/workflows/deploy-pages.yml`, `VITE_BASE_PATH`/`VITE_API_BASE_URL`), backend on Render
+- ✅ Test baseline (2026-10-31): 1300 unit+integration tests, 80 Chromium E2E tests (12 specs),
+  coverage gate passing (94.8 / 81.4 / 96.5 / 96.2 — see §2.1.2 for scope caveats)
 
 ### What is still strategically missing
-- Real authentication and user ownership model
+- Auth is backend-only: no frontend login/registration UI and no per-user data ownership (§4.1)
 - A clear decision between local-first single-user usage vs multi-user synced product
   (this milestone shipped the local-first branch; account-based sync is still open, §5.5.3.3)
-- Frontend separation planning: preserve the current desktop-optimised experience while adding
-  an Android-focused frontend over the same backend and shared domain logic (§5.5.3.2 — next up)
+- Frontend separation: preserve the current desktop-optimised experience while adding
+  an Android-focused frontend over the same backend and shared domain logic (§5.5.3.2 — Phase A
+  boundary extraction in progress)
+- Deployment/operations debt: the Docker image is currently broken (§3.2.1), production
+  dependencies have open advisories (§5.1.2), and `CHANGELOG.md` stops at Phase 3 (§4.3.4)
 
 ### Recommendation
-PWA enablement (local-first branch) is done. Treat the next milestone as **frontend separation
-and Android UX hardening** (§5.5.3.2) — the installable shell now exists, but the next step
+PWA enablement (local-first branch) is done and **frontend separation and Android UX hardening**
+(§5.5.3.2) is the active milestone — Phase A has extracted results filtering, simulator,
+market data, formatting, alert settings and portfolio building into `src/shared/frontend/`;
+scan orchestration and offline restore remain. The installable shell exists, but the next step
 should not be "make desktop worse so mobile fits". Instead, preserve the current desktop
 workflow, extract shared application logic, and build an Android-focused presentation layer over
 the same backend before revisiting the local-first vs account-based sync decision (§5.5.3.3).
@@ -39,7 +48,9 @@ the same backend before revisiting the local-first vs account-based sync decisio
 
 **Objective**: Establish essential security measures and foundational infrastructure to protect the application and enable professional development workflows.
 
-**Status**: ✅ COMPLETED - January 2026
+**Status**: ✅ COMPLETED - January 2026 — with gaps noted inline (2026-10-31 review): Prettier
+(1.4.2) was never set up, Husky has no pre-push hook (1.4.3), rate limiting is in-memory only
+(1.1.3), and the tag-triggered deploy workflow (1.2.1) was replaced by GitHub Pages + Render.
 
 **Priority**: CRITICAL
 
@@ -91,7 +102,9 @@ For a quick overview, see the Phase 1 section in the main [README.md](../README.
 - Browser console shows no CSP violations during normal operation
 
 #### 1.1.3 Rate Limiting
-**Status**: ✅ COMPLETED
+**Status**: ✅ COMPLETED (single instance) — 🟡 the Redis-backed distributed store was not
+implemented: `express-rate-limit` uses its default in-memory store, so limits are per process.
+Development defaults are relaxed via `NODE_ENV=development`.
 
 **Actions**:
 - Install express-rate-limit middleware
@@ -163,7 +176,14 @@ For a quick overview, see the Phase 1 section in the main [README.md](../README.
 > **✅ COMPLETED** - See [CI/CD Pipeline Guide](ci-cd-pipeline.md) for full details
 
 #### 1.2.1 GitHub Actions Workflow Setup
-**Status**: ✅ COMPLETED
+**Status**: ✅ COMPLETED — implementation differs from the original plan (2026-10-31):
+- `ci.yml` (push/PR on `main`, `develop`; Node **22.x**): lint, typecheck, tests + coverage,
+  `npm audit --production`, Playwright E2E (Chromium), build, performance job
+- `security.yml`: dependency review on PRs + weekly/manual Snyk scan; **no GitGuardian**
+- **No tag-triggered `deploy.yml`** (staging → production with approval). Deployment is instead
+  `deploy-pages.yml` (frontend to GitHub Pages on every push to `main`) + Render (backend)
+- "PRs blocked until CI passes" depends on branch protection, which is not configured in-repo
+  (see §5.2.1)
 
 **Actions**:
 - Create `.github/workflows/ci.yml` for continuous integration:
@@ -265,10 +285,14 @@ For a quick overview, see the Phase 1 section in the main [README.md](../README.
 
 ### 1.4 Code Quality Tooling
 
-> **✅ COMPLETED** - See [Code Quality Guide](code-quality.md) for full details
+> **🟡 PARTIALLY COMPLETED** - ESLint and Husky are in place; Prettier was never set up.
+> See [Code Quality Guide](code-quality.md) for details
 
 #### 1.4.1 ESLint Configuration
-**Status**: ✅ COMPLETED
+**Status**: ✅ COMPLETED — as a flat config (`eslint.config.js`, `@eslint/js` +
+`typescript-eslint`) rather than `.eslintrc.json`; the airbnb/standard, `import`, `security` and
+`jsdoc` plugins listed below were not adopted. `npm run lint` reports 0 errors (≈1070 warnings,
+mostly `no-explicit-any` and `max-len`) as of 2026-10-31.
 
 **Actions**:
 - Install ESLint and plugins:
@@ -293,6 +317,8 @@ For a quick overview, see the Phase 1 section in the main [README.md](../README.
 - IDE shows linting errors in real-time
 
 #### 1.4.2 Prettier Configuration
+**Status**: ❌ NOT IMPLEMENTED — no `prettier` dependency, `.prettierrc*` or `format` script.
+
 **Actions**:
 - Install Prettier
 - Create `.prettierrc.json` configuration:
@@ -309,6 +335,10 @@ For a quick overview, see the Phase 1 section in the main [README.md](../README.
 - No conflicts between ESLint and Prettier
 
 #### 1.4.3 Git Hooks with Husky
+**Status**: 🟡 PARTIALLY COMPLETED — `.husky/pre-commit` runs `lint-staged` (`eslint --fix` on
+staged `*.{ts,js}`) and `tsc --noEmit`. No formatting step (no Prettier), no `pre-push` hook,
+and no `commit-msg` hook.
+
 **Actions**:
 - Install Husky and lint-staged
 - Configure Husky to run on pre-commit:
@@ -373,6 +403,9 @@ for (const envVar of requiredEnvVars) {
 - `.env.example` documents all configuration options
 - Application fails fast if required variables missing
 - No secrets in source control
+
+**Note (2026-10-31)**: the `ENABLE_*` feature flags are validated in `src/config/environment.ts`
+and printed at startup, but no code path reads `config.features` yet — they have no effect.
 
 ---
 
@@ -439,6 +472,14 @@ for (const envVar of requiredEnvVars) {
 #### 2.1.2 Expand Unit Test Coverage
 **Status**: ✅ COMPLETED - February 2026
 
+> **Current state (2026-10-31)**: 70 files / 1300 unit+integration tests passing; coverage gate
+> passing at **94.8% stmts / 81.4% branches / 96.5% funcs / 96.2% lines** (thresholds
+> 80/60/85/80). Caveat: the figure is scoped by `vitest.config.js` — `src/core/scanner.ts` is
+> explicitly excluded (DOM-bound, exercised via Playwright), and `src/shared/`, `src/simulation/`,
+> `src/dashboard/`, `src/utils/`, `src/pwa/`, `src/queue/`, `src/data/` and `src/i18n/` are not in
+> the `include` list, so their (existing) tests do not count toward the gate. The February
+> results below are historical.
+
 **Current Gap** (at start): Coverage at ~43% overall; many critical modules untested.
 
 **Actions**:
@@ -462,7 +503,9 @@ for (const envVar of requiredEnvVars) {
 - ✅ All critical modules now tested: core scanner, ML, reports, storage, analytics, portfolio, allocation, middleware, security, config
 - Remaining for future improvement:
   - Add property-based testing for numerical calculations (using fast-check)
-  - Increase `core/scanner.js` coverage beyond 24% (requires extracting DOM-coupled logic)
+  - ~~Increase `core/scanner.js` coverage beyond 24%~~ — superseded: `scanner.ts` is now excluded
+    from coverage, and its reusable logic is being extracted into tested `src/shared/frontend/`
+    modules (§5.5.3.2 Phase A). Add `src/shared/**/*.ts` to the coverage `include` list.
 
 **Results** (February 2026 — Final):
 - 47 test files with 1025 tests (was 15 files / ~200 tests at Phase 2.1.1)
@@ -540,6 +583,11 @@ for (const envVar of requiredEnvVars) {
 
 #### 2.1.4 Implement End-to-End (E2E) Tests
 **Status**: ✅ COMPLETED - February 2026
+
+> **Current state (2026-10-31)**: 12 spec files / 80 tests, all passing on Chromium (~1.8 min),
+> including `pwa.spec.js` (added with §5.5.3.1) and the alert settings save/reload regression.
+> The accessibility failures noted in July are no longer reproducible. **Gap**: there is no
+> simulator E2E spec — the simulator flow is covered by unit/integration tests only.
 
 **Current Gap** (at start): No E2E tests to verify user-facing functionality.
 
@@ -708,7 +756,10 @@ for (const envVar of requiredEnvVars) {
 **Status**: ✅ COMPLETED - February 2026
 
 #### 2.3.1 OpenAPI/Swagger Specification
-**Status**: ✅ COMPLETED - February 2026
+**Status**: ✅ COMPLETED - February 2026 — 🟡 drifted since (2026-10-31): `/health`, `/yahoo`,
+`/run-tests`, `/simulate` and the 7 `/auth/*` endpoints are documented, but `/jobs/*` (5
+endpoints), `/cache/flush` and `/metrics` are not; and `/simulate` still declares
+`security: bearerAuth` although it has been public since commit `1d83c3a`.
 **Current Gap**: No formal API documentation exists.
 
 **Actions**:
@@ -830,7 +881,7 @@ for (const envVar of requiredEnvVars) {
 **Completed Actions**:
 - ✅ Installed Vite 7 as devDependency
 - ✅ Created [`vite.config.ts`](../vite.config.ts):
-  - Entry points: `src/core/scanner.ts`, `src/i18n/ui-translator.ts`, `src/i18n/ui-init.ts`, `src/dashboard/attribution-dashboard.css`
+  - Entry points: `src/core/scanner.ts`, `src/i18n/ui-translator.ts`, `src/i18n/ui-init.ts`, `src/dashboard/attribution-dashboard.css` (+ `src/pwa/pwa-init.ts`, added with §5.5.3.1)
   - Output: `dist/public/assets/` (hashed filenames: `[name]-[hash].js`)
   - esbuild minification (JS + CSS), source maps for production debugging
   - Vite manifest (`manifest.json`) for post-build HTML injection
@@ -862,7 +913,7 @@ for (const envVar of requiredEnvVars) {
 | Asset hashing | Content hash `[name]-[hash].js` | ✅ |
 
 **Success Criteria**:
-- ✅ Production bundle size < 500 kB gzipped (~110 kB actual)
+- ✅ Production bundle size < 500 kB gzipped (~110 kB actual; re-measured ~111 kB on 2026-10-31)
 - ✅ Asset hashing for long-term cache busting
 - ✅ Source maps for production debugging
 - ✅ Code splitting by domain for independent cache invalidation
@@ -890,6 +941,12 @@ for (const envVar of requiredEnvVars) {
 - ✅ `X-Cache` header confirms cache operation per request
 
 #### 3.1.3 Database Optimisation
+**Status**: 🟡 PARTIALLY ADDRESSED (2026-10-31) — a server-side **SQLite** database
+(`better-sqlite3`, `src/config/database.ts`, WAL, idempotent DDL) was introduced for auth
+(§4.1) instead of PostgreSQL; the target model for user portfolios/alerts/preferences is
+defined in [Backend Persistence Strategy](backend-persistence-strategy.md) but not implemented.
+No migration tool, no IndexedDB index review, no backup procedure yet.
+
 **Current Gap**: IndexedDB usage not optimised; no server-side database for multi-user scenarios.
 
 **Actions**:
@@ -943,7 +1000,12 @@ for (const envVar of requiredEnvVars) {
 ### 3.2 Containerisation and Deployment
 
 #### 3.2.1 Docker Implementation
-**Status**: ✅ COMPLETED - February 2026
+**Status**: ⚠️ BUILT February 2026 — **currently broken** (2026-10-31 review). The `Dockerfile`
+copies the `.ts` sources and runs `node server.js`, but `server.js` imports compiled paths such
+as `./src/config/environment.js` that only exist after `tsc` (`npm start` runs
+`dist/server.js`). The image also never runs the Vite build (no `dist/public/`) and does not
+copy `manifest.webmanifest`, `sw.js` or `icons/`. Base image is `node:20-alpine` while CI uses
+Node 22. Needs a build stage (`npm run build`) and a runtime stage serving `dist/`.
 **Current Gap**: No containerisation; deployment process not documented or automated.
 
 **Actions**:
@@ -974,7 +1036,9 @@ for (const envVar of requiredEnvVars) {
 - Health check reports application status
 
 #### 3.2.2 Docker Compose for Local Development
-**Status**: ✅ COMPLETED - February 2026
+**Status**: 🟡 PARTIALLY COMPLETED — `docker-compose.yml` defines `app` and `app-dev` services
+only; there is no Redis or PostgreSQL service and no `docker-compose.override.yml`. Inherits
+the broken image from §3.2.1.
 **Actions**:
 - Create `docker-compose.yml`:
   - Define application service
@@ -1045,7 +1109,8 @@ for (const envVar of requiredEnvVars) {
   - `yahoo_finance_requests_total` — external proxy request counter
   - Default Node.js metrics: CPU, memory, GC, event loop lag, file descriptors
 - ✅ `metricsMiddleware` — per-request instrumentation (active conn gauge, counter, histogram)
-- ✅ Exposed `GET /metrics` endpoint in Prometheus text format
+- ✅ Exposed `GET /metrics` endpoint in Prometheus text format (requires an `admin` JWT since
+  §4.1 — a Prometheus scraper needs a bearer token configured)
 - ✅ `refreshCacheMetrics()` called on each scrape to update cache gauges
 - Grafana dashboards: deferred (requires Prometheus server + Grafana deployment)
 
@@ -1150,7 +1215,7 @@ for (const envVar of requiredEnvVars) {
   - [portfolio-optimization.processor.ts](../src/queue/processors/portfolio-optimization.processor.ts) — Max Sharpe, Min Variance, Risk Parity, ERC (iterative, no external optimizer dep)
   - [report-generation.processor.ts](../src/queue/processors/report-generation.processor.ts) — Excel (xlsx) and PDF (jsPDF) generation with progress reporting
   - [ml-training.processor.ts](../src/queue/processors/ml-training.processor.ts) — Linear Regression (factor weighting), Logistic Regression (regime prediction), Z-Score calibration (anomaly detection)
-- ✅ Added five API endpoints to `server.js`:
+- ✅ Added five API endpoints to `server.js` (all require an `admin` or `analyst` JWT since §4.1):
   - `POST /api/v1/jobs/optimize` → `202 Accepted` with `jobId`
   - `POST /api/v1/jobs/report` → `202 Accepted` with `jobId`
   - `POST /api/v1/jobs/ml-train` → `202 Accepted` with `jobId`
@@ -1176,55 +1241,24 @@ for (const envVar of requiredEnvVars) {
 
 ### 4.1 Authentication and Authorisation
 
-> ✅ **Rebuilt and verified 2026-07-02** after the original implementation (recorded as
-> complete in a prior session's memory) was found missing from the repo — see the
-> `auth_phase_reverted` memory entry for the forensics. This time: `tsc --noEmit` clean,
-> full unit+integration suite green (1231 tests total, 70 covering auth), and the flow was
-> smoke-tested end-to-end against a **running server** over real HTTP (register →
-> duplicate→409 → login → GET /me → refresh-rotation → logout-of-stale-token all behaved
-> correctly). **Not yet committed** — see the working-tree note below.
+> ✅ **Backend rebuilt 2026-07-02 and committed** (`c923657` "Re-implement Phase 4.1",
+> `f01a46b` "Wire auth/RBAC into protected endpoints"), after the original implementation was
+> found missing from the repo.
 >
-> **What's actually built** (backend only, by explicit scope decision this session):
-> `src/config/database.ts` (SQLite singleton, WAL, idempotent DDL), `src/auth/user-model.ts`
-> (sync CRUD), `src/auth/auth-service.ts` (register/login/logout/refresh/forgot+reset
-> password — bcrypt 12 rounds, constant-time login, JWT refresh rotation with `jti`),
-> `src/auth/auth-middleware.ts` (`requireAuth`/`requireRole`), `src/auth/auth-router.ts`
-> (7 endpoints, mounted at `/api/v1/auth`). New env vars: `JWT_SECRET`, `JWT_EXPIRES_IN`,
-> `JWT_REFRESH_EXPIRES_IN`, `DATABASE_PATH`, `APP_URL`. OpenAPI spec updated
-> (`src/config/swagger.ts`, new `Authentication` tag). First user → admin.
+> **What's built** (backend only): `src/config/database.ts` (SQLite singleton, WAL, idempotent
+> DDL), `src/auth/user-model.ts` (sync CRUD), `src/auth/auth-service.ts` (register/login/
+> logout/refresh/forgot+reset password — bcrypt 12 rounds, constant-time login, JWT refresh
+> rotation with `jti`), `src/auth/auth-middleware.ts` (`requireAuth`/`requireRole`),
+> `src/auth/auth-router.ts` (7 endpoints at `/api/v1/auth`). Env vars: `JWT_SECRET`,
+> `JWT_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`, `DATABASE_PATH`, `APP_URL`. First user → admin.
 >
-> **Updated 2026-07-02 (follow-up pass)**: the deferred wiring step is now done. Real
-> `requireAuth()` JWT verification protects `/api/v1/simulate`, while `/api/v1/jobs/*`
-> requires `admin|analyst` and `/metrics` requires `admin`. The simulator integration
-> suite was rewritten to mint real JWTs instead of relying on the previous local stub.
-> Frontend login/registration UI, login rate-limiting/lockout, email-verification
-> delivery, and per-user data isolation (4.1.3) are still not built yet — see the
-> per-subsection status below.
+> **Endpoint protection today** (2026-10-31): `/api/v1/jobs/*` requires `admin|analyst`;
+> `/metrics` requires `admin`. **Public**: `/api/v1/yahoo` (+ legacy `/api/yahoo`) — protecting
+> it broke scanning because the frontend has no login flow — and `/api/v1/simulate`, reopened
+> in `1d83c3a` for the same reason. Both rely on rate limiting only.
 >
-> **Reverted the same day**: `requireAuth()` was briefly wired onto `/api/v1/yahoo` too,
-> but that broke scanning outright — the frontend has no login flow, so every fetch
-> 401'd and every stock was rejected as "Insufficient history". `/api/v1/yahoo` (and the
-> legacy `/api/yahoo`) are public again, same as before this phase; only rate limiting
-> applies. Dev-mode rate limit defaults were also relaxed (`RATE_LIMIT_MAX_REQUESTS`/
-> `RATE_LIMIT_YAHOO_MAX` default higher when `NODE_ENV=development`) so a full-market
-> scan doesn't exhaust the limiter mid-run.
->
-> **Working-tree note**: like 4.4 before it, this is uncommitted on `main` as of 2026-07-02:
-> `package.json`/`package-lock.json` (new deps: `better-sqlite3`, `jsonwebtoken`, `bcrypt`,
-> `nodemailer` + `@types/*`), `server.js`, `src/config/environment.ts`,
-> `src/config/swagger.ts`, `src/security/validation-schemas.ts`, `src/tests/vitest.setup.js`,
-> `vitest.config.js`, `.gitignore`, `.env.example`, plus new `src/auth/`,
-> `src/config/database.ts`, and their tests. Commit before moving on.
->
-> **Separately discovered while re-verifying this phase**: the project's global coverage
-> gate (`vitest --coverage`, thresholds 80/60/85/80 in `vitest.config.js`) was **already
-> failing on `main` before this session's changes** (78.11% stmts / 78.34% lines / 83.54%
-> funcs — confirmed via `git stash` comparison), largely because `src/config/swagger.ts`
-> (0% covered, 656 lines) and `src/core/scanner.ts` (~20%) drag the average down. This
-> session's auth work nudged the numbers slightly *up* (78.63/78.94/84.07), not down, but
-> the gate itself is a pre-existing, unrelated problem worth a dedicated pass later (either
-> add `scanner.ts` tests, or scope coverage `include` away from declarative/generated files
-> like `swagger.ts`).
+> **Still missing**: frontend login/registration UI, login rate-limiting/lockout,
+> email-verification delivery, and per-user data isolation (4.1.3).
 
 #### 4.1.1 Authentication System Design
 **Status**: ✅ COMPLETED — 2026-07-02 (Option A: JWT-based auth selected and implemented)
@@ -1246,7 +1280,7 @@ for (const envVar of requiredEnvVars) {
 **Deliverable**: Authentication design document
 
 #### 4.1.2 User Management Implementation
-**Status**: 🟡 PARTIALLY COMPLETED — 2026-07-02 (backend core done; see gaps below)
+**Status**: 🟡 PARTIALLY COMPLETED — 2026-07-02 (backend core done and committed; see gaps below)
 
 **Actions**:
 - Create user database schema:
@@ -1282,7 +1316,7 @@ for (const envVar of requiredEnvVars) {
 - ✅ Users can register and log in
 - ✅ Passwords stored securely (hashed)
 - ❌ Email verification works — schema exists, delivery/enforcement does not
-- ✅ Authentication required for protected endpoints — wired onto `/api/v1/simulate`, `/api/v1/jobs/*`, and `/metrics` (`/api/v1/yahoo` is deliberately public — see note above)
+- ✅ Authentication required for protected endpoints — wired onto `/api/v1/jobs/*` and `/metrics` (`/api/v1/yahoo` and `/api/v1/simulate` are deliberately public — see note above)
 
 #### 4.1.3 Role-Based Access Control (RBAC)
 **Status**: 🟡 PARTIALLY COMPLETED — 2026-07-02 (roles + middleware built and wired; no per-user data isolation or auth-aware UI yet)
@@ -1294,7 +1328,7 @@ for (const envVar of requiredEnvVars) {
 - Implement permission system:
   - 🟡 Role-based (not fine-grained permission-based): `requireRole('admin', 'analyst')` etc. exists and is tested, but there's no `create_scan`/`edit_portfolio`/`configure_alerts`-style permission table — coarser than originally scoped, and sufficient for 3 roles
   - ✅ Authorization middleware (`requireRole`)
-- ✅ Protect endpoints with permission checks — `/api/v1/simulate` now requires real JWT auth; `/api/v1/jobs/*` requires `admin|analyst`; `/metrics` requires `admin`. `/api/v1/yahoo` remains public by design (see note above). Simulator integration tests were rewritten to use real JWTs.
+- ✅ Protect endpoints with permission checks — `/api/v1/jobs/*` requires `admin|analyst`; `/metrics` requires `admin`. `/api/v1/yahoo` and `/api/v1/simulate` are public by design (see note above); the simulator integration suite asserts that `/simulate` works without an `Authorization` header.
 - Implement data isolation:
   - ❌ Users see only their own scans/portfolios — not applicable yet; the app has no per-user data ownership model (scans/portfolios aren't currently associated with a user_id anywhere)
   - ❌ Row-level security — not implemented, same reason
@@ -1302,9 +1336,8 @@ for (const envVar of requiredEnvVars) {
 
 **Success Criteria**:
 - ✅ Different user roles have appropriate access **at the middleware level** (verified in isolation)
-- ✅ Unauthorised actions blocked **on real endpoints** — auth + RBAC are wired onto `/api/v1/simulate`, `/api/v1/jobs/*`, and `/metrics` (`/api/v1/yahoo` is public by design, not an oversight)
+- ✅ Unauthorised actions blocked **on real endpoints** — auth + RBAC are wired onto `/api/v1/jobs/*` and `/metrics` (`/api/v1/yahoo` and `/api/v1/simulate` are public by design, not an oversight)
 - ❌ Data properly isolated between users — no per-user data model exists yet in this codebase
-- Data properly isolated between users
 
 ### 4.2 Data Protection and Compliance
 
@@ -1431,6 +1464,11 @@ for (const envVar of requiredEnvVars) {
 #### 4.3.1 Deployment Documentation
 **Status**: ✅ COMPLETED — February 2026
 
+> **Out of date (2026-10-31)**: the guide does not cover the deployment actually in use —
+> GitHub Pages frontend (`deploy-pages.yml`, `VITE_BASE_PATH`, `VITE_API_BASE_URL`) + Render
+> backend — still lists Node 20 (CI uses 22), and its Docker steps inherit the broken image
+> (§3.2.1).
+
 **Completed Actions**:
 - ✅ Created [docs/deployment-guide.md](deployment-guide.md) covering:
   - Prerequisites table (Node 20, Docker, Redis)
@@ -1482,12 +1520,16 @@ for (const envVar of requiredEnvVars) {
 - Contribution standards enforced ✅
 
 #### 4.3.4 Changelog and Versioning
-**Status**: ✅ COMPLETED — February 2026
+**Status**: 🟡 SET UP February 2026 — **out of date** (2026-10-31): `CHANGELOG.md` has released
+sections 0.0.0–0.0.5 plus an `[Unreleased]` section that stops at Phase 3 work; there is no
+`0.0.6` section, and auth (4.1), the simulator (4.4), the PWA (5.5.3.1), the Pages/Render split
+deploy and the frontend separation work are not recorded. Conventional Commits are a documented
+convention only — no `commit-msg` hook or commitlint enforces them.
 
 **Delivered**:
-- `CHANGELOG.md` — Keep a Changelog format; all versions (0.0.1–0.0.6) documented with Added/Changed/Fixed/Security categories
+- `CHANGELOG.md` — Keep a Changelog format with Added/Changed/Fixed/Security categories
 - Semantic versioning adopted: current version `0.0.6` in `package.json`
-- Conventional Commits enforced via Husky pre-commit hook; changelog updated manually per release
+- Changelog updated manually per release
 - Commit convention documented in `CONTRIBUTING.md`
 
 **Success Criteria**:
@@ -1499,7 +1541,8 @@ for (const envVar of requiredEnvVars) {
 
 ### 4.4 Investment Simulator Tab
 
-**Status**: ✅ COMPLETED — February 2026 (not yet committed — see note below)
+**Status**: ✅ COMPLETED — February 2026 (committed 2026-07-02: `998eacf`, `7d92b47`; endpoint
+made public in `1d83c3a`)
 
 **Objective**: Add a dedicated **"Simulator"** tab that allows the user to select up to 4
 securities from the analysis results table and project future portfolio value based on their
@@ -1570,16 +1613,20 @@ This step adds a selection mechanism to that table without disrupting the existi
 **Status**: ✅ COMPLETED — February 2026
 
 **Endpoint**: `POST /api/v1/simulate`
-**Auth**: `requireAuth` (any authenticated user)
+**Auth**: none — public since `1d83c3a` (was `requireAuth`; the frontend has no login flow).
+Rate limiting applies.
 
-**Request body** (JSON):
+**Request body** (JSON) — current shape after the per-ticker amounts enhancement:
 ```json
 {
-  "tickers": ["AAPL", "MSFT"],          // 1–4 tickers
-  "monthlyInvestment": 500,              // EUR/USD, positive number
-  "horizonMonths": 60                   // integer ≥ 1; presets: 12 | 36 | 60 | 120
+  "tickers": ["AAPL", "MSFT"],                        // 1–4 tickers
+  "tickerInvestments": { "AAPL": 300, "MSFT": 200 },  // ≥ 0 each, one entry per ticker, total > 0
+  "horizonMonths": 60                                 // integer ≥ 1; presets: 12 | 36 | 60 | 120
 }
 ```
+
+> The response example below is the original single-amount design; the live response also
+> returns `totalMonthlyInvestment` and per-ticker `monthlyAmount`/`tickerTotalInvested`.
 
 **Response body** (JSON):
 ```json
@@ -1638,8 +1685,8 @@ This step adds a selection mechanism to that table without disrupting the existi
 **Success Criteria**:
 - `POST /api/v1/simulate` returns 200 with correct JSON structure.
 - Returns 400 if tickers array is empty or has > 4 items.
-- Returns 400 if `monthlyInvestment ≤ 0` or `horizonMonths` is not a positive integer (min 1).
-- Returns 401 if not authenticated.
+- Returns 400 if any per-ticker amount is negative, the total is 0, or `horizonMonths` is not a positive integer (min 1).
+- ~~Returns 401 if not authenticated~~ — superseded: the endpoint is public (returns 200 without `Authorization`).
 - Historical data is cached (no redundant Yahoo Finance requests within TTL).
 - Unit tests cover: return calculation, DCA loop, CAGR formula, edge cases (single ticker,
   ticker with < 12 months of data).
@@ -1766,7 +1813,7 @@ This step adds a selection mechanism to that table without disrupting the existi
 - Returns 400 if `horizonMonths` is not a positive integer (e.g. 0, negative, or non-integer).
 - Custom horizon: `horizonMonths: 18` (custom months) and `horizonMonths: 24`
   (custom years converted to months) both return 200.
-- Returns 401 if `Authorization` header is missing.
+- ~~Returns 401 if `Authorization` header is missing~~ — now asserts 200 without the header (public endpoint).
 - Returns 200 with `scenarios.expected.finalValue > totalInvested` when μ > 0.
 - Caching: two identical requests within TTL window hit the cache (verify via
   `X-Cache: HIT` header on the second call).
@@ -1781,16 +1828,17 @@ This step adds a selection mechanism to that table without disrupting the existi
 **Phase 4.4 Overall Success Criteria**: ✅ All met (verified 2026-07-02: `tsc --noEmit` clean,
 1161 unit tests + 12 integration tests passing)
 - ✅ User can select up to 4 tickers in the results table and see them in the Simulator tab.
-- ✅ Entering per-ticker monthly amounts and clicking "Calcular" shows a projected chart and summary.
+- ✅ Entering per-ticker monthly amounts and clicking "Calculate" shows a projected chart and summary.
 - ✅ Expected, optimistic, and pessimistic scenarios are rendered clearly.
 - ✅ Results update in real time when the user changes the horizon or investment amounts.
 - ✅ New endpoint documented in the OpenAPI spec (`src/config/swagger.ts`).
 - ✅ Test suite remains green (1161 + 12 = 1173 tests touching this feature area).
 
 **Remaining before this phase can be closed out**:
-- Commit the working-tree changes (currently uncommitted on `main`).
-- Bump `package.json` version and add a `CHANGELOG.md` entry.
-- Update `MEMORY.md` project index once committed.
+- ✅ Commit the working-tree changes — done 2026-07-02.
+- Bump `package.json` version and add a `CHANGELOG.md` entry (still pending, see §4.3.4).
+- Add a simulator E2E spec (select tickers → Simulator tab → calculate) — none exists yet.
+- Fix the OpenAPI entry, which still marks `/simulate` as `bearerAuth` (§2.3.1).
 
 ---
 
@@ -1824,6 +1872,11 @@ This step adds a selection mechanism to that table without disrupting the existi
 - New debt prevented or justified
 
 #### 5.1.2 Dependency Management
+**Status (2026-10-31)**: ❌ no Dependabot/Renovate config in `.github/`. `npm audit --omit=dev`
+reports **33 advisories in production dependencies (3 critical, 12 high, 18 moderate)** —
+including `xlsx` (no upstream fix), `jspdf`, `nodemailer` and `zod`. CI runs
+`npm audit --production` but this has not been triaged.
+
 **Actions**:
 - Implement dependency update strategy:
   - Use Dependabot or Renovate for automated updates
@@ -1847,6 +1900,9 @@ This step adds a selection mechanism to that table without disrupting the existi
 ### 5.2 Branch Protection and Git Workflow Maturity
 
 #### 5.2.1 Branch Protection Rules
+**Status**: not verifiable from the repository (GitHub settings); CI triggers on `main` and
+`develop`, but no `develop` branch workflow is documented.
+
 **Prerequisite**: Complete Phases 2, 3, and 4 (Team collaboration and code review processes established)
 
 **Actions**:
@@ -1866,7 +1922,10 @@ This step adds a selection mechanism to that table without disrupting the existi
 
 ### 5.3 Performance Monitoring and Optimisation
 
-#### 5.2.1 Ongoing Performance Monitoring
+#### 5.3.1 Ongoing Performance Monitoring
+**Status**: 🟡 partially in place — the CI `performance` job (benchmarks, load tests,
+Lighthouse; §2.1.5) runs on every push. No production-side monitoring or alerting yet.
+
 **Actions**:
 - Establish performance baselines:
   - API response times
@@ -1887,7 +1946,7 @@ This step adds a selection mechanism to that table without disrupting the existi
 - Performance regressions caught early
 - Performance improves over time
 
-#### 5.2.2 Cost Optimisation
+#### 5.3.2 Cost Optimisation
 **Actions**:
 - Monitor infrastructure costs:
   - Track cloud service costs
@@ -1911,6 +1970,9 @@ This step adds a selection mechanism to that table without disrupting the existi
 ### 5.4 Feature Development Pipeline
 
 #### 5.4.1 Feature Flags and Gradual Rollout
+**Status**: ❌ not started — env-based `ENABLE_*` flags exist in `src/config/environment.ts` but
+are not read by any feature (§1.5.1).
+
 **Actions**:
 - Implement feature flag system (LaunchDarkly, Unleash, or custom):
   - Define feature flags
@@ -1995,7 +2057,7 @@ This step adds a selection mechanism to that table without disrupting the existi
 **Future Deliverable**: Real-time collaboration features
 
 #### 5.5.3 Mobile Application
-**Status**: 🟡 RECOMMENDED NEXT DELIVERY TRACK — updated 2026-07-02
+**Status**: 🟡 ACTIVE DELIVERY TRACK — 5.5.3.1 done, 5.5.3.2 in progress (updated 2026-10-31)
 
 **Recommendation**: build a **PWA first** and treat it as the bridge between the current web app
 and any future Android product. The app already has the right ingredients for this approach:
@@ -2203,25 +2265,25 @@ unit/integration coverage and a desktop E2E save/reopen regression test. See
 
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Test Coverage | 1231 unit+integration tests passing (2026-07-02), but the `vitest --coverage` global gate (80/60/85/80) is **currently failing** (~78.6/66.4/84.1/78.9%) — pre-existing on `main`, not caused by recent auth/simulator work; driven by `swagger.ts` (0%) and `scanner.ts` (~20%) | 80%+ | 🔴 Gate broken — needs a dedicated pass |
+| Test Coverage | 1300 unit+integration tests; gate passing at 94.8/81.4/96.5/96.2% (2026-10-31) with `scanner.ts` excluded and several dirs outside `include` (§2.1.2) | 80%+ | ✅ Passing — widen scope to `src/shared/` |
 | Performance Benchmarks | 49 benchmarks across 7 modules + 3 load tests | Tracked in CI | ✅ End of Phase 2.1.5 |
-| Security Vulnerabilities | Unknown | 0 Critical, 0 High | End of Phase 1 |
+| Security Vulnerabilities | 33 prod advisories: 3 critical, 12 high, 18 moderate (`npm audit --omit=dev`, 2026-10-31) | 0 Critical, 0 High | 🔴 Needs triage (§5.1.2) |
 | API Response Time (p97.5) | 7ms (health), rate limiting validated | < 500ms | ✅ Measured in Phase 2.1.5 |
 | Uptime | Not monitored | 99.9% | End of Phase 3 |
-| Deployment Frequency | Manual, infrequent | Daily (automated) | End of Phase 1 |
+| Deployment Frequency | Frontend: automatic on every push to `main` (GitHub Pages); backend: Render | Daily (automated) | 🟡 Frontend automated |
 | Mean Time to Recovery (MTTR) | Not measured | < 1 hour | End of Phase 4 |
 | Lighthouse Score | Configured in CI (target >= 90) | > 90 | ✅ Configured in Phase 2.1.5 |
-| Bundle Size | Not optimised | < 500KB (gzipped) | End of Phase 3 |
+| Bundle Size | ~111 kB gzipped (2026-10-31) | < 500KB (gzipped) | ✅ Phase 3.1.1 |
 
 ### 6.2 Quality Metrics
 
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| ESLint Errors | Not measured | 0 | End of Phase 1 |
-| TypeScript Errors | N/A (no TypeScript) | 0 | End of Phase 2 |
+| ESLint Errors | 0 errors (≈1070 warnings) | 0 | ✅ |
+| TypeScript Errors | 0 (`tsc --noEmit`, strict) | 0 | ✅ Phase 2.2 |
 | Code Review Coverage | Not enforced | 100% | End of Phase 1 |
 | Documentation Coverage | Partial | 100% (public APIs) | End of Phase 2 |
-| Accessibility Compliance | WCAG 2.1 AA (documented) | WCAG 2.1 AA (verified) | End of Phase 3 |
+| Accessibility Compliance | axe-core E2E audit passing (2026-10-31) | WCAG 2.1 AA (verified) | 🟡 Automated checks only |
 
 ### 6.3 Operational Metrics
 
@@ -2266,16 +2328,18 @@ capabilities in parallel. The next decision is architectural as much as function
    local-only IndexedDB vs authenticated server-synced user data
 
 ### Priority 2 — Next platform milestone
-4. ✅🟡 Authentication and Authorisation (4.1) — backend rebuilt and verified 2026-07-02
-   (JWT + SQLite, 7 endpoints, RBAC middleware, protected `/simulate` + `/jobs/*` +
-   `/metrics`; `/yahoo` was briefly protected too but reverted the same day since the
-   frontend has no login flow, so it's public again), simulator tests rewritten to mint
-   real JWTs); **no frontend UI** and no per-user data model yet — see §4.1 for the
+4. ✅🟡 Authentication and Authorisation (4.1) — backend rebuilt 2026-07-02 and committed
+   (JWT + SQLite, 7 endpoints, RBAC middleware protecting `/jobs/*` and `/metrics`;
+   `/yahoo` and `/simulate` are public because the frontend has no login flow);
+   **no frontend UI** and no per-user data model yet — see §4.1 for the
    precise remaining gap list.
 5. ✅ Define backend persistence strategy for user portfolios, alerts, and preferences
    in [Backend Persistence Strategy](backend-persistence-strategy.md) — SQLite-backed
    authenticated source of truth with IndexedDB retained as the PWA cache/offline layer.
-6. Close remaining production-readiness gaps that matter for real users, not just internal demos
+6. Close remaining production-readiness gaps that matter for real users, not just internal demos —
+   concretely (2026-10-31): fix the Docker image (§3.2.1), triage production `npm audit`
+   advisories (§5.1.2), bring `CHANGELOG.md` up to date (§4.3.4), and resync the OpenAPI spec
+   (§2.3.1)
 
 ### Priority 3 — After the first mobile release proves demand
 7. Push notifications and background sync
