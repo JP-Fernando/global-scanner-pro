@@ -7,6 +7,7 @@
 
 import { restoreLastScanFromCache, restoreLastSimulationFromCache } from '../core/scanner.js';
 import i18n from '../i18n/i18n.js';
+import { registerAppServiceWorker } from './service-worker.js';
 
 /**
  * Replaced at build time via VITE_BASE_PATH for subpath deployments (e.g. a
@@ -53,13 +54,7 @@ export function setOfflineBannerState(
 
 /** Registers the app-shell/offline service worker. Best-effort — never throws. */
 export async function registerServiceWorker(): Promise<void> {
-  if (!('serviceWorker' in navigator)) return;
-  try {
-    await navigator.serviceWorker.register(`${BASE_PATH}sw.js`);
-    await navigator.serviceWorker.ready;
-  } catch (e: any) {
-    console.warn('Service worker registration failed:', e?.message);
-  }
+  await registerAppServiceWorker(BASE_PATH);
 }
 
 async function restoreOfflineSession(): Promise<number | null> {

@@ -28,6 +28,7 @@ export default defineConfig({
         'src/allocation/**/*.ts',
         'src/config/**/*.ts',
         'src/auth/**/*.ts',
+        'src/shared/**/*.ts',
       ],
       // scanner.ts is DOM-bound UI orchestration exercised by Playwright e2e
       // (src/tests/e2e/*.spec.js), not the node-environment unit suite.

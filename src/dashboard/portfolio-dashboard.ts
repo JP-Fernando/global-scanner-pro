@@ -24,6 +24,7 @@ import {
   notifyRiskEvent
 } from '../alerts/alert-manager.js';
 import { dbStore } from '../storage/indexed-db-store.js';
+import { buildPortfolioSaveRequest } from '../shared/frontend/portfolio-builder.js';
 import {
   getAlertSettings,
   saveAlertSettings,
@@ -58,8 +59,15 @@ let attributionVisible = false;
  * Initialize the dashboard
  */
 export async function initDashboard() {
-  await loadPortfolioList();
+  const portfolioCount = await loadPortfolioList();
   setupEventListeners();
+  if (portfolioCount > 0) {
+    // Saved portfolios must remain reachable after reload, before another scan/build.
+    const section = document.getElementById('portfolioSection');
+    const dashboard = document.getElementById('portfolioDashboardSection');
+    if (section) section.style.display = 'block';
+    if (dashboard) dashboard.style.display = 'block';
+  }
   await loadAlertSettingsUI();
   await loadAlertLogsUI();
   console.log('📊 Portfolio Dashboard initialized');
@@ -102,7 +110,7 @@ function setupEventListeners() {
  */
 async function loadPortfolioList() {
   const selector = document.getElementById('portfolioSelector');
-  if (!selector) return;
+  if (!selector) return 0;
 
   const portfolios = await portfolioManager.getAllPortfolios();
 
@@ -116,6 +124,7 @@ async function loadPortfolioList() {
     option.textContent = `${p.name} (${new Date(p.created_at).toLocaleDateString()})`;
     selector.appendChild(option);
   });
+  return portfolios.length;
 }
 
 /**
@@ -942,15 +951,12 @@ window.savePortfolioFromBuilder = async function() {
       return;
     }
 
-    const portfolio = await portfolioManager.createPortfolio(
-      name,
-      window.appState.portfolio.assets,
-      {
-        strategy: window.appState.strategy || 'balanced',
-        allocation_method: window.appState.portfolio.allocation_method,
-        benchmark: window.appState.benchmark || '^GSPC'
-      }
+    const request = buildPortfolioSaveRequest(
+      window.appState.portfolio,
+      window.appState.strategy || 'balanced',
+      window.appState.benchmark || '^GSPC'
     );
+    const portfolio = await portfolioManager.createPortfolio(name, request.assets, request.options);
 
     alert(i18n.t('portfolio_dashboard.saved_success'));
 

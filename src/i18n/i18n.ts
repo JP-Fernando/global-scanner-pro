@@ -24,7 +24,8 @@ class I18n {
 
   getDefaultLanguage(): string {
     // Check localStorage first
-    const saved = localStorage.getItem('language');
+    let saved: string | null = null;
+    try { saved = localStorage.getItem('language'); } catch { /* Session-only language. */ }
     if (saved && translations[saved]) {
       return saved;
     }
@@ -39,7 +40,7 @@ class I18n {
       langToUse = 'es';
     }
     this.currentLang = langToUse;
-    localStorage.setItem('language', langToUse);
+    try { localStorage.setItem('language', langToUse); } catch { /* Session-only language. */ }
 
     // Trigger language change event (CustomEvent is a global browser API)
      

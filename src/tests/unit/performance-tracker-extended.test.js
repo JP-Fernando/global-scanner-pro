@@ -57,6 +57,18 @@ describe('PerformanceTracker - Extended (Async)', () => {
   // loadPriceData
   // -----------------------------------------------------------
   describe('loadPriceData', () => {
+    it('reads the Yahoo chart proxy contract using adjusted close', async () => {
+      dbStore.getPriceCache.mockResolvedValueOnce([]);
+      globalThis.fetch = mockFetch({ chart: { result: [{
+        timestamp: [1672617600, 1672704000],
+        indicators: { quote: [{ close: [150, 155] }], adjclose: [{ adjclose: [145, 150] }] },
+      }] } });
+      const result = await tracker.loadPriceData('SAN.MC', '2023-01-01', '2023-06-01');
+      expect(result).toEqual([
+        { date: '2023-01-02', price: 145 }, { date: '2023-01-03', price: 150 },
+      ]);
+      expect(dbStore.savePriceCache).toHaveBeenCalledTimes(2);
+    });
     it('returns cached data from in-memory cache', async () => {
       const cacheKey = 'AAPL_2023-01-01_2023-06-01';
       const cached = [{ date: '2023-01-02', price: 150 }];

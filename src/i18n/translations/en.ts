@@ -1,8 +1,10 @@
+import { androidEn } from './android.js';
 // =====================================================
 // BRITISH ENGLISH TRANSLATIONS
 // =====================================================
 
 export default {
+  android: androidEn,
   // Language name
   language: {
     name: 'English (UK)',

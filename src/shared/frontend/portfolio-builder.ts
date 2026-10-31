@@ -32,6 +32,29 @@ export type PortfolioBuildResult = {
 
 /** Minimum price history required for an asset to take part in the risk report. */
 export const MIN_RISK_PRICE_POINTS = 30;
+export const MIN_PORTFOLIO_SCAN_ASSETS = 3;
+
+export function canBuildPortfolio(results: any[]): boolean {
+  return results.filter(result => Array.isArray(result.pricesWithDates)
+    && result.pricesWithDates.length >= MIN_RISK_PRICE_POINTS).length
+    >= MIN_PORTFOLIO_SCAN_ASSETS;
+}
+
+/** Adapt the builder model to the portfolio manager's persistence contract. */
+export function buildPortfolioSaveRequest(portfolio: any, strategy = 'balanced', benchmark = '^GSPC') {
+  return {
+    assets: portfolio.allocation.map((asset: any) => ({
+      ...asset,
+      ticker: asset.yahooSymbol || asset.ticker
+    })),
+    options: {
+      strategy,
+      benchmark,
+      allocation_method: portfolio.method,
+      initial_capital: portfolio.totalCapital
+    }
+  };
+}
 
 export function validatePortfolioRequest(
   scanResults: any[],
@@ -60,6 +83,10 @@ export function enrichAllocationWithScanData(allocated: any[], scanResults: any[
     const original = scanResults.find((r: any) => r.ticker === asset.ticker);
     return {
       ...asset,
+      price: original?.price,
+      yahooSymbol: original?.yahooSymbol,
+      sectorRaw: original?.sectorRaw,
+      scoreTotal: asset.score,
       prices: original?.pricesWithDates || [],
       volatility: asset.volatility || original?.details?.risk?.volatility || '20',
       details: original?.details

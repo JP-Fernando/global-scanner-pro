@@ -32,7 +32,7 @@ RUN npm ci --legacy-peer-deps
 FROM deps AS build
 
 # Copy build inputs
-COPY tsconfig.json vite.config.ts server.js index.html manifest.webmanifest sw.js ./
+COPY tsconfig.json vite.config.ts server.js index.html android.html manifest.webmanifest sw.js ./
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 COPY icons/ ./icons/

@@ -17,7 +17,7 @@
  * runs outside the page's own network stack and would bypass page-scoped mocks).
  */
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const SHELL_CACHE = `gsp-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `gsp-runtime-${CACHE_VERSION}`;
 const CURRENT_CACHES = [SHELL_CACHE, RUNTIME_CACHE];
@@ -30,6 +30,7 @@ const BASE_PATH = '/';
 const SHELL_URLS = [
   BASE_PATH,
   `${BASE_PATH}index.html`,
+  `${BASE_PATH}android.html`,
   `${BASE_PATH}manifest.webmanifest`,
   `${BASE_PATH}icons/icon-192.png`,
   `${BASE_PATH}icons/icon-512.png`,
@@ -43,6 +44,8 @@ const SHELL_URLS = [
 // index.html, letting the second visit boot offline without requiring a prior
 // runtime-caching pass.
 const APP_SHELL_ASSETS = [
+  '/src/android/android.css',
+  '/dist/src/android/app.js',
   '/src/dashboard/attribution-dashboard.css',
   '/dist/src/core/scanner.js',
   '/dist/src/i18n/ui-translator.js',
@@ -81,7 +84,8 @@ function isStaticAsset(request) {
 
 async function staleWhileRevalidate(request, cacheName) {
   const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
+  const cached = await cache.match(request)
+    || await caches.match(request, { cacheName: SHELL_CACHE });
   const networkFetch = fetch(request)
     .then((response) => {
       if (response && response.ok) {
@@ -106,15 +110,17 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   if (request.mode === 'navigate') {
+    const shell = url.pathname === `${BASE_PATH}android.html`
+      ? `${BASE_PATH}android.html` : `${BASE_PATH}index.html`;
     event.respondWith(
       fetch(request)
         .then((response) => {
           if (response && response.ok) {
-            caches.open(SHELL_CACHE).then((cache) => cache.put(`${BASE_PATH}index.html`, response.clone()));
+            caches.open(SHELL_CACHE).then((cache) => cache.put(shell, response.clone()));
           }
           return response;
         })
-        .catch(() => caches.match(`${BASE_PATH}index.html`, { cacheName: SHELL_CACHE }))
+        .catch(() => caches.match(shell, { cacheName: SHELL_CACHE }))
     );
     return;
   }

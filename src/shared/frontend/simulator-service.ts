@@ -4,6 +4,7 @@
  */
 
 import { API_BASE_URL } from '../../config/api-base.js';
+import { buildSelectionKeyIndex } from './asset-identity.js';
 
 export type HorizonInput = {
   preset: number;
@@ -19,6 +20,20 @@ export type SimulationRequest = {
 };
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
+
+/** Check the projection fields consumed by either presentation before displaying cached data. */
+export function isSimulationProjection(payload: unknown): boolean {
+  if (!payload || typeof payload !== 'object') return false;
+  const value = payload as Record<string, any>;
+  return typeof value.currency === 'string' && /^[A-Z]{3}$/.test(value.currency)
+    && Number.isFinite(value.totalInvested) && Number.isFinite(value.horizonMonths)
+    && ['expected', 'optimistic', 'pessimistic'].every(key =>
+      Number.isFinite(value.scenarios?.[key]?.finalValue) && Number.isFinite(value.scenarios?.[key]?.totalReturn))
+    && Array.isArray(value.monthlyProjection) && value.monthlyProjection.every(point =>
+      point && ['month', 'expected', 'optimistic', 'pessimistic'].every(key => Number.isFinite(point[key])))
+    && Array.isArray(value.perTicker) && value.perTicker.every(item =>
+      item && typeof item.ticker === 'string' && Number.isFinite(item.monthlyAmount));
+}
 
 export function getHorizonMonths(input: HorizonInput): number {
   if (!input.useCustom) return input.preset;
@@ -54,7 +69,14 @@ export function isSimulationInputValid(
  * Maps a display ticker (as shown in the results) to the Yahoo symbol the backend
  * expects: explicit `yahooSymbol` first, then ticker + market suffix.
  */
-export function resolveSimulatorSymbol(ticker: string, results: any[]): string {
+export function resolveSimulatorSymbol(
+  ticker: string, results: any[], identity: 'display' | 'symbol' | 'selection' = 'display'
+): string {
+  if (identity === 'symbol') return ticker.trim().toUpperCase();
+  if (identity === 'selection') {
+    const match = [...buildSelectionKeyIndex(results)].find(([, key]) => key === ticker);
+    return match?.[0] || ticker;
+  }
   const match = results.find((item: any) => String(item.ticker || '').toUpperCase() === ticker);
   if (!match) return ticker;
 
@@ -70,9 +92,10 @@ export function buildSimulationRequest(
   selection: string[],
   tickerInvestments: Record<string, number>,
   horizonMonths: number,
-  results: any[]
+  results: any[],
+  identity: 'display' | 'symbol' | 'selection' = 'display'
 ): SimulationRequest {
-  const tickers = selection.map(ticker => resolveSimulatorSymbol(ticker, results));
+  const tickers = selection.map(ticker => resolveSimulatorSymbol(ticker, results, identity));
   const investments: Record<string, number> = {};
   selection.forEach((displayTicker, i) => {
     investments[tickers[i]] = tickerInvestments[displayTicker] ?? 0;

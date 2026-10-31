@@ -1,8 +1,10 @@
+import { androidEs } from './android.js';
 // =====================================================
 // SPANISH (EUROPEAN) TRANSLATIONS
 // =====================================================
 
 export default {
+  android: androidEs,
   // Language name
   language: {
     name: 'Español',

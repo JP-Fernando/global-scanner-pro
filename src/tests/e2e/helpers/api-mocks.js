@@ -6,6 +6,23 @@
  */
 
 import { buildYahooChartResponse, TEST_UNIVERSE_BME } from '../fixtures/yahoo-responses.js';
+import { buildSimulationResponse } from '../fixtures/simulation-responses.js';
+
+/** Record simulator requests and optionally hold/fail responses for recovery tests. */
+export async function setupSimulationMock(page, { failFirst = 0, beforeRespond } = {}) {
+  const requests = [];
+  await page.route('**/api/v1/simulate', async route => {
+    const request = route.request().postDataJSON();
+    requests.push(request);
+    if (beforeRespond) await beforeRespond(request);
+    if (requests.length <= failFirst) {
+      await route.fulfill({ status: 503, json: { error: 'Simulation temporarily unavailable' } });
+    } else {
+      await route.fulfill({ json: buildSimulationResponse(request) });
+    }
+  });
+  return requests;
+}
 
 /**
  * Intercept all /api/yahoo requests and return deterministic fixture data.

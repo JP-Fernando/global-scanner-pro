@@ -47,6 +47,8 @@ export default defineConfig({
        * plus the main attribution dashboard CSS.
        */
       input: {
+        android: resolve(__dirname, 'src/android/app.ts'),
+        'android-style': resolve(__dirname, 'src/android/android.css'),
         scanner: resolve(__dirname, 'src/core/scanner.ts'),
         'ui-translator': resolve(__dirname, 'src/i18n/ui-translator.ts'),
         'ui-init': resolve(__dirname, 'src/i18n/ui-init.ts'),

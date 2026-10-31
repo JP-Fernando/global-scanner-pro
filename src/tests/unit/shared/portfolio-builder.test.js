@@ -4,9 +4,23 @@ import {
   MIN_RISK_PRICE_POINTS,
   applyRegimeAdjustment,
   buildPortfolioModel,
+  buildPortfolioSaveRequest,
   enrichAllocationWithScanData,
   validatePortfolioRequest,
 } from '../../../shared/frontend/portfolio-builder.js';
+
+it('adapts allocation to saved positions without losing capital, method or Yahoo symbols', () => {
+  const portfolio = { method: 'score_weighted', totalCapital: 25000, allocation: [
+    { ticker: 'SAN', yahooSymbol: 'SAN.MC', price: 5, weight: 0.4 },
+    { ticker: 'AAPL', price: 200, weight: 0.6 },
+  ] };
+  const request = buildPortfolioSaveRequest(portfolio, 'balanced', '^IBEX');
+  expect(request.assets.map(asset => asset.ticker)).toEqual(['SAN.MC', 'AAPL']);
+  expect(request.assets.map(asset => asset.weight)).toEqual([0.4, 0.6]);
+  expect(request.options).toEqual({ strategy: 'balanced', benchmark: '^IBEX',
+    allocation_method: 'score_weighted', initial_capital: 25000 });
+  expect(portfolio.allocation[0].ticker).toBe('SAN');
+});
 
 function priceSeries(length, seed) {
   return Array.from({ length }, (_, i) => ({
@@ -53,12 +67,14 @@ describe('portfolio-builder shared service', () => {
   });
 
   it('enriches positions with scan prices and falls back to a default volatility', () => {
-    const results = [{ ticker: 'A', pricesWithDates: [{ close: 1 }], details: { risk: { volatility: '30' } } }];
+    const results = [{ ticker: 'A', price: 12, yahooSymbol: 'A.MC', sectorRaw: 'Technology',
+      pricesWithDates: [{ close: 1 }], details: { risk: { volatility: '30' } } }];
     const [known, unknown] = enrichAllocationWithScanData(
-      [{ ticker: 'A', weight: 0.5 }, { ticker: 'Z', weight: 0.5 }],
+      [{ ticker: 'A', weight: 0.5, score: 85 }, { ticker: 'Z', weight: 0.5 }],
       results
     );
     expect(known).toMatchObject({ prices: [{ close: 1 }], volatility: '30', details: results[0].details });
+    expect(known).toMatchObject({ price: 12, yahooSymbol: 'A.MC', sectorRaw: 'Technology', scoreTotal: 85 });
     expect(unknown).toMatchObject({ prices: [], volatility: '20', details: undefined });
   });
 

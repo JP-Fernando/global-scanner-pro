@@ -1,7 +1,7 @@
 {
   "name": "global-scanner-pro",
   "version": "0.0.6",
-  "description": "Sistema cuantitativo profesional para análisis multi-factor de mercados globales",
+  "description": "Sistema cuantitativo profesional para an\u00e1lisis multi-factor de mercados globales",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -46,7 +46,9 @@
     "docker:up": "docker-compose up",
     "docker:up:build": "docker-compose up --build",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f app"
+    "docker:logs": "docker-compose logs -f app",
+    "test:e2e:android": "playwright test src/tests/e2e/android.spec.js --project=chromium",
+    "test:e2e:build": "node scripts/test-android-build.js"
   },
   "keywords": [
     "quantitative",

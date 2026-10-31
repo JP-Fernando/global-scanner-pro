@@ -2,6 +2,7 @@
 import { dbStore } from '../../storage/indexed-db-store.js';
 import { MAX_SIMULATOR_TICKERS, normalizeSimulatorTicker } from './simulator-selection.js';
 import type { HorizonInput } from './simulator-service.js';
+import { getAssetSymbol, getSimulatorSelectionKey } from './asset-identity.js';
 
 type CachedResult = Record<string, unknown>;
 
@@ -48,9 +49,9 @@ export function buildScanReviewModel(saved: unknown): ScanReviewModel | null {
 
 function displayTickerForSymbol(symbol: string, results: CachedResult[]): string {
   const normalized = normalizeSimulatorTicker(symbol);
-  const match = results.find(item => normalizeSimulatorTicker(item.ticker) === normalized
-    || normalizeSimulatorTicker(item.yahooSymbol) === normalized);
-  return match ? normalizeSimulatorTicker(match.ticker) : normalized;
+  const match = results.find(item => getAssetSymbol(item) === normalized)
+    || results.find(item => normalizeSimulatorTicker(item.ticker) === normalized);
+  return match ? getSimulatorSelectionKey(match, results) : normalized;
 }
 
 function restoreHorizon(value: unknown): Partial<HorizonInput> {
@@ -66,14 +67,17 @@ function restoreHorizon(value: unknown): Partial<HorizonInput> {
 
 export function buildSimulationReviewModel(
   saved: unknown,
-  results: CachedResult[]
+  results: CachedResult[],
+  identity: 'display' | 'symbol' = 'display'
 ): SimulationReviewModel | null {
   if (!isRecord(saved) || !isRecord(saved.response) || !isRecord(saved.request)
     || !Array.isArray(saved.request.tickers)) return null;
 
   const tickers = saved.request.tickers.filter((ticker): ticker is string =>
     typeof ticker === 'string' && Boolean(ticker.trim()));
-  const selection = tickers.map(ticker => displayTickerForSymbol(ticker, results))
+  const resolve = (ticker: string) => identity === 'symbol'
+    ? normalizeSimulatorTicker(ticker) : displayTickerForSymbol(ticker, results);
+  const selection = tickers.map(resolve)
     .filter(Boolean).slice(0, MAX_SIMULATOR_TICKERS);
   if (!selection.length) return null;
 
@@ -81,7 +85,7 @@ export function buildSimulationReviewModel(
     ? saved.request.tickerInvestments : {};
   const tickerInvestments: Record<string, number> = {};
   for (const ticker of tickers) {
-    const displayTicker = displayTickerForSymbol(ticker, results);
+    const displayTicker = resolve(ticker);
     if (!displayTicker) continue;
     const amount = storedInvestments[ticker];
     tickerInvestments[displayTicker] = typeof amount === 'number' && Number.isFinite(amount)
@@ -106,7 +110,8 @@ export async function loadLastScanReview(
 
 export async function loadLastSimulationReview(
   results: CachedResult[],
-  store: Pick<OfflineReviewReader, 'getLastSimulation'> = dbStore
+  store: Pick<OfflineReviewReader, 'getLastSimulation'> = dbStore,
+  identity: 'display' | 'symbol' = 'display'
 ): Promise<SimulationReviewModel | null> {
-  return buildSimulationReviewModel(await store.getLastSimulation(), results);
+  return buildSimulationReviewModel(await store.getLastSimulation(), results, identity);
 }

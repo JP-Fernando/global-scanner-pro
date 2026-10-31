@@ -6,6 +6,7 @@
 import { dbStore } from '../storage/indexed-db-store.js';
 import { calculatePortfolioMetrics } from '../analytics/risk_engine.js';
 import { API_BASE_URL } from '../config/api-base.js';
+import { parseYahooChart } from '../shared/frontend/market-data-client.js';
 
 export class PerformanceTracker {
   priceCache: Map<string, any>;
@@ -48,7 +49,8 @@ export class PerformanceTracker {
       }
 
       const data = await response.json();
-      const prices = data.map((item: any) => ({
+      const rows = Array.isArray(data) ? data : parseYahooChart(data) || [];
+      const prices = rows.map((item: any) => ({
         date: item.date,
         price: item.close
       }));

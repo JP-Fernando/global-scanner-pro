@@ -234,6 +234,30 @@ Tests for environment variable handling:
 
 **Framework**: Playwright
 
+The runner compiles server modules before starting an isolated local test server. It uses
+`http://localhost:3107` by default, configures CORS for that origin and uses an in-memory auth
+database. Normal runs require a free test port and do not reuse a development/production
+server or Docker container. Browser contexts isolate IndexedDB/localStorage per test.
+
+```bash
+npm run test:e2e:chromium
+E2E_PORT=3207 npm run test:e2e:chromium
+# Explicit reuse of an intentionally prepared test server (disabled in CI):
+E2E_REUSE_SERVER=1 npm run test:e2e:chromium
+```
+
+Desktop regression specs cover scan/results, real saved portfolio/dashboard navigation,
+alerts, simulator request/error/selection flows and offline review. Simulator UI responses
+are deterministic fixtures; numerical engine correctness is tested separately.
+Shared frontend modules are included in the Vitest coverage gate.
+
+`npm run test:e2e:android` runs the dedicated Android task flow at 360/390/430 px on Chromium.
+The normal Chromium suite includes these tests alongside desktop regressions.
+`npm run test:e2e:build` builds a static-hosting subpath variant, serves it from an ephemeral
+local port, verifies the Android and desktop offline shells, then restores the normal build.
+This checks actual production assets independently of Express's development module paths.
+It requires the Playwright Chromium browser installed, as does the normal E2E suite.
+
 **Test Scenarios**:
 
 1. **Market Scanning Journey**

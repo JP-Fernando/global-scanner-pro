@@ -74,154 +74,46 @@ happen mainly in the presentation layer.
   - alerts editing
   - simulator flow
 
-### Phase C — Android Frontend
+### Phase C — Android Frontend (🟡 C2 initial functional flow implemented, C3 next)
 
-- Build a dedicated Android-oriented frontend surface
-- Prioritise the following flows:
-  - run scan
-  - browse filtered results
-  - select assets for simulator
-  - inspect portfolio summary and positions
-  - review alerts and edit key thresholds
-- Use:
-  - cards instead of dense tables
-  - progressive disclosure
-  - larger tap targets
-  - persistent bottom actions where useful
-  - low-friction resume after reload/offline transitions
+The flow map in [Android Frontend Flows](android-frontend-flows.md) now has its first working
+increment: `android.html` serves **Scan → Results → Asset detail → Simulator** through
+`src/android/`, with independent presentation/state and shared scan/simulator services.
+Desktop offers an explicit Touch view link; Android offers a desktop return link.
 
-### Phase D — Packaging and Installation
+C2 includes filtering, canonical-symbol selection with the four-asset limit, editable monthly
+amounts and horizons, explicit calculation, scenario summary/SVG chart, error/retry,
+latest-request coordination and ES/EN labels. Navigation/reload preserve Android drafts under
+a separate storage key. Shared last-scan/simulation records remain compatible with desktop,
+including instruments whose display tickers collide across markets.
 
-- Validate whether the Android frontend works well enough as an installable PWA
-- If needed, create an Android Studio wrapper/project around the Android frontend
-- Keep packaging concerns separate from core frontend/domain logic
+`asset-identity.ts`, `market-options.ts` and `request-coordinator.ts` provide reusable identity,
+market catalogue and request ownership. Shared simulator/restore contracts accept explicit
+identity modes; portfolio eligibility is exposed through `canBuildPortfolio`.
 
-## Repository Direction
+Vite/injection and Docker include the independent entry. Shared service-worker registration
+does not import desktop initialisation; navigation caching/fallback distinguishes the shells
+and serves precached assets on the first offline reload. A dedicated production-build test
+checks static subpath hosting and restores the normal build afterwards.
 
-One practical target structure could be:
+Android task-flow E2E runs at 360/390/430 px and includes same-ticker markets, cross-surface
+restore/recalculation, API failure/retry, stale responses, invalid routes and blocked storage.
+Carteras and Alertas currently link to their functional desktop management; native Android
+portfolio/alerts screens are C3 work. Full Android installation, physical-device/keyboard
+validation and remaining offline/resume hardening remain C4/D work. The PWA manifest still
+starts the desktop entry; no native wrapper has been added.
 
-```text
-src/
-  shared/
-    api/
-    services/
-    storage/
-    formatting/
-    types/
-  desktop/
-    ui/
-    screens/
-  android/
-    ui/
-    screens/
-```
-
-This does not need to be implemented in one big bang. The important part is the direction:
-shared services below, platform-specific rendering above.
-
-## Testing Strategy
-
-### Shared logic
-
-- Unit tests for extracted shared modules
-- Integration tests for service/storage flows
-
-### Desktop
-
-- Regression E2E coverage focused on dense workflows
-- Assertions that desktop layout density and feature access remain intact
-
-### Android
-
-- Viewport/task-flow E2E coverage at 360px to 430px widths
-- Touch interaction checks
-- Offline/resume/installability checks
-
-## Definition of Done for the Split
-
-- Shared backend remains unchanged as the single source of truth
-- Shared frontend service layer is reusable by both frontends
-- Desktop UX quality is preserved
-- Android UX is intentionally designed, not just responsively squeezed
-- Core flows work on both surfaces
-- Platform-specific tests exist and pass
-
-## Progress
-
-### Phase A — Boundary Extraction (✅ initial extraction complete, 2026-10-31)
-
-Shared modules live in `src/shared/frontend/` (pure or dependency-injected, no DOM), each with
-unit tests in `src/tests/unit/shared/`. The scanner and portfolio dashboard consume them
-instead of holding reusable logic inline:
-
-| Module | Responsibility |
-| --- | --- |
-| `simulator-selection.ts` | Simulator selection persistence (localStorage), normalisation, max-4 clamp |
-| `offline-review-cache.ts` | Best-effort IndexedDB save of last scan/simulation for offline review |
-| `offline-review-restore.ts` | Injectable cache readers and restore models for scans/simulations, display ticker mapping, investment and horizon restoration |
-| `simulator-service.ts` | Horizon/total/validity rules, display ticker → Yahoo symbol, request shaping, `POST /api/v1/simulate` |
-| `results-filter.ts` | Search/signal/min-score/high-volume filtering + sort by active view score |
-| `market-data-client.ts` | Yahoo proxy URL building, chart payload parsing, cached price history fetch |
-| `formatting.ts` | Percent, number, capital, currency and return formatting |
-| `alert-settings.ts` | Typed settings contract, defaults, drawdown normalisation, input shaping and injectable IndexedDB persistence |
-| `portfolio-builder.ts` | Portfolio request validation, regime score adjustment, allocation, governance corrections, price enrichment, risk (with degraded-mode exclusions) and governance reports |
-| `scan-analysis.ts` | Asset history/scoring and benchmark metrics, with injectable history access |
-| `scan-runner.ts` | Sequential markets, concurrent batches, result enrichment, counts, partial results and structured progress events |
-| `scan-enrichment.ts` | Optional post-scan regime/ML pipeline, tracker loading, adaptive scoring, anomaly summary and recommendations |
-
-Alert settings extraction (2026-10-31): the dashboard reads/writes settings through the shared
-service; `alert-manager.ts` re-exports the original functions for compatibility and consumes the
-same defaults. Storage keys and records remain unchanged. Rendering, status messages and DOM
-input reading remain in the dashboard; notification delivery remains in the alert manager.
-Coverage includes user/strategy isolation, partial legacy records, blank threshold fallback,
-disabled notifications, storage failures and a desktop E2E save/reopen flow.
-
-Portfolio builder extraction (2026-10-31): `buildPortfolio` in `scanner.ts` now only reads its
-inputs, maps validation issues to messages, logs governance violations/corrections returned by
-the builder, and renders. The resulting `appState.portfolio` shape is unchanged.
-
-Offline restore extraction (2026-10-31): `restoreLastScanFromCache` and
-`restoreLastSimulationFromCache` now consume shared restore models. Cache reads, basic record
-shape checks, Yahoo symbol → display ticker mapping, max-four selection, investment recovery
-and preset/custom horizon recovery live in `offline-review-restore.ts`. Readers accept an
-injected storage adapter and do not fetch market data or recalculate simulations. Stored
-records and IndexedDB keys are unchanged; missing optional metadata is tolerated, unusable
-records return null and storage errors propagate to the existing PWA error handler.
-`scanner.ts` still applies the returned model to its state, synchronises controls and renders;
-`pwa-init.ts` still controls when restoration runs (cold load while offline).
-The simulator now renders lazily when its tab opens: rendering the hidden tab during startup
-previously triggered a calculation with default inputs and overwrote the saved simulation
-before offline restoration. The E2E checks that neither reload nor review sends a new request.
-
-Coverage includes unit tests for restore models/readers and a Chromium E2E flow that calculates
-a simulation, reloads offline and verifies the saved amounts, custom horizon and projection
-without another simulation API request. The existing offline scan E2E remains in place.
-
-Scan orchestration extraction (2026-10-31): a single `runMarketScan` pipeline replaces the
-duplicated individual/all-markets loops. It retains batches of five, 50 ms pauses, sequential
-market processing, market-specific benchmark context, periodic result snapshots, sector
-statistics and the existing anomaly penalty/order rules. `enrichScanResults` owns the optional
-single-market regime/ML stages and their independent failure handling. All-markets scans
-continue to finish before those optional stages, preserving the existing behaviour.
-
-`runScan` remains the desktop adapter: it reads controls, prevents duplicate submissions,
-handles all-markets confirmation/cancellation, translates progress, renders snapshots/results,
-applies the returned state, persists successful scans and sends signal notifications.
-The benchmark/scoring compatibility adapters also remain available for backtesting.
-No presentation markup, DOM access or mutable scanner globals are required by the new services.
-Tests cover concurrency, market isolation, counts, anomaly penalties, optional ML failures,
-and browser flows for combined markets, cancellation and retry after a failed universe load.
-
-The initial Phase A boundaries are now extracted. This does not complete §5.5.3.2: desktop
-stabilisation (Phase B), dedicated Android presentation (Phase C) and packaging evaluation
-(Phase D) remain. Legacy result payload types and further UI cleanup can be refined incrementally.
+C2 validation (2026-10-31): **1336 unit/integration tests in 76 files**, **95 Chromium E2E
+tests in 14 specs** (87 desktop + 8 Android), plus **1 production-subpath/offline build test**.
+Production build and TypeScript pass; changed-file ESLint has no errors. Coverage:
+**94.86 / 82.37 / 96.10 / 96.20%** overall and **94.71 / 89.88 / 91.74 / 95.89%** shared frontend
+(statements / branches / functions / lines). Browser screenshots were inspected for the
+results and simulator views. These are browser/emulated-touch checks, not physical-device tests.
 
 ## Near-Term Next Actions
 
-1. Begin Phase B: consolidate desktop regression coverage for scan/results, portfolio/dashboard, alerts and simulator on the shared services
+1. Implement C3: Android portfolio construction/save/reopen and strategy-specific alert settings
 2. Stop adding new inline-coupled UI logic to the existing monolithic page where avoidable
-3. Define the Android flow map screen by screen
-4. Decide whether the first Android deliverable is:
-   - PWA-only
-   - Android Studio wrapper over the mobile frontend
-5. After desktop stabilisation, implement the Android results and simulator presentation on the shared services
+3. Keep the Phase B desktop regression and shared coverage gates passing alongside Android task-flow E2E
+4. Validate Android installation/offline behaviour before deciding in Phase D whether a native wrapper is needed
+5. Complete C4 Android web offline/resume/accessibility validation before the Phase D packaging decision

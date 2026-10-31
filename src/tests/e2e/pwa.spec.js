@@ -10,6 +10,7 @@
 import { test, expect } from '@playwright/test';
 import { ScannerPage } from './pages/ScannerPage.js';
 import { setupWithCompletedScan } from './helpers/test-utils.js';
+import { setupSimulationMock } from './helpers/api-mocks.js';
 
 test.describe('PWA foundation', () => {
   test('manifest.webmanifest is linked and valid', async ({ page, request }) => {
@@ -71,31 +72,7 @@ test.describe('PWA foundation', () => {
 
   test('last simulation restores amounts, custom horizon and projection offline', async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'Offline emulation is only reliably testable on Chromium');
-    let simulationRequests = 0;
-    await page.route('**/api/v1/simulate', async route => {
-      simulationRequests++;
-      const request = route.request().postDataJSON();
-      const totalMonthlyInvestment = Object.values(request.tickerInvestments)
-        .reduce((sum, amount) => sum + amount, 0);
-      const totalInvested = totalMonthlyInvestment * request.horizonMonths;
-      const scenarios = {
-        expected: { finalValue: totalInvested * 1.1, totalReturn: 0.1 },
-        optimistic: { finalValue: totalInvested * 1.2, totalReturn: 0.2 },
-        pessimistic: { finalValue: totalInvested * 0.9, totalReturn: -0.1 },
-      };
-      await route.fulfill({ json: {
-        currency: 'USD', totalInvested, totalMonthlyInvestment,
-        horizonMonths: request.horizonMonths, scenarios,
-        perTicker: request.tickers.map(ticker => ({
-          ticker, monthlyAmount: request.tickerInvestments[ticker],
-          tickerTotalInvested: totalInvested, scenarios,
-          historicalMonthlyReturn: 0.01, historicalMonthlyVolatility: 0.05, dataYears: 4,
-        })),
-        monthlyProjection: [{ month: request.horizonMonths,
-          expected: scenarios.expected.finalValue, optimistic: scenarios.optimistic.finalValue,
-          pessimistic: scenarios.pessimistic.finalValue }],
-      } });
-    });
+    const simulationRequests = await setupSimulationMock(page);
 
     await setupWithCompletedScan(page);
     const selection = page.locator('.sim-select-toggle').first();
@@ -109,7 +86,7 @@ test.describe('PWA foundation', () => {
     await page.locator('#simCalculateBtn').click();
     await expect(page.locator('#simSummary')).toContainText('$3,150');
     const summary = await page.locator('#simSummary').textContent();
-    const requestsBeforeRestore = simulationRequests;
+    const requestsBeforeRestore = simulationRequests.length;
 
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload();
@@ -127,7 +104,7 @@ test.describe('PWA foundation', () => {
       await expect(page.locator('#simCustomValue')).toHaveValue('18');
       await expect(page.locator('#simCustomUnit')).toHaveValue('months');
       await expect(page.locator('#simSummary')).toHaveText(summary);
-      expect(simulationRequests).toBe(requestsBeforeRestore);
+      expect(simulationRequests).toHaveLength(requestsBeforeRestore);
     } finally {
       await page.context().setOffline(false);
     }

@@ -146,6 +146,19 @@ mkdirSync(resolve(rootDir, 'dist/public'), { recursive: true });
 writeFileSync(resolve(rootDir, 'dist/public/index.html'), html);
 console.log('  ✓ dist/public/index.html written');
 
+// Android has its own HTML entry and imports no desktop boot modules.
+const androidEntry = getEntry('src/android/app.ts');
+const androidStyle = getEntry('src/android/android.css');
+if (!androidEntry || !androidStyle) throw new Error('Android build entries missing');
+let androidHtml = readFileSync(resolve(rootDir, 'android.html'), 'utf-8');
+androidHtml = androidHtml
+  .replace('src="dist/src/android/app.js"', `src="${withBase(androidEntry.file)}"`)
+  .replace('href="src/android/android.css"', `href="${withBase(androidStyle.css?.[0] || androidStyle.file)}"`)
+  .replace('href="icons/favicon.ico"', `href="${withBase('icons/favicon.ico')}"`)
+  .replace('href="manifest.webmanifest"', `href="${withBase('manifest.webmanifest')}"`);
+writeFileSync(resolve(rootDir, 'dist/public/android.html'), androidHtml);
+console.log('  ✓ dist/public/android.html written');
+
 // ── 8. Copy universes/ data so production Express can serve them ───────────
 const universesDir = resolve(rootDir, 'universes');
 const universesOut = resolve(rootDir, 'dist/public/universes');

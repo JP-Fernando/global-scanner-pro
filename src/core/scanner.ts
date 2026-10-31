@@ -48,11 +48,13 @@ import {
   isSimulationInputValid,
   requestSimulation
 } from '../shared/frontend/simulator-service.js';
-import { buildPortfolioModel, validatePortfolioRequest } from '../shared/frontend/portfolio-builder.js';
+import { buildPortfolioModel, validatePortfolioRequest, canBuildPortfolio as isPortfolioBuildable } from '../shared/frontend/portfolio-builder.js';
 import { analyzeStock as analyzeScanStock, loadBenchmark as loadScanBenchmark }
   from '../shared/frontend/scan-analysis.js';
 import { runMarketScan } from '../shared/frontend/scan-runner.js';
 import { enrichScanResults } from '../shared/frontend/scan-enrichment.js';
+import { RequestCoordinator } from '../shared/frontend/request-coordinator.js';
+import { buildSelectionKeyIndex, getAssetSymbol } from '../shared/frontend/asset-identity.js';
 
 const sleep = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 let currentResults: any[] = [];
@@ -65,6 +67,7 @@ let isScanning = false; // Control flag
 let selectedForSimulator: string[] = [];
 let activeMainTab: 'results' | 'simulator' = 'results';
 const simulatorChart = new SimulatorChart();
+const simulatorRequests = new RequestCoordinator();
 const simulatorState = {
   tickerInvestments: {} as Record<string, number>,
   preset: 60,
@@ -1307,9 +1310,7 @@ export async function runScan() {
     const exportButtons = document.getElementById('scanExportButtons');
     if (exportButtons && currentResults.length > 0) exportButtons.style.display = 'block';
 
-    const canBuildPortfolio = appState.scanResults.filter(
-      (r: any) => Array.isArray(r.pricesWithDates) && r.pricesWithDates.length >= 30
-    ).length >= 3;
+    const canBuildPortfolio = isPortfolioBuildable(appState.scanResults);
     const buildBtn = document.querySelector('button[onclick="buildPortfolio()"]');
     if (buildBtn) (buildBtn as HTMLButtonElement).disabled = !canBuildPortfolio;
     if (!canBuildPortfolio) showInlineError(i18n.t('errors.insufficient_assets_portfolio'));
@@ -1664,7 +1665,7 @@ function saveSimulatorSelection() {
 function syncSimulatorSelectionWithResults() {
   selectedForSimulator = reconcileSimulatorSelection(
     selectedForSimulator,
-    currentResults.map((result: any) => String(result.ticker || ''))
+    buildSelectionKeyIndex(currentResults).values()
   );
 }
 
@@ -1680,7 +1681,15 @@ function loadSimulatorSelection() {
 function clearSimulatorSelection() {
   selectedForSimulator = [];
   clearStoredSimulatorSelection();
+  invalidateSimulatorResponse();
+}
+
+function invalidateSimulatorResponse() {
+  simulatorRequests.invalidate();
   simulatorState.lastResponse = null;
+  simulatorState.isLoading = false;
+  const loading = document.getElementById('simLoading');
+  if (loading) loading.style.display = 'none';
 }
 
 function renderSimulatorSelectionBadge() {
@@ -1707,12 +1716,10 @@ function renderSimulatorSelectionBadge() {
 function removeTickerFromSimulator(ticker: string) {
   selectedForSimulator = selectedForSimulator.filter(item => item !== ticker);
   delete simulatorState.tickerInvestments[ticker];
+  invalidateSimulatorResponse();
   saveSimulatorSelection();
   applyFilters();
   renderSimulatorTab();
-  if (selectedForSimulator.length > 0) {
-    onCalculate(true);
-  }
 }
 
 function renderScenarioMetric(label: string, scenario: any, currency: string, color: string) {
@@ -1743,6 +1750,7 @@ function bindSimulatorEvents() {
       const ticker = el.getAttribute('data-ticker') || '';
       const value = Number(el.value);
       simulatorState.tickerInvestments[ticker] = Number.isFinite(value) && value >= 0 ? value : 0;
+      invalidateSimulatorResponse();
       const totalEl = document.getElementById('simTotalMonthly');
       if (totalEl) totalEl.textContent = String(Math.round(getSimulatorTotalMonthly()));
       updateSimulatorActionState();
@@ -1752,6 +1760,7 @@ function bindSimulatorEvents() {
   presetInputs.forEach(input => {
     input.addEventListener('change', () => {
       const target = input as HTMLInputElement;
+      invalidateSimulatorResponse();
       if (target.value === 'custom') {
         simulatorState.useCustom = true;
         if (customPanel) customPanel.style.display = 'grid';
@@ -1773,6 +1782,7 @@ function bindSimulatorEvents() {
   if (customValue) {
     customValue.addEventListener('input', () => {
       simulatorState.customValue = Number(customValue.value);
+      invalidateSimulatorResponse();
       updateSimulatorActionState();
       if (simulatorState.useCustom) onCalculate(true);
     });
@@ -1781,6 +1791,7 @@ function bindSimulatorEvents() {
   if (customUnit) {
     customUnit.addEventListener('change', () => {
       simulatorState.customUnit = customUnit.value as 'months' | 'years';
+      invalidateSimulatorResponse();
       updateSimulatorActionState();
       if (simulatorState.useCustom) onCalculate(true);
     });
@@ -1869,6 +1880,7 @@ async function onCalculate(isAuto = false) {
     return;
   }
 
+  const version = simulatorRequests.start();
   simulatorState.isLoading = true;
   updateSimulatorActionState();
 
@@ -1880,14 +1892,17 @@ async function onCalculate(isAuto = false) {
       selectedForSimulator,
       simulatorState.tickerInvestments,
       horizon,
-      currentResults
+      currentResults,
+      'selection'
     );
     const payload = await requestSimulation(request);
+    if (!simulatorRequests.isCurrent(version)) return;
 
     simulatorState.lastResponse = payload;
     persistLastSimulation(request, payload);
     renderSimulatorProjection(payload);
   } catch (error) {
+    if (!simulatorRequests.isCurrent(version)) return;
     if (errorNode) {
       errorNode.textContent = (error as Error).message || 'Simulation failed';
     }
@@ -1895,9 +1910,11 @@ async function onCalculate(isAuto = false) {
       console.error('Simulation error:', error);
     }
   } finally {
-    simulatorState.isLoading = false;
-    if (loading) loading.style.display = 'none';
-    updateSimulatorActionState();
+    if (simulatorRequests.isCurrent(version)) {
+      simulatorState.isLoading = false;
+      if (loading) loading.style.display = 'none';
+      updateSimulatorActionState();
+    }
   }
 }
 
@@ -2042,10 +2059,11 @@ function renderTable(data: any) {
 
   syncSimulatorSelectionWithResults();
 
+  const selectionKeys = buildSelectionKeyIndex(currentResults);
   data.forEach((r: any, idx: any) => {
     const displayScore = r[viewKey] || r.finalScore;
     const dotColor = (SECTOR_COLORS as any)[r.sectorId] || (SECTOR_COLORS as any)[999];
-    const ticker = String(r.ticker || '').toUpperCase();
+    const ticker = selectionKeys.get(getAssetSymbol(r)) || String(r.ticker || '').toUpperCase();
     const isChecked = selectedForSimulator.includes(ticker);
     const isMaxed = selectedForSimulator.length >= MAX_SIMULATOR_TICKERS;
     const disableUnchecked = isMaxed && !isChecked;
@@ -2152,6 +2170,7 @@ function renderTable(data: any) {
         delete simulatorState.tickerInvestments[ticker];
       }
 
+      invalidateSimulatorResponse();
       saveSimulatorSelection();
       renderSimulatorSelectionBadge();
       if (activeMainTab === 'simulator') {
@@ -3469,7 +3488,7 @@ export async function restoreLastSimulationFromCache(): Promise<number | null> {
   Object.assign(simulatorState, saved.horizon);
   simulatorState.lastResponse = saved.response;
   saveSimulatorSelection();
-  renderSimulatorSelectionBadge();
+  applyFilters();
   if (activeMainTab === 'simulator') {
     renderSimulatorTab();
   }
