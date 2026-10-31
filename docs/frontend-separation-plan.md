@@ -146,9 +146,30 @@ shared services below, platform-specific rendering above.
 - Core flows work on both surfaces
 - Platform-specific tests exist and pass
 
+## Progress
+
+### Phase A — Boundary Extraction (🟡 in progress)
+
+Shared modules live in `src/shared/frontend/` (pure or dependency-injected, no DOM), each with
+unit tests in `src/tests/unit/shared/`. `src/core/scanner.ts` now consumes them instead of
+holding the logic inline:
+
+| Module | Responsibility |
+| --- | --- |
+| `simulator-selection.ts` | Simulator selection persistence (localStorage), normalisation, max-4 clamp |
+| `offline-review-cache.ts` | Best-effort IndexedDB save of last scan/simulation for offline review |
+| `simulator-service.ts` | Horizon/total/validity rules, display ticker → Yahoo symbol, request shaping, `POST /api/v1/simulate` |
+| `results-filter.ts` | Search/signal/min-score/high-volume filtering + sort by active view score |
+| `market-data-client.ts` | Yahoo proxy URL building, chart payload parsing, cached price history fetch |
+| `formatting.ts` | Percent, number, capital, currency and return formatting |
+
+Remaining Phase A candidates: portfolio build orchestration (`buildPortfolio`), alerts settings
+persistence, scan orchestration (`runScan`/`scanSingleMarket` loop vs. status rendering), and
+offline restore flows (`restoreLastScanFromCache`/`restoreLastSimulationFromCache`).
+
 ## Near-Term Next Actions
 
-1. Extract shared scan/simulator/portfolio/alerts orchestration from the current frontend
+1. Extract shared scan/portfolio/alerts orchestration from the current frontend (results + simulator done)
 2. Stop adding new inline-coupled UI logic to the existing monolithic page where avoidable
 3. Define the Android flow map screen by screen
 4. Decide whether the first Android deliverable is:

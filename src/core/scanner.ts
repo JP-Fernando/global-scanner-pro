@@ -3,7 +3,6 @@
 // =====================================================
 
 import { STRATEGY_PROFILES, MARKET_BENCHMARKS } from './config.js';
-import { API_BASE_URL } from '../config/api-base.js';
 import * as ind from '../indicators/indicators.js';
 import * as scoring from '../indicators/scoring.js';
 import * as allocation from '../allocation/allocation.js';
@@ -56,6 +55,22 @@ import {
   persistLastScanReview,
   persistLastSimulationReview
 } from '../shared/frontend/offline-review-cache.js';
+import {
+  formatPct,
+  formatNumber,
+  formatCapital,
+  formatCurrencyValue,
+  formatReturn
+} from '../shared/frontend/formatting.js';
+import { filterAndSortResults } from '../shared/frontend/results-filter.js';
+import { fetchPriceHistory, resolveFullSymbol } from '../shared/frontend/market-data-client.js';
+import {
+  buildSimulationRequest,
+  getHorizonMonths,
+  getTotalMonthlyInvestment,
+  isSimulationInputValid,
+  requestSimulation
+} from '../shared/frontend/simulator-service.js';
 
 const sleep = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 let currentResults: any[] = [];
@@ -181,39 +196,11 @@ const SECTOR_NAMES: Record<string | number, string> = SECTOR_TAXONOMY.reduce((ac
 
 
 async function loadYahooData(ticker: string, suffix: string): Promise<any[] | null> {
-  const fullSymbol = ticker.includes('.') ? ticker : `${ticker}${suffix}`;
-  const from = Math.floor((Date.now() / 1000) - (4 * 365.25 * 86400));
-  const to = Math.floor(Date.now() / 1000);
-
-  if (dataCache.has(fullSymbol)) {
-    return dataCache.get(fullSymbol);
-  }
-
   try {
-    const res = await fetch(`${API_BASE_URL}/api/yahoo?symbol=${fullSymbol}&from=${from}&to=${to}`);
-    const json = await res.json();
-    if (!json.chart?.result?.[0]) return [];
-
-    const r = json.chart.result[0];
-    const q = r.indicators.quote[0];
-    const adj = r.indicators.adjclose?.[0]?.adjclose || q.close;
-
-    const series = r.timestamp.map((t: any, i: any) => {
-      if (adj[i] == null || isNaN(adj[i])) return null;
-
-      return {
-        date: new Date(t * 1000).toISOString().split('T')[0], // YYYY-MM-DD
-        close: adj[i],
-        volume: q.volume?.[i] ?? 0,
-        high: q.high?.[i] ?? adj[i],
-        low: q.low?.[i] ?? adj[i]
-      };
-    }).filter(Boolean);
-    dataCache.set(fullSymbol, series);
-    return series;
+    return await fetchPriceHistory(ticker, suffix, { cache: dataCache });
   } catch (e) {
     console.warn(
-      i18n.t('errors.yahoo_load_failed',{symbol: fullSymbol}),
+      i18n.t('errors.yahoo_load_failed',{symbol: resolveFullSymbol(ticker, suffix)}),
       (e as any).message);
     return [];
   }
@@ -495,25 +482,6 @@ async function loadUniverseData(file: any, suffix: any, statusNode: any) {
   }
 
   return results;
-}
-
-function formatPct(value: any, { showSign = true } = {}) {
-  if (!Number.isFinite(value)) return 'N/A';
-  const sign = showSign && value > 0 ? '+' : '';
-  return `${sign}${value.toFixed(2)}%`;
-}
-
-function formatNumber(value: any, decimals = 2) {
-  if (!Number.isFinite(value)) return 'N/A';
-  return value.toFixed(decimals);
-}
-
-function formatCapital(value: any) {
-  if (!Number.isFinite(value)) return 'N/A';
-  return new Intl.NumberFormat('es-ES', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(value);
 }
 
 function getMetricColor(value: any, thresholds: any) {
@@ -2299,14 +2267,7 @@ function renderWeightChart(allocation: any) {
 // =====================================================
 
 function getSimulatorHorizonMonths() {
-  if (!simulatorState.useCustom) {
-    return simulatorState.preset;
-  }
-
-  const rawValue = Number(simulatorState.customValue);
-  if (!Number.isFinite(rawValue) || rawValue < 1) return 0;
-  if (simulatorState.customUnit === 'years') return Math.max(1, Math.round(rawValue * 12));
-  return Math.max(1, Math.round(rawValue));
+  return getHorizonMonths(simulatorState);
 }
 
 function saveSimulatorSelection() {
@@ -2356,20 +2317,6 @@ function renderSimulatorSelectionBadge() {
   }
 }
 
-function resolveSimulatorSymbols() {
-  return selectedForSimulator.map(ticker => {
-    const match = currentResults.find((item: any) => String(item.ticker || '').toUpperCase() === ticker);
-    if (!match) return ticker;
-
-    const explicit = String(match.yahooSymbol || '').trim();
-    if (explicit) return explicit;
-
-    const marketSuffix = String(match.marketSuffix || '').trim();
-    if (ticker.includes('.') || !marketSuffix) return ticker;
-    return `${ticker}${marketSuffix}`;
-  });
-}
-
 function removeTickerFromSimulator(ticker: string) {
   selectedForSimulator = selectedForSimulator.filter(item => item !== ticker);
   delete simulatorState.tickerInvestments[ticker];
@@ -2379,19 +2326,6 @@ function removeTickerFromSimulator(ticker: string) {
   if (selectedForSimulator.length > 0) {
     onCalculate(true);
   }
-}
-
-function formatCurrencyValue(value: number, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0
-  }).format(value);
-}
-
-function formatReturn(value: number) {
-  const sign = value > 0 ? '+' : '';
-  return `${sign}${(value * 100).toFixed(1)}%`;
 }
 
 function renderScenarioMetric(label: string, scenario: any, currency: string, color: string) {
@@ -2479,26 +2413,18 @@ function bindSimulatorEvents() {
 }
 
 function getSimulatorTotalMonthly(): number {
-  return selectedForSimulator.reduce(
-    (sum, ticker) => sum + (simulatorState.tickerInvestments[ticker] ?? 0), 0
-  );
+  return getTotalMonthlyInvestment(selectedForSimulator, simulatorState.tickerInvestments);
 }
 
 function updateSimulatorActionState() {
   const calculateBtn = document.getElementById('simCalculateBtn') as HTMLButtonElement | null;
   if (!calculateBtn) return;
 
-  const horizon = getSimulatorHorizonMonths();
-  const allNonNegative = selectedForSimulator.every(
-    ticker => (simulatorState.tickerInvestments[ticker] ?? 0) >= 0
+  const isValid = isSimulationInputValid(
+    selectedForSimulator,
+    simulatorState.tickerInvestments,
+    getSimulatorHorizonMonths()
   );
-  const total = getSimulatorTotalMonthly();
-  const isValid =
-    selectedForSimulator.length > 0 &&
-    allNonNegative &&
-    total > 0 &&
-    horizon >= 1;
-
   calculateBtn.disabled = !isValid || simulatorState.isLoading;
 }
 
@@ -2551,8 +2477,7 @@ async function onCalculate(isAuto = false) {
   if (errorNode) errorNode.textContent = '';
 
   const horizon = getSimulatorHorizonMonths();
-  const total = getSimulatorTotalMonthly();
-  if (!selectedForSimulator.length || total <= 0 || horizon < 1) {
+  if (!isSimulationInputValid(selectedForSimulator, simulatorState.tickerInvestments, horizon)) {
     updateSimulatorActionState();
     return;
   }
@@ -2564,31 +2489,16 @@ async function onCalculate(isAuto = false) {
   if (loading) loading.style.display = 'flex';
 
   try {
-    const simulationTickers = resolveSimulatorSymbols();
-    const tickerInvestments: Record<string, number> = {};
-    selectedForSimulator.forEach((displayTicker, i) => {
-      tickerInvestments[simulationTickers[i]] = simulatorState.tickerInvestments[displayTicker] ?? 0;
-    });
-
-    const response = await fetch(`${API_BASE_URL}/api/v1/simulate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        tickers: simulationTickers,
-        tickerInvestments,
-        horizonMonths: horizon
-      })
-    });
-
-    const payload = await response.json();
-    if (!response.ok) {
-      throw new Error(payload?.error || 'Simulation API request failed');
-    }
+    const request = buildSimulationRequest(
+      selectedForSimulator,
+      simulatorState.tickerInvestments,
+      horizon,
+      currentResults
+    );
+    const payload = await requestSimulation(request);
 
     simulatorState.lastResponse = payload;
-    persistLastSimulation({ tickers: simulationTickers, tickerInvestments, horizonMonths: horizon }, payload);
+    persistLastSimulation(request, payload);
     renderSimulatorProjection(payload);
   } catch (error) {
     if (errorNode) {
@@ -2906,24 +2816,8 @@ function applyFilters() {
     return;
   }
 
-  const { query, signal, minScore, volume } = getFilterState();
   const viewKey = (document.getElementById('viewMode') as HTMLInputElement)?.value || 'scoreTotal';
-
-  const filtered = currentResults.filter(result => {
-    const matchesQuery = !query
-      || result.ticker?.toLowerCase().includes(query)
-      || result.name?.toLowerCase().includes(query);
-    const matchesSignal = signal === 'all' || result.signal?.key === signal;
-    const viewScore = Number(result[viewKey] ?? result.scoreTotal ?? 0);
-    const matchesScore = viewScore >= minScore;
-    const matchesVolume = volume === 'all' || (Number(result.vRatio || 0) >= 2);
-
-    return matchesQuery && matchesSignal && matchesScore && matchesVolume;
-  }).sort((a, b) => {
-    const scoreA = Number(a[viewKey] ?? a.scoreTotal ?? 0);
-    const scoreB = Number(b[viewKey] ?? b.scoreTotal ?? 0);
-    return scoreB - scoreA;
-  });
+  const filtered = filterAndSortResults(currentResults, getFilterState(), viewKey);
 
   renderTable(filtered);
   updateFilterSummary(filtered.length, currentResults.length);

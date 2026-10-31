@@ -19,6 +19,8 @@ test.describe('Alert configuration', () => {
     await page.locator('#allocationMethod').selectOption('equal_weight');
     await page.locator('button[onclick="buildPortfolio()"]').click();
     await page.locator('#portfolioResults').waitFor({ state: 'visible', timeout: 15_000 });
+    await page.locator('#portfolioDashboardSection').waitFor({ state: 'visible', timeout: 15_000 });
+    await page.locator('#alertVolatilityThreshold').waitFor({ state: 'visible', timeout: 15_000 });
 
     alerts = new AlertsPage(page);
   });

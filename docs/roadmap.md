@@ -2068,6 +2068,10 @@ background sync, and the local-only vs account-synced product decision.
 
 #### 5.5.3.2 Frontend Separation and Android UX Hardening
 **Target**: immediately after PWA foundation
+**Status**: 🟡 IN PROGRESS — Phase A (boundary extraction): results filtering, simulator
+service, market data client and formatting extracted to `src/shared/frontend/` (2026-10-31);
+portfolio, alerts and scan orchestration pending. See
+[Frontend Separation Plan](frontend-separation-plan.md#progress).
 
 **Decision**:
 - Do **not** collapse the current desktop UI into a compromised one-size-fits-all layout
