@@ -74,7 +74,7 @@ happen mainly in the presentation layer.
   - alerts editing
   - simulator flow
 
-### Phase C — Android Frontend (🟡 C2/C3/C4 web implemented; physical validation pending)
+### Phase C — Android Frontend (✅ web implemented and emulator-validated; physical checks listed)
 
 The flow map in [Android Frontend Flows](android-frontend-flows.md) now has its first working
 increment: `android.html` serves **Scan → Results → Asset detail → Simulator** through
@@ -100,8 +100,9 @@ Android task-flow E2E runs at 360/390/430 px and includes same-ticker markets, c
 restore/recalculation, API failure/retry, stale responses, invalid routes and blocked storage.
 C3 adds dedicated Android portfolio construction/save/reopen, position detail and strategy-specific
 alert settings/history; these destinations no longer redirect to desktop management. C4 adds
-resume/accessibility hardening and an independent Android manifest. Physical Android keyboard,
-installation and lifecycle checks remain pending; no native wrapper has been added.
+resume/accessibility hardening and an independent Android manifest. Keyboard, installation,
+rotation, text size, lifecycle, offline and update behaviour were validated on Android 15
+emulated with Chrome 149 (Phase D); a few physical-device/HTTPS checks remain.
 
 C2 validation (2026-10-31): **1336 unit/integration tests in 76 files**, **95 Chromium E2E
 tests in 14 specs** (87 desktop + 8 Android), plus **1 production-subpath/offline build test**.
@@ -138,10 +139,10 @@ for retry; confirmation follows the awaited persistence operation. The existing 
 stores remain shared on the same origin; this increment adds no account or tab synchronization.
 
 C3 validation is recorded in [Android Frontend Flows](android-frontend-flows.md#implementación-y-validación-de-c3).
-C4 web hardening is implemented below; physical Android checks remain open before the Phase D
-packaging decision. The desktop manifest keeps its entry; Android uses its own manifest.
+C4 web hardening is implemented below and was validated on an Android emulator in Phase D.
+The desktop manifest keeps its entry; Android uses its own manifest.
 
-### C4 — Web hardening (implemented 2026-11-01; device validation pending)
+### C4 — Web hardening (implemented and emulator-validated 2026-11-01)
 
 `navigation.ts` restores Android presentation context under `gsp.android.navigation.v1`:
 last route, per-screen scroll, disclosures and focus/selection. Explicit deep links win over the
@@ -151,7 +152,7 @@ quote refreshes or notification delivery. Interrupted/failed work retains the pr
 and offers an explicit retry; a scan that lost connection cannot overwrite the complete review.
 
 Android has a skip link, focus restoration, visual-viewport keyboard handling, safe-area spacing,
-readable input sizing and reduced-motion support. The C4 task flow audits every screen at
+readable input sizing, system text-size opt-in (`<meta name="text-scale">`) and reduced-motion support. The C4 task flow audits every screen at
 360/390/430 px using axe WCAG 2 A/AA and 2.1 AA with no disabled rules. IndexedDB blocked upgrades
 reject rather than hanging startup, and version changes release existing connections.
 
@@ -162,13 +163,37 @@ with its asset graph. Updates wait for explicit activation from Android, preserv
 reload afterwards; quota errors in runtime caching do not discard online responses. Cache
 cleanup is restricted to the deployment prefix.
 
-See [Android C4 Validation](android-validation.md) for evidence, reproducible commands and the
-pending physical-device checklist. ADB reported no attached device. Browser emulation and
-synthetic install events do not validate Android's installation UI or a real keyboard.
+See [Android Validation](android-validation.md) for evidence and reproducible commands.
+
+### Phase D — Android packaging decision (✅ decided 2026-11-01: PWA)
+
+No physical device was available, so the PWA was validated on an Android 15 emulator
+(Pixel 7a, Google Play image) running **Chrome 149**, against the production build, with real
+market data. Native install dialog, standalone launch, Gboard keyboard, rotation, system text
+size up to 200%, background kill and relaunch, offline cold start, reconnection without implicit
+requests and explicit updates all pass. One defect found there was fixed: Chrome ignored the
+system text size until `android.html` opted in with `<meta name="text-scale" content="scale">`.
+
+**Decision: the installable PWA is the Android delivery channel; no Android Studio/Capacitor
+project is added.** No current flow needs a native capability (no push, background sync or
+system integration), and a wrapper would duplicate the shell, signing and release cycle.
+The decision is reopened only by a concrete need: Google Play distribution (a Bubblewrap
+Trusted Web Activity over the same PWA, which needs an own HTTPS domain serving
+`/.well-known/assetlinks.json`) or a native capability (Capacitor for that capability only).
+
+Known limitation: Chrome writes `localStorage` to disk with a delay, so an edit made less than
+about a second before the process dies can be lost (0.5 s lost, 3 s kept). Wrappers share this
+behaviour; mirroring drafts in IndexedDB is the mitigation if needed.
+
+Still open, outside emulator reach: WebAPK minting on the HTTPS deployment, TalkBack speech,
+real low-memory kills and a second browser/OEM. These are follow-up checks, not blockers for
+the packaging decision.
 
 ## Near-Term Next Actions
 
-1. Complete the physical Android C4 checklist before closing Phase C or deciding Phase D packaging
-2. Stop adding new inline-coupled UI logic to the existing monolithic page where avoidable
-3. Keep the Phase B desktop regression and shared coverage gates passing alongside Android task-flow E2E
-4. Validate Android installation/offline behaviour before deciding in Phase D whether a native wrapper is needed
+1. Run the remaining physical/HTTPS checks in [Android Validation](android-validation.md) on the
+   GitHub Pages + Render deployment (WebAPK, TalkBack speech, low-memory kill, second browser)
+2. Decide whether the `localStorage` write delay justifies mirroring Android drafts in IndexedDB
+3. Stop adding new inline-coupled UI logic to the existing monolithic page where avoidable
+4. Keep the Phase B desktop regression and shared coverage gates passing alongside Android task-flow E2E
+5. Revisit packaging only if Google Play distribution or a native capability becomes a requirement

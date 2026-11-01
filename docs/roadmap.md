@@ -20,7 +20,7 @@ no longer "can we build features?" but "what product shape are we shipping next?
   review, install prompt) — completed 2026-07-02, see §5.5.3.1
 - ✅ Split hosting path: frontend auto-deployed to GitHub Pages on every push to `main`
   (`.github/workflows/deploy-pages.yml`, `VITE_BASE_PATH`/`VITE_API_BASE_URL`), backend on Render
-- ✅ Test baseline (2026-11-01): 1375 unit+integration tests, 111 Chromium E2E tests (16 specs),
+- ✅ Test baseline (2026-11-01): 1375 unit+integration tests, 114 Chromium E2E tests (16 specs),
   coverage gate passing (94.89 / 82.55 / 95.99 / 96.26 — see §2.1.2 for scope caveats)
 
 ### What is still strategically missing
@@ -29,7 +29,7 @@ no longer "can we build features?" but "what product shape are we shipping next?
   (this milestone shipped the local-first branch; account-based sync is still open, §5.5.3.3)
 - Frontend separation: preserve the current desktop-optimised experience while adding
   an Android-focused frontend over the same backend and shared domain logic (§5.5.3.2 — Phase A
-  extracted; Phase B Chromium baseline verified; Phase C2/C3/C4 web implemented; physical Android validation pending)
+  extracted; Phase B Chromium baseline verified; Phase C implemented and emulator-validated; Phase D decided: PWA, no native wrapper)
 - Deployment/operations debt: the Docker image was rebuilt but not yet built with real Docker
   (§3.2.1), production dependencies have open advisories (§5.1.2), and `CHANGELOG.md` stops at Phase 3 (§4.3.4)
 
@@ -39,7 +39,8 @@ PWA enablement (local-first branch) is done and **frontend separation and Androi
 market data, formatting, alert settings, portfolio building, offline restore and scan/regime/ML
 orchestration into `src/shared/frontend/`. Phase B has a verified Chromium regression baseline; the C2 Android scan/results/detail/simulator flow is implemented in `android.html`.
 C3 adds Android portfolio construction/save/reopen, position detail and strategy alert settings;
-C4 web hardening is implemented; physical Android validation is next. See [Android Frontend Flows](android-frontend-flows.md).
+C4 web hardening is implemented and was validated on Android 15 emulated with Chrome 149; Phase D chose the installable PWA
+as the Android delivery channel. Remaining physical/HTTPS checks are listed in [Android Validation](android-validation.md).
 The installable shell exists, but the next step
 should not be "make desktop worse so mobile fits". Instead, preserve the current desktop
 workflow, keep shared application services covered, and build an Android-focused presentation layer over
@@ -2145,7 +2146,7 @@ background sync, and the local-only vs account-synced product decision.
 
 #### 5.5.3.2 Frontend Separation and Android UX Hardening
 **Target**: immediately after PWA foundation
-**Status**: 🟡 IN PROGRESS — Phase A initial boundary extraction complete (2026-10-31):
+**Status**: ✅ PHASES A–D DONE (2026-11-01); physical-device/HTTPS follow-up checks open — Phase A initial boundary extraction complete (2026-10-31):
 results filtering, simulator service, market data client, formatting, alert settings persistence,
 portfolio builder, offline restore models/readers and scan orchestration now live in
 `src/shared/frontend/`. Phase B desktop stabilisation has a verified Chromium baseline
@@ -2172,11 +2173,21 @@ upgrades fail recoverably and version changes release existing connections. Andr
 `android.webmanifest` with its own identity/start URL; desktop keeps its manifest/entry.
 Build-versioned worker caches pair HTML with assets; Android updates require explicit activation
 and preserve drafts. Runtime cache write errors do not discard online responses.
-Physical Android installation/keyboard/TalkBack/lifecycle validation remains pending (ADB showed
-no connected device), so Phase C is not yet closed and Phase D packaging is undecided. See
-[Android C4 Validation](android-validation.md) for the evidence and remaining checklist.
-[Android Frontend Flows](android-frontend-flows.md) records the scope and remaining validation.
-Firefox/WebKit and physical Android devices were not validated in this delivery.
+Phase D (2026-11-01): with no physical device attached, the PWA was validated on an Android 15
+emulator (Pixel 7a, Google Play image) running Chrome 149 against the production build and real
+market data: native install dialog and standalone launch, Gboard keyboard resizing, rotation,
+system text size at 130%/200%, background kill and relaunch, offline cold start, reconnection
+without implicit requests, and explicit worker updates preserving drafts. Chrome ignored the
+system text size until `android.html` opted in with `<meta name="text-scale" content="scale">`
+(fixed, with a 200% overflow E2E guard). **Decision: ship Android as the installable PWA; no
+Android Studio/Capacitor project.** Google Play distribution (Bubblewrap TWA, needs an own HTTPS
+domain for `assetlinks.json`) or a native capability would reopen it. Known limitation: Chrome
+persists `localStorage` with a delay, so an edit made under ~1 s before the process dies can be
+lost. Validation after D: 1375 unit/integration tests, 114 Chromium E2E (87 desktop + 27
+Android) and 2 production-subpath checks pass.
+Open follow-ups: WebAPK on the HTTPS deployment, TalkBack speech, real low-memory kills and a
+second browser/OEM; Firefox/WebKit were not validated. See [Android Validation](android-validation.md)
+and [Android Frontend Flows](android-frontend-flows.md).
 The desktop baseline includes:
 saved portfolio/dashboard workflows and simulator request/selection/error flows now have
 strict regression checks. Fixes preserve allocation metadata and capital when saving,
@@ -2232,9 +2243,10 @@ startup calculations overwriting the cached projection. See
    - review alerts and edit essential thresholds
 6. Reduce Android flow complexity through cards, drill-down views, sticky action areas, and
    progressive disclosure instead of trying to keep all desktop tables visible at once
-7. Decide the Android delivery wrapper:
-   - installable PWA only, if sufficient
+7. Decide the Android delivery wrapper — ✅ decided 2026-11-01: installable PWA only
+   - installable PWA only, if sufficient (chosen after emulator validation)
    - Android Studio project wrapping the mobile frontend if install/test/distribution needs justify it
+     (not justified; Google Play would use a Bubblewrap TWA over the same PWA)
 8. Add platform-aware test coverage:
    - desktop regression tests to ensure no analytical UX loss
    - Android viewport/task-flow tests for touch interactions and narrow screens
@@ -2250,7 +2262,7 @@ startup calculations overwriting the cached projection. See
 3. Android frontend build-out
    - Create dedicated Android-first views for scanner, results, portfolio, alerts, and simulator
    - Optimise for 360-430px widths and touch-first navigation
-4. Android packaging evaluation
+4. Android packaging evaluation — ✅ done 2026-11-01 (PWA sufficient; no native track)
    - Validate whether the mobile frontend is sufficient as a PWA
    - Only then decide whether Android Studio packaging should become a committed delivery track
 
@@ -2381,7 +2393,7 @@ capabilities in parallel. The next decision is architectural as much as function
 ### Priority 1 — Next 2 to 4 weeks
 1. ✅ PWA foundation (`manifest`, icons, service worker, install flow, offline shell) —
    completed 2026-07-02, see §5.5.3.1
-2. Frontend separation and Android UX hardening while preserving desktop quality (§5.5.3.2 — Phases A/B baseline verified; C2/C3/C4 web implemented; physical Android validation pending)
+2. Frontend separation and Android UX hardening while preserving desktop quality (§5.5.3.2 — Phases A–D done; Android ships as PWA; physical-device/HTTPS follow-up checks open)
 3. Product decision on persistence model:
    local-only IndexedDB vs authenticated server-synced user data
 

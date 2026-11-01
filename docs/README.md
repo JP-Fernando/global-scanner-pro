@@ -28,7 +28,7 @@ Esta carpeta contiene la documentación completa de **Global Quant Scanner Pro**
 - [Arquitectura técnica](arquitectura-tecnica.md)
 - [Plan de separación de frontends desktop/Android](frontend-separation-plan.md)
 - [Flujos del frontend Android: análisis, simulador, carteras y alertas (C2/C3; endurecimiento C4)](android-frontend-flows.md)
-- [Validación Android C4 y comprobaciones físicas pendientes](android-validation.md)
+- [Validación Android (C4 y Fase D en emulador), decisión de empaquetado PWA y comprobaciones físicas pendientes](android-validation.md)
 - [Módulo de reportes avanzados](reports-module.md)
 - [Mejoras de experiencia de usuario (UX)](ux-improvements.md)
 - [Machine Learning y optimización avanzada](machine-learning.md) 🆕 ✨

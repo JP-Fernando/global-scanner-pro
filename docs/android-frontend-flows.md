@@ -1,7 +1,8 @@
 # Frontend Android: flujos y primer alcance
 
-Estado: C1 especificado, **C2/C3 y C4 web implementados** (2026-11-01).
-Queda pendiente la comprobación física C4 de teclado, instalación y ciclo de vida Android.
+Estado: C1 especificado, **C2/C3/C4 implementados y validados en Android 15 emulado**;
+**Fase D decidida: entrega como PWA, sin wrapper nativo** (2026-11-01). Quedan comprobaciones
+en dispositivo físico y despliegue HTTPS (WebAPK, voz de TalkBack), ver [validación](android-validation.md).
 Este documento concreta el alcance de
 [§5.5.3.2 del roadmap](roadmap.md#5532-frontend-separation-and-android-ux-hardening) y el
 [plan de separación](frontend-separation-plan.md).
@@ -12,8 +13,8 @@ Este documento concreta el alcance de
   Los fragmentos permiten recargar enlaces a pantallas sin añadir rutas de backend.
 - Escritorio conserva su entrada y disposición actuales. Ambas superficies ofrecerán un
   enlace explícito para cambiar de interfaz; no se redirigirá por agente de usuario.
-- Primera entrega en el navegador, sobre la base PWA existente. La decisión sobre un wrapper
-  Android Studio sigue en Fase D; esta especificación no añade un proyecto nativo.
+- Entrega en el navegador como PWA instalable. Fase D decidió no añadir un proyecto Android
+  Studio/Capacitor; solo Google Play o una capacidad nativa reabrirían esa decisión.
 - Cuatro destinos inferiores: **Analizar**, **Resultados**, **Carteras**, **Alertas**.
   **Simulador** se abre desde la selección de resultados. Detalle de activo y posición son
   pantallas secundarias con acción Volver y soporte del historial del navegador.
@@ -141,7 +142,7 @@ representación incompatible con escritorio. La restauración de revisiones usa
 
 ## Integración del primer flujo funcional (C2)
 
-Las siguientes condiciones están cubiertas por C2; la instalación específica se mantiene en Fase D.
+Las siguientes condiciones están cubiertas por C2; la instalación específica se completó en C4 y se validó en Fase D.
 
 | Trabajo | Condición de aceptación |
 | --- | --- |
@@ -269,6 +270,15 @@ asíncronas y la contracción simulada del viewport visual se cubren a 360/390/4
 pruebas de IndexedDB bloqueado, cancelación al recargar, conexión intermitente y navegación
 hacia otra posición durante una actualización de precios.
 
-La [validación C4](android-validation.md) distingue estas comprobaciones de la instalación,
-TalkBack, teclado y recuperación física pendientes. **Siguiente paso: completar esa validación
-Android antes de cerrar Fase C y decidir el empaquetado de Fase D.**
+Android sigue el tamaño de texto del sistema mediante `<meta name="text-scale" content="scale">`;
+sin esa adhesión Chrome para Android lo ignora. Hay una prueba de desbordamiento con la fuente
+raíz al 200 % a 360/390/430 px.
+
+## Validación en emulador y decisión de Fase D
+
+La [validación Android](android-validation.md) recoge la ejecución en Android 15 emulado con
+Chrome 149: instalación nativa y arranque standalone, teclado Gboard, rotación, texto al 130 % y
+200 %, cierre del proceso en segundo plano, arranque sin conexión, reconexión sin peticiones
+implícitas y actualización explícita. La PWA cubre los flujos, por lo que **no se añade wrapper
+nativo**. Queda documentada la escritura diferida de `localStorage` (una edición hecha justo
+antes de que muera el proceso puede perderse) y las comprobaciones físicas/HTTPS pendientes.

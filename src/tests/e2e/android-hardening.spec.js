@@ -72,6 +72,23 @@ for (const width of [360, 390, 430]) {
       await expect(email).toHaveValue('draft@example.test'); await audit();
       await page.screenshot({ path: testInfo.outputPath('alerts-en.png'), fullPage: true });
     });
+
+    test('follows Android text size up to 200% without horizontal overflow', async ({ page }) => {
+      await open(page);
+      // Chrome for Android only applies the system text size to pages that opt in; with the
+      // opt-in it scales the root font size, which is what this test reproduces.
+      await expect(page.locator('meta[name="text-scale"]')).toHaveAttribute('content', 'scale');
+      await page.addStyleTag({ content: 'html { font-size: 32px !important; }' });
+      const fits = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+      await scan(page); expect(await fits()).toBe(true);
+      await page.locator('.asset-title').first().click(); expect(await fits()).toBe(true);
+      await page.locator('[data-toggle]').first().click();
+      await page.locator('.selection-dock a').click(); expect(await fits()).toBe(true);
+      for (const path of ['portfolios', 'alerts', 'scan']) {
+        await page.locator(`.bottom-nav a[href="#/${path}"]`).click();
+        await expect(page).toHaveURL(new RegExp(`#/${path}$`)); expect(await fits()).toBe(true);
+      }
+    });
   });
 }
 
