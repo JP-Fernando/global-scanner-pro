@@ -1,7 +1,7 @@
 # Frontend Android: flujos y primer alcance
 
-Estado: C1 especificado, **C2 y C3 implementados** (2026-11-01).
-C4 sigue pendiente: cierre de recuperación, accesibilidad, teclado e instalación Android.
+Estado: C1 especificado, **C2/C3 y C4 web implementados** (2026-11-01).
+Queda pendiente la comprobación física C4 de teclado, instalación y ciclo de vida Android.
 Este documento concreta el alcance de
 [§5.5.3.2 del roadmap](roadmap.md#5532-frontend-separation-and-android-ux-hardening) y el
 [plan de separación](frontend-separation-plan.md).
@@ -165,7 +165,7 @@ navegación y universos; no se incrustan rutas absolutas a `/` que fallen en Git
 | C1 — especificación (definida) | Este mapa, decisiones de navegación, estados e integración. | Contraste con los contratos actuales; enlaces/documentación coherentes. |
 | C2 — primer flujo funcional (implementado) | Entrada Android + Analizar → Resultados → Detalle → Simulador; selección y coordinación compartidas. | A 360/390/430 px: completar escaneo, filtrar, volver del detalle, seleccionar 4 activos, convertir años a meses, calcular, error/reintento y descartar respuestas tardías. |
 | C3 — carteras y alertas (implementado) | Construir/guardar/reabrir cartera, detalle de posición, editar alertas por estrategia. | Capital/pesos/símbolos conservados; sin ratios ficticios; persistencia de ajustes y errores de guardado. |
-| C4 — cierre Android web (pendiente) | Recuperación de sesión, shell offline, idioma y accesibilidad de los flujos anteriores. | Recarga online/offline sin cálculo implícito, rutas profundas, teclado/área segura, conexión intermitente e IndexedDB bloqueado. |
+| C4 — cierre Android web (implementado; validación física pendiente) | Recuperación de sesión, shell offline, idioma y accesibilidad de los flujos anteriores. | Recarga online/offline sin cálculo implícito, rutas profundas, teclado/área segura, conexión intermitente e IndexedDB bloqueado. |
 
 En cada incremento se mantiene el gate de cobertura compartida y la suite de escritorio de
 Fase B. Los E2E Android se identificarán explícitamente y no sustituirán los de escritorio.
@@ -252,5 +252,23 @@ worker antes de la recarga offline; la comprobación de producción verifica la 
 Las capturas de carteras y alertas se han inspeccionado en Chromium; se mantienen las
 limitaciones de emulación y dispositivo físico indicadas para C2.
 
-**Siguiente incremento: C4**, cierre Android web de recuperación de sesión, accesibilidad,
-teclado/área segura e instalación, antes de decidir el empaquetado de Fase D.
+## Implementación de C4
+
+La ruta anterior, scroll, desplegables y foco se guardan en `gsp.android.navigation.v1`.
+Abrir un enlace con fragmento conserva el destino explícito. Cambiar de red no remonta el
+formulario; la recarga restaura entradas y explica operaciones interrumpidas sin reejecutarlas.
+Un escaneo que pierde conexión mantiene el último resultado completo disponible.
+
+La entrada Android referencia `android.webmanifest`, con identidad/arranque propios y prefijo
+respetado por build/Docker. La instalación usa un controlador sin bootstrap de escritorio.
+Las actualizaciones del worker quedan pendientes hasta activarlas; la activación guarda
+borradores y recarga. El HTML en caché conserva el grafo de assets de su versión.
+
+La navegación por teclado, las auditorías axe sin reglas desactivadas, el foco con lecturas
+asíncronas y la contracción simulada del viewport visual se cubren a 360/390/430 px. Se añaden
+pruebas de IndexedDB bloqueado, cancelación al recargar, conexión intermitente y navegación
+hacia otra posición durante una actualización de precios.
+
+La [validación C4](android-validation.md) distingue estas comprobaciones de la instalación,
+TalkBack, teclado y recuperación física pendientes. **Siguiente paso: completar esa validación
+Android antes de cerrar Fase C y decidir el empaquetado de Fase D.**

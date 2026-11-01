@@ -17,6 +17,8 @@ export class AlertsScreen {
   private requests = new RequestCoordinator();
   constructor(private state: OperationsSession, private redraw: () => void, private persist: () => void) {}
 
+  get isReady(): boolean { return this.loaded === this.state.alertStrategy && !this.loading; }
+  get isWorking(): boolean { return this.loading || this.saving; }
   async enter(force = false): Promise<void> {
     const strategy = this.state.alertStrategy;
     if (!force && this.loaded === strategy) return;
@@ -26,6 +28,7 @@ export class AlertsScreen {
     this.draft(strategy); this.redraw();
     try {
       const record = await getAlertSettings(strategy);
+      if (!this.requests.isCurrent(token)) return;
       this.records.set(strategy, record);
       if (!this.state.alerts[strategy]?.dirty) this.state.alerts[strategy] = this.fromRecord(record);
       this.persist();
@@ -63,7 +66,7 @@ export class AlertsScreen {
       <p class="muted">${esc(t('settingsOnly'))}</p><button class="primary full" ${this.loading || this.saving ? 'disabled' : ''}>
       ${esc(t(this.saving ? 'savingChanges' : 'saveAlertSettings'))}</button></fieldset></form>
       <button class="secondary full" data-action="alerts-reload" ${this.loading || this.saving ? 'disabled' : ''}>${esc(t('reloadAlerts'))}</button></section>
-      <details><summary>${esc(t('alertHistory'))}</summary>${this.logs.length ? this.logs.map(log => `<article class="position-card">
+      <details id="alertHistory"><summary>${esc(t('alertHistory'))}</summary>${this.logs.length ? this.logs.map(log => `<article class="position-card">
         <strong>${esc(log.title)}</strong><p>${esc(log.message)}</p><small>${esc(dateText(log.created_at))}</small></article>`).join('')
         : `<p>${esc(t('noAlertHistory'))}</p>`}</details>`;
   }

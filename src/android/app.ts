@@ -19,6 +19,8 @@ import { registerAppServiceWorker } from '../pwa/service-worker.js';
 import { loadOperationsSession, saveOperationsSession } from './operations-session.js';
 import { PortfolioScreen } from './portfolio-screen.js';
 import { AlertsScreen } from './alerts-screen.js';
+import { AndroidNavigation } from './navigation.js';
+import { InstallController, type InstallPrompt } from '../pwa/install-controller.js';
 import { loadAndroidSession, saveAndroidSession, VIEW_KEYS } from './session.js';
 
 const app = document.getElementById('androidApp')!;
@@ -29,6 +31,7 @@ let results: any[] = [];
 let partial: any[] | null = null;
 let ready = false;
 let scanning = false;
+let scanConnectionLost = false;
 let simBusy = false;
 let scanError = false;
 let simError = '';
@@ -40,6 +43,10 @@ let response: any = null;
 let responseSignature = '';
 let previousRoute = '';
 let filtersOpen = false;
+let workerUpdate: ServiceWorkerRegistration | null = null;
+let applyingUpdate = false;
+const navigation = new AndroidNavigation();
+if (!location.hash) history.replaceState(null, '', `#/${navigation.lastRoute}`);
 let scanStrategy = 'balanced';
 let scanBenchmark = '^IBEX';
 let scanRegime: { min_score: number } | null = null;
@@ -63,6 +70,12 @@ const request = () => buildSimulationRequest(session.selection, session.investme
   getHorizonMonths(session.horizon), results, 'symbol');
 const signature = () => JSON.stringify(request());
 
+const install = new InstallController(() => render());
+function installMarkup(): string {
+  return `<details id="installation" class="install-panel"><summary>${esc(t('installTitle'))}</summary>
+    <p>${esc(t('installHelp'))}</p><p>${esc(t('offlinePreparation'))}</p>
+    ${install.available ? `<button class="primary full" data-action="install-app">${esc(t('installApp'))}</button>` : ''}</details>`;
+}
 const operations = loadOperationsSession();
 const persistOperations = () => {
   if (!saveOperationsSession(operations)) { notice = t('notSaved'); updateStatus(); }
@@ -89,6 +102,7 @@ function invalidateProjection(): void {
   requests.invalidate();
   simBusy = false;
   simError = '';
+  if (session.pendingTask === 'simulation') session.pendingTask = null;
 }
 
 function selectionButton(symbol: string, compact = false): string {
@@ -258,10 +272,11 @@ function emptyScreen(message: string): string {
 }
 
 function render(focus = false): void {
+  if (ready) { navigation.capture(app); navigation.save(); }
   const path = route();
   let content = '';
   if (!ready) content = `<div class="empty"><h1 tabindex="-1">${esc(t('loading'))}</h1></div>`;
-  else if (path === 'scan') content = scanScreen();
+  else if (path === 'scan') content = scanScreen() + installMarkup();
   else if (path === 'results') content = resultScreen();
   else if (path === 'simulator') content = simulatorScreen();
   else if (path.startsWith('asset/')) {
@@ -279,12 +294,13 @@ function render(focus = false): void {
   app.setAttribute('aria-busy', String(!ready));
   document.documentElement.lang = i18n.getCurrentLanguage();
   document.title = `Global Quant Scanner · ${t(path === 'simulator' ? 'simulator' : 'touch')}`;
-  app.innerHTML = `<div class="app-shell"><header class="topbar"><a href="#/scan" class="brand" aria-label="Global Quant Scanner">
+  app.innerHTML = `<a class="skip-link" href="#screen">${esc(t('skipContent'))}</a><div class="app-shell"><header class="topbar"><a href="#/scan" class="brand" aria-label="Global Quant Scanner">
     <span class="brand-mark" aria-hidden="true">Q</span><span>GLOBAL<br>QUANT SCANNER</span></a><div class="top-actions">
     <a class="desktop-link" href="./">${esc(t('desktop'))} ↗</a><select name="language" aria-label="${esc(t('language'))}">
       <option value="es" ${i18n.getCurrentLanguage() === 'es' ? 'selected' : ''}>ES</option>
       <option value="en" ${i18n.getCurrentLanguage() === 'en' ? 'selected' : ''}>EN</option></select></div></header>
-    ${statusMarkup()}<main id="screen">${content}</main><footer>${esc(t('touch'))} · Global Quant Scanner</footer></div>
+    ${statusMarkup()}${workerUpdate?.waiting ? `<div class="status" role="status"><button data-action="update-app" class="secondary full"
+      ${scanning || simBusy || portfolios.isWorking || alerts.isWorking ? 'disabled' : ''}>${esc(t('updateApp'))}</button></div>` : ''}<main id="screen" tabindex="-1">${content}</main><footer>${esc(t('touch'))} · Global Quant Scanner</footer></div>
     ${session.selection.length && path !== 'simulator' && ready ? `<aside class="selection-dock" aria-label="${esc(t('selection'))}">
       <div><strong>${session.selection.length}/4</strong> <small>${esc(t('selected'))}</small></div>
       <a class="primary" href="#/simulator">${esc(t('simulate', { count: String(session.selection.length) }))} →</a></aside>` : ''}
@@ -295,7 +311,12 @@ function render(focus = false): void {
   document.getElementById('resultFilters')?.addEventListener('toggle', event => {
     filtersOpen = (event.currentTarget as HTMLDetailsElement).open;
   });
-  if (focus) app.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true });
+  const heading = app.querySelector<HTMLElement>('h1');
+  if (heading) heading.id = 'screenTitle';
+  const settled = path === 'portfolios' || path.startsWith('position/') ? portfolios.isReady && !portfolios.isWorking
+    : path === 'alerts' ? alerts.isReady : true;
+  if (ready) { navigation.restore(app, path, focus, settled); navigation.save(); }
+  updateKeyboard();
 }
 
 function updateSimulationControls(): void {
@@ -319,12 +340,15 @@ async function startScan(confirmed = false): Promise<void> {
     return;
   }
   app.querySelector<HTMLDialogElement>('#scanConfirmation')?.close();
+  session.pendingTask = 'scan'; persistDraft();
+  scanConnectionLost = false;
   scanning = true; scanError = false; partial = null; notice = ''; progress = t('running');
   invalidateProjection();
   const strategy = session.strategy;
   const markets = MARKET_OPTIONS.filter(market => session.market === 'all' || market.key === session.market);
   const loadHistory = (ticker: string, suffix: string) => fetchPriceHistory(ticker, suffix, { cache: priceCache }).catch(() => []);
   render();
+  let completed = false;
   try {
     const scan = await runMarketScan(markets.map(market => ({ ...market, name: i18n.t(`markets.${market.key}`) })),
       (STRATEGY_PROFILES as Record<string, any>)[strategy], {
@@ -358,7 +382,9 @@ async function startScan(confirmed = false): Promise<void> {
       finalResults = enriched.currentResults;
       finalRegime = enriched.currentRegime?.strategyAdjustment || null;
     }
+    if (scanConnectionLost || !navigator.onLine) throw new Error('Scan interrupted by connection loss');
     results = finalResults;
+    portfolios.invalidatePreview();
     scanRegime = finalRegime;
     scanStrategy = strategy;
     scanBenchmark = (MARKET_BENCHMARKS as Record<string, string>)[markets.length === 1 ? markets[0].suffix : ''] || '^GSPC';
@@ -372,6 +398,7 @@ async function startScan(confirmed = false): Promise<void> {
     progress = i18n.t('status.scan_complete', { count: String(results.length) });
     persistDraft();
     try { await notifyStrongSignals(results, strategy); } catch { notice ||= t('notificationsFailed'); }
+    completed = true;
     location.hash = '/results';
   } catch {
     partial = null;
@@ -379,7 +406,8 @@ async function startScan(confirmed = false): Promise<void> {
     progress = t('failed');
   } finally {
     scanning = false;
-    render();
+    if (completed) session.pendingTask = null;
+    persistDraft(); render();
   }
 }
 
@@ -387,11 +415,14 @@ async function calculate(): Promise<void> {
   if (!validSimulation()) return;
   const version = requests.start();
   const input = request();
+  session.pendingTask = 'simulation'; persistDraft();
   simBusy = true; simError = ''; render();
+  let completed = false;
   try {
     const payload = await requestSimulation(input);
     if (!requests.isCurrent(version)) return;
     if (!isSimulationProjection(payload)) throw new Error(t('invalidResponse'));
+    completed = true;
     response = payload;
     responseSignature = JSON.stringify(input);
     lastSimulationAt = Date.now();
@@ -400,7 +431,7 @@ async function calculate(): Promise<void> {
   } catch (error) {
     if (requests.isCurrent(version)) simError = error instanceof Error ? error.message : t('failed');
   } finally {
-    if (requests.isCurrent(version)) { simBusy = false; render(); }
+    if (requests.isCurrent(version)) { simBusy = false; if (completed) session.pendingTask = null; persistDraft(); render(); }
   }
 }
 
@@ -414,6 +445,8 @@ app.addEventListener('submit', event => {
 
 app.addEventListener('click', event => {
   const target = event.target as HTMLElement;
+  if (target.closest('.skip-link')) { event.preventDefault(); app.querySelector<HTMLElement>('main')?.focus(); return; }
+  if (target.closest('a[href]')) { navigation.capture(app); navigation.save(); }
   if (target.closest('[data-position-link]')) { operations.portfolioScroll = window.scrollY; persistOperations(); }
   if (target.closest('[data-result-link]')) {
     session.resultsScroll = window.scrollY; persistDraft();
@@ -434,6 +467,11 @@ app.addEventListener('click', event => {
     });
   }
   const action = target.closest<HTMLElement>('[data-action]')?.dataset.action;
+  if (action === 'install-app') { void install.prompt().catch(() => { notice = t('installFailed'); updateStatus(); }); return; }
+  if (action === 'update-app' && workerUpdate?.waiting && !scanning && !simBusy && !portfolios.isWorking && !alerts.isWorking) {
+    navigation.capture(app); navigation.save(); persistDraft(); persistOperations();
+    applyingUpdate = true; workerUpdate.waiting.postMessage({ type: 'ACTIVATE_UPDATE' }); return;
+  }
   if (action && (portfolios.click(action) || alerts.click(action))) return;
   if (action === 'calculate') void calculate();
   else if (action === 'cancel-scan') app.querySelector<HTMLDialogElement>('#scanConfirmation')?.close();
@@ -491,17 +529,60 @@ window.addEventListener('hashchange', () => {
   const returning = route() === 'results' && previousRoute.startsWith('asset/');
   const returningPortfolio = route() === 'portfolios' && previousRoute.startsWith('position/');
   previousRoute = route();
-  render(true);
+  render(!returning && !returningPortfolio);
   enterOperations();
-  window.scrollTo(0, returning ? session.resultsScroll : returningPortfolio ? operations.portfolioScroll : 0);
+  if (returning || returningPortfolio) window.scrollTo(0, returning ? session.resultsScroll : operations.portfolioScroll);
 });
-window.addEventListener('languageChanged', () => render());
-window.addEventListener('online', () => render());
-window.addEventListener('offline', () => { invalidateProjection(); render(); });
+window.addEventListener('languageChanged', () => {
+  if (!scanning && progress) progress = scanError ? t('failed') : i18n.t('status.scan_complete', { count: String(results.length) });
+  render();
+});
+function updateNetwork(): void {
+  const banner = document.getElementById('networkStatus');
+  if (banner) banner.hidden = navigator.onLine;
+  const scanButton = app.querySelector<HTMLButtonElement>('#scanForm button[type="submit"]');
+  if (scanButton) scanButton.disabled = scanning || !navigator.onLine;
+  updateSimulationControls(); portfolios.updateNetwork();
+}
+let restingHeight = window.innerHeight;
+let restingWidth = window.innerWidth;
+function updateKeyboard(): void {
+  if (restingWidth !== window.innerWidth) { restingWidth = window.innerWidth; restingHeight = window.innerHeight; }
+  restingHeight = Math.max(restingHeight, window.innerHeight);
+  const viewport = window.visualViewport;
+  const editing = ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName || '');
+  document.body.classList.toggle('keyboard-open', Boolean(editing && viewport && Math.max(restingHeight, window.innerHeight) - viewport.height > 120));
+}
+function savePresentation(): void { navigation.capture(app); navigation.save(); persistDraft(); persistOperations(); }
+window.addEventListener('online', updateNetwork);
+window.addEventListener('offline', () => {
+  if (scanning) scanConnectionLost = true;
+  const interrupted = simBusy;
+  invalidateProjection();
+  if (interrupted) { session.pendingTask = null; simError = t('interrupted'); persistDraft(); }
+  updateNetwork();
+});
+window.addEventListener('pagehide', savePresentation);
+window.addEventListener('pageshow', updateNetwork);
+document.addEventListener('visibilitychange', () => { if (document.hidden) savePresentation(); else updateNetwork(); });
+window.visualViewport?.addEventListener('resize', updateKeyboard);
+window.addEventListener('resize', updateKeyboard);
+app.addEventListener('focusin', updateKeyboard);
+app.addEventListener('focusout', () => { setTimeout(updateKeyboard, 0); });
+window.addEventListener('beforeinstallprompt', event => install.capture(event as InstallPrompt,
+  window.matchMedia('(display-mode: standalone)').matches));
+window.addEventListener('appinstalled', () => install.markInstalled());
+navigator.serviceWorker?.addEventListener('controllerchange', () => {
+  if (applyingUpdate) location.reload();
+  else if (workerUpdate && !workerUpdate.waiting) { workerUpdate = null; render(); }
+});
 
 async function bootstrap(): Promise<void> {
   render();
-  void registerAppServiceWorker(new URL('.', document.baseURI).pathname);
+  void registerAppServiceWorker(new URL('.', document.baseURI).pathname, registration => {
+    workerUpdate = registration; render();
+  });
+  if (session.pendingTask) { notice = t('interrupted'); session.pendingTask = null; persistDraft(); }
   try {
     const saved = await loadLastScanReview();
     if (saved) {

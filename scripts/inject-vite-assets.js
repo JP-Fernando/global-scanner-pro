@@ -12,6 +12,7 @@
  * Run: node scripts/inject-vite-assets.js
  * (Automatically called by `npm run build:client`)
  */
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, cpSync, existsSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -155,7 +156,7 @@ androidHtml = androidHtml
   .replace('src="dist/src/android/app.js"', `src="${withBase(androidEntry.file)}"`)
   .replace('href="src/android/android.css"', `href="${withBase(androidStyle.css?.[0] || androidStyle.file)}"`)
   .replace('href="icons/favicon.ico"', `href="${withBase('icons/favicon.ico')}"`)
-  .replace('href="manifest.webmanifest"', `href="${withBase('manifest.webmanifest')}"`);
+  .replace('href="android.webmanifest"', `href="${withBase('android.webmanifest')}"`);
 writeFileSync(resolve(rootDir, 'dist/public/android.html'), androidHtml);
 console.log('  ✓ dist/public/android.html written');
 
@@ -171,23 +172,26 @@ if (existsSync(universesDir)) {
 // These are hand-authored, root-served files — not part of the Vite entry graph.
 // The production service worker gets its app-shell list stamped with the hashed
 // files from Vite so offline boot works without waiting for runtime caching.
-const manifestSrc = resolve(rootDir, 'manifest.webmanifest');
-if (existsSync(manifestSrc)) {
+for (const file of ['manifest.webmanifest', 'android.webmanifest']) {
+  const manifestSrc = resolve(rootDir, file);
+  if (!existsSync(manifestSrc)) throw new Error(`Missing PWA manifest: ${file}`);
   const manifestJson = JSON.parse(readFileSync(manifestSrc, 'utf-8'));
-  manifestJson.start_url = basePath;
+  manifestJson.start_url = file === 'android.webmanifest' ? withBase('android.html') : basePath;
   manifestJson.scope = basePath;
-  manifestJson.icons = manifestJson.icons.map((icon) => ({
-    ...icon,
-    src: withBase(icon.src.replace(/^\//, ''))
-  }));
-  writeFileSync(resolve(rootDir, 'dist/public/manifest.webmanifest'), JSON.stringify(manifestJson, null, 2));
+  if (manifestJson.id) manifestJson.id = withBase(manifestJson.id.replace(/^\//, ''));
+  manifestJson.icons = manifestJson.icons.map(icon => ({ ...icon, src: withBase(icon.src.replace(/^\//, '')) }));
+  writeFileSync(resolve(rootDir, `dist/public/${file}`), JSON.stringify(manifestJson, null, 2));
 }
 
 const swSrc = resolve(rootDir, 'sw.js');
 if (existsSync(swSrc)) {
   const swTemplate = readFileSync(swSrc, 'utf-8');
   const productionShellAssets = collectProductionShellAssets();
+  const version = createHash('sha256').update(swTemplate + JSON.stringify(productionShellAssets) + html + androidHtml
+    + readFileSync(resolve(rootDir, 'manifest.webmanifest'), 'utf-8')
+    + readFileSync(resolve(rootDir, 'android.webmanifest'), 'utf-8')).digest('hex').slice(0, 12);
   const swOutput = swTemplate
+    .replace(/const CACHE_VERSION = '[^']+';/, `const CACHE_VERSION = 'v3-${version}';`)
     .replace(/const BASE_PATH = '\/';/, `const BASE_PATH = '${basePath}';`)
     .replace(
       /const APP_SHELL_ASSETS = \[[\s\S]*?\];/,

@@ -7,6 +7,7 @@ export const ANDROID_SESSION_KEY = 'gsp.android.session.v1';
 export const VIEW_KEYS = ['scoreTotal', 'scoreShort', 'scoreMedium', 'scoreLong'] as const;
 export type AndroidSession = {
   hasDraft: boolean;
+  pendingTask: 'scan' | 'simulation' | null;
   market: string;
   strategy: string;
   filter: ResultsFilterState;
@@ -24,7 +25,7 @@ function browserStorage(): StorageLike | null {
 
 export function defaultSession(): AndroidSession {
   return {
-    hasDraft: false, market: 'spain', strategy: 'balanced',
+    hasDraft: false, pendingTask: null, market: 'spain', strategy: 'balanced',
     filter: { query: '', signal: 'all', minScore: 0, volume: 'all' }, viewKey: 'scoreTotal',
     selection: [], investments: {}, resultsScroll: 0,
     horizon: { preset: 60, useCustom: false, customValue: 18, customUnit: 'months' }
@@ -39,6 +40,7 @@ export function loadAndroidSession(storage: StorageLike | null = browserStorage(
     const saved = JSON.parse(raw);
     if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return session;
     session.hasDraft = true;
+    if (saved.pendingTask === 'scan' || saved.pendingTask === 'simulation') session.pendingTask = saved.pendingTask;
     if (saved.market === 'all' || MARKET_OPTIONS.some(market => market.key === saved.market)) {
       session.market = saved.market;
     }

@@ -552,3 +552,28 @@ describe('transaction commit confirmation', () => {
     expect(aborted).toBe(true);
   });
 });
+
+describe('blocked upgrades and version changes', () => {
+  it('rejects a blocked open and closes a connection that arrives afterwards', async () => {
+    const previous = globalThis.indexedDB;
+    const request = {};
+    globalThis.indexedDB = { open: () => request };
+    try {
+      const store = new IndexedDBStore(), opened = store.init();
+      const rejected = expect(opened).rejects.toThrow('blocked');
+      request.onblocked(); await rejected;
+      let closed = false;
+      request.result = { close: () => { closed = true; } };
+      request.onsuccess(); expect(closed).toBe(true); expect(store.db).toBeNull();
+    } finally { globalThis.indexedDB = previous; }
+  });
+  it('releases connections on version changes so another tab can upgrade', async () => {
+    const previous = globalThis.indexedDB, request = {};
+    globalThis.indexedDB = { open: () => request };
+    try {
+      const store = new IndexedDBStore(), opened = store.init(); let closed = false;
+      request.result = { close: () => { closed = true; } }; request.onsuccess(); await opened;
+      request.result.onversionchange(); expect(closed).toBe(true); expect(store.db).toBeNull();
+    } finally { globalThis.indexedDB = previous; }
+  });
+});

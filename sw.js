@@ -1,3 +1,4 @@
+/* global Response */
 /**
  * Service worker — PWA Foundation (local-first).
  *
@@ -17,21 +18,22 @@
  * runs outside the page's own network stack and would bypass page-scoped mocks).
  */
 
-const CACHE_VERSION = 'v2';
-const SHELL_CACHE = `gsp-shell-${CACHE_VERSION}`;
-const RUNTIME_CACHE = `gsp-runtime-${CACHE_VERSION}`;
-const CURRENT_CACHES = [SHELL_CACHE, RUNTIME_CACHE];
-
+const CACHE_VERSION = 'v3';
 // Replaced at build time by scripts/inject-vite-assets.js for subpath
 // deployments (e.g. a GitHub Pages project page). Defaults to root, matching
 // self-hosted Express where the app is always served at the domain root.
 const BASE_PATH = '/';
+const CACHE_PREFIX = `gsp-${encodeURIComponent(BASE_PATH)}-`;
+const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
+const RUNTIME_CACHE = `${CACHE_PREFIX}runtime-${CACHE_VERSION}`;
+const CURRENT_CACHES = [SHELL_CACHE, RUNTIME_CACHE];
 
 const SHELL_URLS = [
   BASE_PATH,
   `${BASE_PATH}index.html`,
   `${BASE_PATH}android.html`,
   `${BASE_PATH}manifest.webmanifest`,
+  `${BASE_PATH}android.webmanifest`,
   `${BASE_PATH}icons/icon-192.png`,
   `${BASE_PATH}icons/icon-512.png`,
   `${BASE_PATH}icons/icon-512-maskable.png`,
@@ -58,7 +60,7 @@ self.addEventListener('install', (event) => {
     caches
       .open(SHELL_CACHE)
       .then((cache) => cache.addAll([...new Set([...SHELL_URLS, ...APP_SHELL_ASSETS])]))
-      .then(() => self.skipWaiting())
+      .then(() => { if (!self.registration.active) return self.skipWaiting(); })
   );
 });
 
@@ -69,7 +71,7 @@ self.addEventListener('activate', (event) => {
       .then((names) =>
         Promise.all(
           names
-            .filter((name) => !CURRENT_CACHES.includes(name))
+            .filter((name) => name.startsWith(CACHE_PREFIX) && !CURRENT_CACHES.includes(name))
             .map((name) => caches.delete(name))
         )
       )
@@ -82,20 +84,26 @@ function isStaticAsset(request) {
   return ['script', 'style', 'font', 'image'].includes(request.destination);
 }
 
-async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request)
-    || await caches.match(request, { cacheName: SHELL_CACHE });
-  const networkFetch = fetch(request)
-    .then((response) => {
-      if (response && response.ok) {
-        cache.put(request, response.clone());
-      }
-      return response;
-    })
-    .catch(() => cached);
-  return cached || networkFetch;
+// Cache persistence is best effort: a quota failure must not discard a network response.
+async function cachedResponse(request, cacheName) {
+  try { return await caches.match(request, { cacheName }); } catch { return undefined; }
 }
+async function cacheResponse(request, response, cacheName) {
+  if (!response?.ok) return;
+  try { const cache = await caches.open(cacheName); await cache.put(request, response.clone()); } catch { /* Online use remains available. */ }
+}
+async function staleWhileRevalidate(request, event) {
+  const cached = await cachedResponse(request, RUNTIME_CACHE) || await cachedResponse(request, SHELL_CACHE);
+  const network = fetch(request).then(async response => {
+    await cacheResponse(request, response, RUNTIME_CACHE);
+    return response;
+  }).catch(() => cached || Response.error());
+  event.waitUntil(network.then(() => undefined));
+  return cached || network;
+}
+self.addEventListener('message', event => {
+  if (event.data?.type === 'ACTIVATE_UPDATE') event.waitUntil(self.skipWaiting());
+});
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -110,22 +118,26 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   if (request.mode === 'navigate') {
+    // Server-rendered pages (Swagger UI, Prometheus, API responses opened in a tab)
+    // are not SPA routes; answering them with the cached shell would hide them.
+    const relative = url.pathname.slice(BASE_PATH.length);
+    if (/^(api(-docs)?([/.]|$)|metrics$)/.test(relative)) return;
     const shell = url.pathname === `${BASE_PATH}android.html`
       ? `${BASE_PATH}android.html` : `${BASE_PATH}index.html`;
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response && response.ok) {
-            caches.open(SHELL_CACHE).then((cache) => cache.put(shell, response.clone()));
-          }
-          return response;
-        })
-        .catch(() => caches.match(shell, { cacheName: SHELL_CACHE }))
-    );
+    event.respondWith((async () => {
+      const cached = await cachedResponse(shell, SHELL_CACHE);
+      // Keep HTML paired with this worker's precached asset graph until activation.
+      if (cached) return cached;
+      try {
+        const response = await fetch(request);
+        await cacheResponse(shell, response, SHELL_CACHE);
+        return response;
+      } catch { return Response.error(); }
+    })());
     return;
   }
 
   if (isStaticAsset(request)) {
-    event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE));
+    event.respondWith(staleWhileRevalidate(request, event));
   }
 });

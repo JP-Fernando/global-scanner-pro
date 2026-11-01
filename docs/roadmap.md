@@ -20,8 +20,8 @@ no longer "can we build features?" but "what product shape are we shipping next?
   review, install prompt) — completed 2026-07-02, see §5.5.3.1
 - ✅ Split hosting path: frontend auto-deployed to GitHub Pages on every push to `main`
   (`.github/workflows/deploy-pages.yml`, `VITE_BASE_PATH`/`VITE_API_BASE_URL`), backend on Render
-- ✅ Test baseline (2026-11-01): 1361 unit+integration tests, 102 Chromium E2E tests (15 specs) + 1 production-build check,
-  coverage gate passing (94.88 / 82.48 / 95.99 / 96.26 — see §2.1.2 for scope caveats)
+- ✅ Test baseline (2026-11-01): 1375 unit+integration tests, 111 Chromium E2E tests (16 specs),
+  coverage gate passing (94.89 / 82.55 / 95.99 / 96.26 — see §2.1.2 for scope caveats)
 
 ### What is still strategically missing
 - Auth is backend-only: no frontend login/registration UI and no per-user data ownership (§4.1)
@@ -29,7 +29,7 @@ no longer "can we build features?" but "what product shape are we shipping next?
   (this milestone shipped the local-first branch; account-based sync is still open, §5.5.3.3)
 - Frontend separation: preserve the current desktop-optimised experience while adding
   an Android-focused frontend over the same backend and shared domain logic (§5.5.3.2 — Phase A
-  extracted; Phase B Chromium baseline verified; Phase C2/C3 Android flows implemented; C4 next)
+  extracted; Phase B Chromium baseline verified; Phase C2/C3/C4 web implemented; physical Android validation pending)
 - Deployment/operations debt: the Docker image was rebuilt but not yet built with real Docker
   (§3.2.1), production dependencies have open advisories (§5.1.2), and `CHANGELOG.md` stops at Phase 3 (§4.3.4)
 
@@ -39,7 +39,7 @@ PWA enablement (local-first branch) is done and **frontend separation and Androi
 market data, formatting, alert settings, portfolio building, offline restore and scan/regime/ML
 orchestration into `src/shared/frontend/`. Phase B has a verified Chromium regression baseline; the C2 Android scan/results/detail/simulator flow is implemented in `android.html`.
 C3 adds Android portfolio construction/save/reopen, position detail and strategy alert settings;
-C4 web hardening is next. See [Android Frontend Flows](android-frontend-flows.md).
+C4 web hardening is implemented; physical Android validation is next. See [Android Frontend Flows](android-frontend-flows.md).
 The installable shell exists, but the next step
 should not be "make desktop worse so mobile fits". Instead, preserve the current desktop
 workflow, keep shared application services covered, and build an Android-focused presentation layer over
@@ -475,8 +475,8 @@ and printed at startup, but no code path reads `config.features` yet — they ha
 #### 2.1.2 Expand Unit Test Coverage
 **Status**: ✅ COMPLETED - February 2026
 
-> **Current state (2026-11-01)**: 78 files / 1361 unit+integration tests passing; coverage gate
-> passing at **94.88% stmts / 82.48% branches / 95.99% funcs / 96.26% lines** (thresholds
+> **Current state (2026-11-01)**: 81 files / 1375 unit+integration tests passing; coverage gate
+> passing at **94.89% stmts / 82.55% branches / 95.99% funcs / 96.26% lines** (thresholds
 > 80/60/85/80). Caveat: the figure is scoped by `vitest.config.js` — `src/core/scanner.ts` is
 > explicitly excluded (DOM-bound, exercised via Playwright). `src/shared/` is now included; `src/simulation/`,
 > `src/android/`, `src/dashboard/`, `src/utils/`, `src/pwa/`, `src/queue/`, `src/data/` and `src/i18n/` are not in
@@ -2165,7 +2165,16 @@ completion. C3 validation: 1361 unit/integration tests in 78 files, 102 Chromium
 (87 desktop + 15 Android), and 1 production-subpath/offline check pass. Coverage, build,
 TypeScript and changed-file ESLint pass; the production check includes offline portfolio/alert
 persistence and restores the normal build afterwards.
-C4 web hardening and Phase D packaging remain open. The manifest still starts desktop.
+C4 web implementation (2026-11-01) adds route/scroll/disclosure/focus recovery, interrupted-work
+notices without automatic retries, network changes without editor remounts, keyboard/visual
+viewport handling, safe areas and full-rule axe audits at 360/390/430 px. Blocked IndexedDB
+upgrades fail recoverably and version changes release existing connections. Android now uses
+`android.webmanifest` with its own identity/start URL; desktop keeps its manifest/entry.
+Build-versioned worker caches pair HTML with assets; Android updates require explicit activation
+and preserve drafts. Runtime cache write errors do not discard online responses.
+Physical Android installation/keyboard/TalkBack/lifecycle validation remains pending (ADB showed
+no connected device), so Phase C is not yet closed and Phase D packaging is undecided. See
+[Android C4 Validation](android-validation.md) for the evidence and remaining checklist.
 [Android Frontend Flows](android-frontend-flows.md) records the scope and remaining validation.
 Firefox/WebKit and physical Android devices were not validated in this delivery.
 The desktop baseline includes:
@@ -2314,7 +2323,7 @@ startup calculations overwriting the cached projection. See
 
 | Metric | Current | Target | Timeline |
 |--------|---------|--------|----------|
-| Test Coverage | 1361 unit+integration tests; gate passing at 94.88/82.48/95.99/96.26% (2026-11-01), including `src/shared/`; `scanner.ts` remains excluded (§2.1.2) | 80%+ | ✅ Passing — shared frontend scope included |
+| Test Coverage | 1375 unit+integration tests; gate passing at 94.89/82.55/95.99/96.26% (2026-11-01), including `src/shared/`; `scanner.ts` remains excluded (§2.1.2) | 80%+ | ✅ Passing — shared frontend scope included |
 | Performance Benchmarks | 49 benchmarks across 7 modules + 3 load tests | Tracked in CI | ✅ End of Phase 2.1.5 |
 | Security Vulnerabilities | 33 prod advisories: 3 critical, 12 high, 18 moderate (`npm audit --omit=dev`, 2026-10-31) | 0 Critical, 0 High | 🔴 Needs triage (§5.1.2) |
 | API Response Time (p97.5) | 7ms (health), rate limiting validated | < 500ms | ✅ Measured in Phase 2.1.5 |
@@ -2372,7 +2381,7 @@ capabilities in parallel. The next decision is architectural as much as function
 ### Priority 1 — Next 2 to 4 weeks
 1. ✅ PWA foundation (`manifest`, icons, service worker, install flow, offline shell) —
    completed 2026-07-02, see §5.5.3.1
-2. Frontend separation and Android UX hardening while preserving desktop quality (§5.5.3.2 — Phases A/B baseline verified; C2/C3 Android flows implemented; C4 next)
+2. Frontend separation and Android UX hardening while preserving desktop quality (§5.5.3.2 — Phases A/B baseline verified; C2/C3/C4 web implemented; physical Android validation pending)
 3. Product decision on persistence model:
    local-only IndexedDB vs authenticated server-synced user data
 

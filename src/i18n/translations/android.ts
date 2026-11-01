@@ -1,4 +1,13 @@
 export const androidEs = {
+  installTitle: "Instalación y uso sin conexión",
+  installHelp: "Puedes instalar esta vista táctil desde el menú del navegador. Abrirá Android sin cambiar la entrada de escritorio.",
+  offlinePreparation: "Abre la aplicación con conexión una primera vez. Sin conexión podrás revisar los datos guardados; analizar, simular y consultar precios requieren conexión.",
+  installApp: "Instalar vista táctil",
+  installFailed: "No se ha podido abrir la instalación. Puedes intentarlo desde el menú del navegador.",
+  skipContent: "Saltar al contenido",
+  updateApp: "Actualizar aplicación conservando los borradores",
+  interrupted: "La operación anterior se interrumpió. Conservamos la última revisión y tus entradas; puedes reintentar.",
+
   portfolioSavedReviewFailed: 'Cartera guardada; no se ha podido abrir su revisión. Recarga las carteras para reintentar.',
   equityHistory: 'Evolución del valor guardado',
   savedPortfolios: "Carteras guardadas",
@@ -98,6 +107,15 @@ export const androidEs = {
 };
 
 export const androidEn: Record<keyof typeof androidEs, string> = {
+  installTitle: "Installation and offline use",
+  installHelp: "Install this touch view from your browser menu. It opens Android while keeping the desktop entry available.",
+  offlinePreparation: "Open the app online once. Offline you can review saved data; scans, simulations and price requests require a connection.",
+  installApp: "Install touch view",
+  installFailed: "Could not open installation. You can try from your browser menu.",
+  skipContent: "Skip to content",
+  updateApp: "Update app and keep drafts",
+  interrupted: "The previous operation was interrupted. Your last review and inputs are retained; you can retry.",
+
   portfolioSavedReviewFailed: 'Portfolio saved; its review could not be opened. Reload portfolios to retry.',
   equityHistory: 'Saved portfolio value history',
   savedPortfolios: "Saved portfolios",

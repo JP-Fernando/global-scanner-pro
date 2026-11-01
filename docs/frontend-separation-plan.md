@@ -74,7 +74,7 @@ happen mainly in the presentation layer.
   - alerts editing
   - simulator flow
 
-### Phase C — Android Frontend (🟡 C2/C3 implemented, C4 next)
+### Phase C — Android Frontend (🟡 C2/C3/C4 web implemented; physical validation pending)
 
 The flow map in [Android Frontend Flows](android-frontend-flows.md) now has its first working
 increment: `android.html` serves **Scan → Results → Asset detail → Simulator** through
@@ -99,9 +99,9 @@ checks static subpath hosting and restores the normal build afterwards.
 Android task-flow E2E runs at 360/390/430 px and includes same-ticker markets, cross-surface
 restore/recalculation, API failure/retry, stale responses, invalid routes and blocked storage.
 C3 adds dedicated Android portfolio construction/save/reopen, position detail and strategy-specific
-alert settings/history; these destinations no longer redirect to desktop management. Full Android installation, physical-device/keyboard
-validation and remaining offline/resume hardening remain C4/D work. The PWA manifest still
-starts the desktop entry; no native wrapper has been added.
+alert settings/history; these destinations no longer redirect to desktop management. C4 adds
+resume/accessibility hardening and an independent Android manifest. Physical Android keyboard,
+installation and lifecycle checks remain pending; no native wrapper has been added.
 
 C2 validation (2026-10-31): **1336 unit/integration tests in 76 files**, **95 Chromium E2E
 tests in 14 specs** (87 desktop + 8 Android), plus **1 production-subpath/offline build test**.
@@ -138,12 +138,37 @@ for retry; confirmation follows the awaited persistence operation. The existing 
 stores remain shared on the same origin; this increment adds no account or tab synchronization.
 
 C3 validation is recorded in [Android Frontend Flows](android-frontend-flows.md#implementación-y-validación-de-c3).
-C4 remains open for broader offline/resume/accessibility and physical Android checks; Phase D
-still owns packaging. The PWA manifest continues to start the desktop entry.
+C4 web hardening is implemented below; physical Android checks remain open before the Phase D
+packaging decision. The desktop manifest keeps its entry; Android uses its own manifest.
+
+### C4 — Web hardening (implemented 2026-11-01; device validation pending)
+
+`navigation.ts` restores Android presentation context under `gsp.android.navigation.v1`:
+last route, per-screen scroll, disclosures and focus/selection. Explicit deep links win over the
+saved route. Async local reads defer scroll restoration until the screen is ready. Connection
+changes update controls without remounting the editor. Resume does not run scans, simulations,
+quote refreshes or notification delivery. Interrupted/failed work retains the previous review
+and offers an explicit retry; a scan that lost connection cannot overwrite the complete review.
+
+Android has a skip link, focus restoration, visual-viewport keyboard handling, safe-area spacing,
+readable input sizing and reduced-motion support. The C4 task flow audits every screen at
+360/390/430 px using axe WCAG 2 A/AA and 2.1 AA with no disabled rules. IndexedDB blocked upgrades
+reject rather than hanging startup, and version changes release existing connections.
+
+`android.webmanifest` gives Android its own identity/start URL; the desktop manifest is preserved.
+Build injection, Docker and precaching include both, including deployment prefixes. Installation
+prompt ownership is independent of desktop bootstrap. Build-specific caches keep HTML paired
+with its asset graph. Updates wait for explicit activation from Android, preserve drafts and
+reload afterwards; quota errors in runtime caching do not discard online responses. Cache
+cleanup is restricted to the deployment prefix.
+
+See [Android C4 Validation](android-validation.md) for evidence, reproducible commands and the
+pending physical-device checklist. ADB reported no attached device. Browser emulation and
+synthetic install events do not validate Android's installation UI or a real keyboard.
 
 ## Near-Term Next Actions
 
-1. Complete C4: offline/resume, accessibility, keyboard/safe-area and Android installation validation
+1. Complete the physical Android C4 checklist before closing Phase C or deciding Phase D packaging
 2. Stop adding new inline-coupled UI logic to the existing monolithic page where avoidable
 3. Keep the Phase B desktop regression and shared coverage gates passing alongside Android task-flow E2E
 4. Validate Android installation/offline behaviour before deciding in Phase D whether a native wrapper is needed

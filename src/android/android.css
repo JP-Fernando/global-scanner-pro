@@ -476,3 +476,21 @@ legend { font-size: 1.1rem; font-weight: 650; margin-bottom: 14px; }
 #portfolioReview > .secondary, #portfolioPreview form { margin-top: 16px; }
 #portfolioBuildForm { margin-top: 16px; }
 #portfolioPreview, #portfolioReview { overflow-wrap: anywhere; }
+
+/* C4: keyboard, cutouts, zoom and reduced motion. */
+html { scroll-padding-bottom: calc(170px + env(safe-area-inset-bottom)); }
+.app-shell { padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+.topbar { padding-top: max(24px, env(safe-area-inset-top)); }
+button, a, input, select, summary { scroll-margin-block: 24px 180px; }
+input, select { font-size: 1rem; }
+.skip-link { position: fixed; top: -100px; left: 16px; z-index: 100; padding: 14px; background: #7de2cb; color: #0b1220; }
+.skip-link:focus { top: max(12px, env(safe-area-inset-top)); }
+.install-panel { margin-top: 20px; }
+.install-panel button { margin-top: 12px; }
+#networkStatus { overflow-wrap: anywhere; }
+body.keyboard-open .bottom-nav, body.keyboard-open .selection-dock { display: none; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; } }
+@media (max-height: 450px) and (orientation: landscape) {
+  .bottom-nav { position: static; }
+  .selection-dock { position: static; margin: 16px; }
+}

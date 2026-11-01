@@ -26,10 +26,18 @@ export class IndexedDBStore {
     return new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
+      let blocked = false;
       request.onerror = () => reject(request.error);
+      request.onblocked = () => { blocked = true; reject(new Error('IndexedDB upgrade blocked by another tab')); };
       request.onsuccess = () => {
+        if (blocked) { request.result.close(); return; }
         this.db = request.result;
-        resolve(this.db);
+        const connection = this.db;
+        connection.onversionchange = () => {
+          connection.close();
+          if (this.db === connection) this.db = null;
+        };
+        resolve(connection);
       };
 
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
